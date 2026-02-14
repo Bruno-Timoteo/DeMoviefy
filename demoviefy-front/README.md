@@ -69,3 +69,10 @@ Local: http://localhost:5173
 Abra o endereço no navegador.
 
 ---
+
+### Extensões
+
+O projeto pode ser melhor utilizado com as seguintes extensões do VS Code:
+
+- Tailwind CSS IntelliSense
+- Pretty TypeScript Errors
