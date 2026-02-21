@@ -1,6 +1,7 @@
-import MainLayout from "../layouts/MainLayout";
+import Upload from "../pages/Upload";
 
-export default function App() {
-  return <MainLayout />;
+function App() {
+  return <Upload />;
 }
 
+export default App;

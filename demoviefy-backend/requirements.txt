@@ -1,0 +1,21 @@
+Flask==3.0.3
+flask-cors==4.0.1
+Flask-SQLAlchemy==3.1.1
+python-dotenv==1.0.1
+Werkzeug==3.0.3
+
+# Banco
+SQLAlchemy==2.0.30
+
+# Processamento de vídeo/áudio
+ffmpeg-python==0.2.0
+
+# Transcrição (Whisper local)
+openai-whisper==20231117
+torch==2.2.2
+
+# Requisições HTTP (caso use API externa)
+requests==2.32.3
+
+# Utilidades
+numpy==1.26.4
