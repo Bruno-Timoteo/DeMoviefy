@@ -22,7 +22,7 @@ try:
     # Diretórios base relativos
     # =========================
     BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # 'teste/'
-    IMAGE_PATH = os.path.join(BASE_DIR, "app", "assets", "train", "images", "monalisa.jpg")
+    IMAGE_PATH = os.path.join(BASE_DIR, "app", "assets", "train", "images", "banza.webp")
     MODEL_PATH = os.path.join(BASE_DIR, "model", "yolo26l.pt")
     RUNS_DIR = BASE_DIR+"/results"  # resultados serão salvos dentro de 'teste/'
 
