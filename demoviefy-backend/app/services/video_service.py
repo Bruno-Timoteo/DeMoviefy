@@ -1,5 +1,9 @@
+import os
+
 from app import db
+from app.config.ai_settings import load_frame_ai_settings
 from app.models.video import Video
+from app.services.frame_ai_service import analyze_video_frames, save_analysis
 
 
 def process_video(flask_app, video_id):
@@ -11,13 +15,40 @@ def process_video(flask_app, video_id):
             flask_app.logger.warning("process_video:not_found video_id=%s", video_id)
             return
 
+        video_path = os.path.join("uploads", video.filename)
+        if not os.path.exists(video_path):
+            video.status = "ERRO_ARQUIVO"
+            db.session.commit()
+            flask_app.logger.error("process_video:file_not_found video_id=%s path=%s", video_id, video_path)
+            return
+
         try:
+            video.status = "PROCESSANDO_IA"
+            db.session.commit()
+            settings = load_frame_ai_settings()
+
+            summary = analyze_video_frames(
+                video_path=video_path,
+                model_path=settings.model_path,
+                frame_stride=settings.frame_stride,
+                conf_threshold=settings.confidence,
+                max_frames=settings.max_frames,
+                logger=flask_app.logger,
+            )
+            analysis_path = save_analysis(video_id, summary)
+
             video.status = "PROCESSADO"
             db.session.commit()
             flask_app.logger.info(
-                "process_video:completed video_id=%s filename=%s", video.id, video.filename
+                "process_video:completed video_id=%s filename=%s analysis=%s",
+                video.id,
+                video.filename,
+                analysis_path,
             )
         except Exception:
             db.session.rollback()
+            video = db.session.get(Video, video_id)
+            if video:
+                video.status = "ERRO_IA"
+                db.session.commit()
             flask_app.logger.exception("process_video:failed video_id=%s", video_id)
-            raise

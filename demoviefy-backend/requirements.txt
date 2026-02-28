@@ -4,18 +4,16 @@ Flask-SQLAlchemy==3.1.1
 python-dotenv==1.0.1
 Werkzeug==3.0.3
 
-# Banco
+# Database
 SQLAlchemy==2.0.30
 
-# Processamento de vídeo/áudio
+# Video processing
 ffmpeg-python==0.2.0
+opencv-python==4.10.0.84
 
-# Transcrição (Whisper local)
-openai-whisper==20231117
-torch==2.2.2
+# AI detection
+ultralytics==8.3.50
 
-# Requisições HTTP (caso use API externa)
+# HTTP and utilities
 requests==2.32.3
-
-# Utilidades
 numpy==1.26.4

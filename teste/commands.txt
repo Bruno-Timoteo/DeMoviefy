@@ -1,5 +1,16 @@
-1  python3 -m venv venv
-    2  cd venv
-    3  source bin/activate
-    4  pip install ultralytics #normal
-    8  pip install ultralytics --proxy http://proxy.spo.ifsp.edu.br:3128 #para a escola
+# Single venv for the whole repository (run from repo root)
+
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r demoviefy-backend/requirements.txt
+
+# GUI launcher for the whole project
+python run_form.py
+
+# Run the MVC YOLO test app
+python teste/app/app.py
+
+# Optional: analyze a specific video path
+$env:TEST_VIDEO_PATH="uploads\your_video.mp4"
+python teste/app/app.py

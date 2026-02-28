@@ -17,3 +17,23 @@ FileNotFoundError: Arquivo /home/estudante1/Documentos/teste/app/dataset/images/
 2026-02-26 20:54:52,288 - INFO - Resultados salvos em runs/detect/predict/
 2026-02-26 20:54:52,288 - INFO - Detecção concluída com sucesso!
 2026-02-26 20:54:52,288 - INFO - Finalizando aplicação.
+2026-02-28 16:08:05,015 - INFO - Starting unified video detection workflow (teste -> backend service).
+2026-02-28 16:08:05,024 - ERROR - Detection workflow failed: No uploaded videos found in uploads/. Upload a video first or set TEST_VIDEO_PATH.
+Traceback (most recent call last):
+  File "D:\IFSP\DeMoviefy\teste\app\controllers\detection_controller.py", line 20, in run
+    video_path = self._resolve_video_path()
+  File "D:\IFSP\DeMoviefy\teste\app\controllers\detection_controller.py", line 46, in _resolve_video_path
+    raise FileNotFoundError(
+        "No uploaded videos found in uploads/. Upload a video first or set TEST_VIDEO_PATH."
+    )
+FileNotFoundError: No uploaded videos found in uploads/. Upload a video first or set TEST_VIDEO_PATH.
+2026-02-28 16:14:56,015 - INFO - Starting unified video detection workflow (teste -> backend service).
+2026-02-28 16:14:56,015 - ERROR - Detection workflow failed: No uploaded videos found in uploads/. Upload a video first or set TEST_VIDEO_PATH.
+Traceback (most recent call last):
+  File "D:\IFSP\DeMoviefy\teste\app\controllers\detection_controller.py", line 20, in run
+    video_path = self._resolve_video_path()
+  File "D:\IFSP\DeMoviefy\teste\app\controllers\detection_controller.py", line 46, in _resolve_video_path
+    raise FileNotFoundError(
+        "No uploaded videos found in uploads/. Upload a video first or set TEST_VIDEO_PATH."
+    )
+FileNotFoundError: No uploaded videos found in uploads/. Upload a video first or set TEST_VIDEO_PATH.
