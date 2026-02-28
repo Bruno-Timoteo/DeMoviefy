@@ -1,0 +1,19 @@
+2026-02-26 20:54:09,381 - INFO - Iniciando aplicação YOLO...
+2026-02-26 20:54:09,381 - ERROR - Imagem não encontrada: /home/estudante1/Documentos/teste/app/dataset/images/train/vini.png
+2026-02-26 20:54:09,381 - ERROR - Ocorreu um erro: Arquivo /home/estudante1/Documentos/teste/app/dataset/images/train/vini.png não existe.
+Traceback (most recent call last):
+  File "/home/estudante1/Documentos/GitHub/DeMoviefy/teste/app/run.py", line 28, in <module>
+    raise FileNotFoundError(f"Arquivo {image_path} não existe.")
+FileNotFoundError: Arquivo /home/estudante1/Documentos/teste/app/dataset/images/train/vini.png não existe.
+2026-02-26 20:54:09,381 - INFO - Finalizando aplicação.
+2026-02-26 20:54:51,437 - INFO - Iniciando aplicação YOLO...
+2026-02-26 20:54:51,437 - INFO - Carregando modelo YOLO26 nano...
+2026-02-26 20:54:51,549 - INFO - Modelo carregado com sucesso!
+2026-02-26 20:54:51,549 - INFO - Iniciando detecção na imagem: /home/estudante1/Documentos/GitHub/DeMoviefy/teste/app/dataset/images/train/vini.png
+2026-02-26 20:54:52,288 - INFO - Tempo de processamento: 0.74 segundos
+2026-02-26 20:54:52,288 - INFO - Total de objetos detectados: 1
+2026-02-26 20:54:52,288 - INFO - Classes detectadas: ['person']
+2026-02-26 20:54:52,288 - INFO - Confiança média: 0.98
+2026-02-26 20:54:52,288 - INFO - Resultados salvos em runs/detect/predict/
+2026-02-26 20:54:52,288 - INFO - Detecção concluída com sucesso!
+2026-02-26 20:54:52,288 - INFO - Finalizando aplicação.
