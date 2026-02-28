@@ -50,7 +50,7 @@ export default function Upload() {
   const stats = useMemo<Stats>(() => {
     const total = videos.length;
     const processing = videos.filter(
-      (video) => video.status.toUpperCase() === "PROCESSANDO"
+      (video) => video.status.toUpperCase().startsWith("PROCESSANDO")
     ).length;
     const processed = videos.filter((video) => video.status.toUpperCase() === "PROCESSADO").length;
 

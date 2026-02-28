@@ -1,6 +1,19 @@
 # DeMoviefy - Run Instructions
 
-These steps run backend and frontend locally.
+These steps run backend, frontend, and the YOLO test app with one shared Python environment.
+
+## Quick Start (GUI form)
+
+From repo root:
+
+```powershell
+python run_form.py
+```
+
+Then click:
+- `Setup Environment`
+- `Start All`
+- `Run AI Test` (optional)
 
 ## Prerequisites
 
@@ -17,15 +30,30 @@ npm --version
 ffmpeg -version
 ```
 
+## 0) Create one shared Python venv (repo root)
+
+From repo root:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r demoviefy-backend/requirements.txt
+```
+
+Optional (only if you need transcription features):
+
+```powershell
+pip install -r demoviefy-backend/requirements-transcription.txt
+```
+
 ## 1) Start Backend (Terminal 1)
 
 From repo root:
 
 ```powershell
 cd demoviefy-backend
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+..\.venv\Scripts\Activate.ps1
 python run.py
 ```
 
@@ -47,7 +75,16 @@ Frontend (Vite) usually runs at:
 
 - http://localhost:5173
 
-## 3) Verify Integration
+## 3) Run YOLO test app (optional)
+
+From repo root:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+python teste/app/app.py
+```
+
+## 4) Verify Integration
 
 - Open `http://localhost:5173`
 - Go to Upload page and send a video file
@@ -74,3 +111,4 @@ npm install
 ```
 
 (the current frontend dependencies are already aligned for a normal install).
+
