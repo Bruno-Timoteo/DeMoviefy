@@ -1,41 +1,57 @@
-# DeMoviefy - Run Instructions
+# DeMoviefy
 
-These steps run backend and frontend locally.
+## Monorepo structure
 
-## Prerequisites
+- `demoviefy-backend`: Flask API
+- `demoviefy-front`: React frontend
+- `teste`: YOLO test app (refactored to MVC)
 
-- Python 3.11+ (recommended)
-- Node.js 20+ and npm
-- FFmpeg installed and available in PATH (required for future video/audio processing)
+## Single Python venv for the whole repo
 
-Check versions:
+Run from repository root:
 
 ```powershell
-python --version
-node --version
-npm --version
-ffmpeg -version
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r demoviefy-backend/requirements.txt
 ```
 
-## 1) Start Backend (Terminal 1)
+Optional transcription dependencies (not required for current video detection flow):
 
-From repo root:
+```powershell
+pip install -r demoviefy-backend/requirements-transcription.txt
+```
+
+## Easiest way: launcher form
+
+```powershell
+python run_form.py
+```
+
+Use the buttons:
+- `Setup Environment`
+- `Start All`
+- `Run AI Test` (optional video path)
+
+## Run backend
 
 ```powershell
 cd demoviefy-backend
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+..\.venv\Scripts\Activate.ps1
 python run.py
 ```
 
-Backend runs at:
+Backend now analyzes uploaded videos with YOLO in MVC flow:
 
-- http://127.0.0.1:5000
+- routes: `demoviefy-backend/app/routes`
+- controller: `demoviefy-backend/app/controllers`
+- services: `demoviefy-backend/app/services`
+- models: `demoviefy-backend/app/models`
 
-## 2) Start Frontend (Terminal 2)
+By default, video analysis uses your custom model at `teste/model/yolo26l.pt` when present.
 
-From repo root:
+## Run frontend
 
 ```powershell
 cd demoviefy-front
@@ -43,34 +59,25 @@ npm install
 npm run dev
 ```
 
-Frontend (Vite) usually runs at:
-
-- http://localhost:5173
-
-## 3) Verify Integration
-
-- Open `http://localhost:5173`
-- Go to Upload page and send a video file
-- Frontend calls backend at `http://127.0.0.1:5000` (configured in `demoviefy-front/src/services/api.ts`)
-
-## Troubleshooting
-
-- If backend fails due to PowerShell script policy:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-```
-
-Then activate venv again:
+## Run YOLO MVC test app
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
+python teste/app/app.py
 ```
 
-- If `npm install` fails with peer dependency conflicts, run:
+`teste/app` now reuses backend AI services directly. By default it analyzes the latest video in `uploads/`.
+To target a specific file:
 
 ```powershell
-npm install
+$env:TEST_VIDEO_PATH="uploads\your_video.mp4"
+python teste/app/app.py
 ```
 
-(the current frontend dependencies are already aligned for a normal install).
+## YOLO test app MVC layout
+
+- `teste/app/controllers`: orchestration layer
+- `teste/app/models`: YOLO inference layer
+- `teste/app/views`: output/log rendering
+- `teste/app/config`: app settings
+- `teste/app/core`: infrastructure utilities
