@@ -3,7 +3,10 @@
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
+python -m pip install --upgrade pip --proxy http://proxy.spo.ifsp.edu.br:3128
 pip install -r demoviefy-backend/requirements.txt
+
+#--proxy http://proxy.spo.ifsp.edu.br:3128
 
 # GUI launcher for the whole project
 python run_form.py
