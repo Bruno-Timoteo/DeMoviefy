@@ -15,6 +15,16 @@ Then click:
 - `Start All`
 - `Run AI Test` (optional)
 
+## Proxy install (school network)
+
+Set the proxy once per session:
+
+```powershell
+$env:PROXY_URL="http://proxy.spo.ifsp.edu.br:3128"
+```
+
+Then click `Setup Environment` in the launcher.
+
 ## Prerequisites
 
 - Python 3.11+ (recommended)
@@ -81,7 +91,7 @@ From repo root:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
-python teste/app/app.py
+python ai_model/app/app.py
 ```
 
 ## 4) Verify Integration
@@ -111,4 +121,3 @@ npm install
 ```
 
 (the current frontend dependencies are already aligned for a normal install).
-

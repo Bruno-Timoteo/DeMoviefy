@@ -6,7 +6,7 @@ from typing import Optional
 
 @dataclass(frozen=True)
 class DetectionSettings:
-    teste_root: Path
+    ai_root: Path
     repo_root: Path
     backend_root: Path
     uploads_dir: Path
@@ -15,8 +15,8 @@ class DetectionSettings:
 
     @classmethod
     def default(cls) -> "DetectionSettings":
-        teste_root = Path(__file__).resolve().parents[2]
-        repo_root = teste_root.parent
+        ai_root = Path(__file__).resolve().parents[2]
+        repo_root = ai_root.parent
         backend_root = repo_root / "demoviefy-backend"
         uploads_dir = repo_root / "uploads"
 
@@ -24,7 +24,7 @@ class DetectionSettings:
         explicit_video_path = Path(explicit_video_value) if explicit_video_value else None
 
         return cls(
-            teste_root=teste_root,
+            ai_root=ai_root,
             repo_root=repo_root,
             backend_root=backend_root,
             uploads_dir=uploads_dir,

@@ -12,8 +12,8 @@ pip install -r demoviefy-backend/requirements.txt
 python run_form.py
 
 # Run the MVC YOLO test app
-python teste/app/app.py
+python ai_model/app/app.py
 
 # Optional: analyze a specific video path
 $env:TEST_VIDEO_PATH="uploads\your_video.mp4"
-python teste/app/app.py
+python ai_model/app/app.py

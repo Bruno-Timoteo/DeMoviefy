@@ -15,7 +15,7 @@ class DetectionController:
         self.model = DetectionModel(settings.backend_root)
 
     def run(self) -> None:
-        self.view.info("Starting unified video detection workflow (teste -> backend service).")
+        self.view.info("Starting unified video detection workflow (ai_model -> backend service).")
         try:
             video_path = self._resolve_video_path()
             summary, elapsed = self.model.detect_video(video_path=video_path)

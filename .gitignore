@@ -2,4 +2,7 @@ __pycache__/
 *.pyc
 app.log
 uploads/
-teste/results/
+ai_model/results/
+.venv/
+demoviefy-front/node_modules/
+demoviefy-front/dist/

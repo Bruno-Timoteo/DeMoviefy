@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 def build_logger(log_file: Path) -> logging.Logger:
-    logger = logging.getLogger("yolo_teste_app")
+    logger = logging.getLogger("ai_model_app")
     if logger.handlers:
         return logger
 

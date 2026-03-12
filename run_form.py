@@ -22,7 +22,7 @@ from tkinter import ttk
 ROOT = Path(__file__).resolve().parent
 BACKEND_DIR = ROOT / "demoviefy-backend"
 FRONTEND_DIR = ROOT / "demoviefy-front"
-TEST_APP = ROOT / "teste" / "app" / "app.py"
+TEST_APP = ROOT / "ai_model" / "app" / "app.py"
 REQUIREMENTS = ROOT / "demoviefy-backend" / "requirements.txt"
 LAUNCHER_VERSION = "1.2.0"
 
@@ -87,6 +87,24 @@ def is_npm_command(command: list[str]) -> bool:
         return False
     executable = Path(command[0]).name.lower()
     return executable in {"npm", "npm.cmd", "npm.exe"}
+
+
+def build_proxy_env() -> dict[str, str] | None:
+    """
+    Build environment variables for proxy-aware installs.
+
+    If PROXY_URL (or HTTP_PROXY) is set, it is applied to HTTP(S) and pip/npm subprocesses.
+    """
+    proxy = os.environ.get("PROXY_URL") or os.environ.get("HTTP_PROXY")
+    if not proxy:
+        return None
+
+    env = os.environ.copy()
+    env["HTTP_PROXY"] = proxy
+    env["HTTPS_PROXY"] = proxy
+    env["ALL_PROXY"] = proxy
+    env["PIP_PROXY"] = proxy
+    return env
 
 
 class LauncherForm(tk.Tk):
@@ -333,6 +351,7 @@ class LauncherForm(tk.Tk):
 
         def worker() -> None:
             py = venv_python()
+            proxy_env = build_proxy_env()
 
             # Step 1: create venv if needed.
             if not py.exists():
@@ -342,18 +361,28 @@ class LauncherForm(tk.Tk):
                     return
 
             # Step 2: install Python dependencies.
-            rc = self._run_sync("setup", [str(py), "-m", "pip", "install", "--upgrade", "pip"], ROOT)
+            rc = self._run_sync(
+                "setup",
+                [str(py), "-m", "pip", "install", "--upgrade", "pip"],
+                ROOT,
+                env=proxy_env,
+            )
             if rc != 0:
                 self._log("[setup] failed while upgrading pip.")
                 return
 
-            rc = self._run_sync("setup", [str(py), "-m", "pip", "install", "-r", str(REQUIREMENTS)], ROOT)
+            rc = self._run_sync(
+                "setup",
+                [str(py), "-m", "pip", "install", "-r", str(REQUIREMENTS)],
+                ROOT,
+                env=proxy_env,
+            )
             if rc != 0:
                 self._log("[setup] failed while installing backend requirements.")
                 return
 
             # Step 3: install frontend dependencies.
-            rc = self._run_sync("setup", ["npm", "install"], FRONTEND_DIR)
+            rc = self._run_sync("setup", ["npm", "install"], FRONTEND_DIR, env=proxy_env)
             if rc != 0:
                 self._log("[setup] failed while running npm install.")
                 return
@@ -362,7 +391,7 @@ class LauncherForm(tk.Tk):
 
         threading.Thread(target=worker, daemon=True).start()
 
-    def _run_sync(self, name: str, command: list[str], cwd: Path) -> int:
+    def _run_sync(self, name: str, command: list[str], cwd: Path, env: dict[str, str] | None = None) -> int:
         """
         Run a blocking command and stream output.
 
@@ -375,6 +404,7 @@ class LauncherForm(tk.Tk):
             proc = subprocess.Popen(
                 command_norm,
                 cwd=str(cwd),
+                env=env,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
@@ -390,6 +420,7 @@ class LauncherForm(tk.Tk):
                     proc = subprocess.Popen(
                         command_shell,
                         cwd=str(cwd),
+                        env=env,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.STDOUT,
                         text=True,

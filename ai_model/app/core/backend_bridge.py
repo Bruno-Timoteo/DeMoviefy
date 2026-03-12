@@ -5,7 +5,7 @@ from pathlib import Path
 def ensure_backend_on_path() -> Path:
     """
     Put demoviefy-backend at the front of sys.path so imports like
-    `app.services.*` resolve to backend package (not teste/app/app.py).
+    `app.services.*` resolve to backend package (not ai_model/app/app.py).
     """
     repo_root = Path(__file__).resolve().parents[3]
     backend_root = repo_root / "demoviefy-backend"

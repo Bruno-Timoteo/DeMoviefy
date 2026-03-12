@@ -21,7 +21,7 @@ export default function MainLayout(
             {/* O conteúdo da página entra aqui */}
             <main className="grow">
                 {/* {children} */}
-                <p>Teste</p>
+                <p>AI Model</p>
             </main>
 
             <footer>
