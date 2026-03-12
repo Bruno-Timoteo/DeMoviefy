@@ -125,6 +125,8 @@ class LauncherForm(tk.Tk):
         self.video_path_var = tk.StringVar(value="")
         self.backend_status_var = tk.StringVar(value="Stopped")
         self.frontend_status_var = tk.StringVar(value="Stopped")
+        self.setup_status_var = tk.StringVar(value="Idle")
+        self._setup_running = False
 
         self._build_ui()
         self._log(f"[launcher] DeMoviefy Launcher v{LAUNCHER_VERSION}")
@@ -141,11 +143,20 @@ class LauncherForm(tk.Tk):
         row1 = ttk.Frame(controls)
         row1.pack(fill=tk.X, pady=(0, 8))
 
-        ttk.Button(row1, text="Setup Environment", command=self.setup_environment).pack(side=tk.LEFT, padx=(0, 8))
+        self.setup_button = ttk.Button(row1, text="Setup Environment", command=self.setup_environment)
+        self.setup_button.pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(row1, text="Start Backend", command=self.start_backend).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(row1, text="Start Frontend", command=self.start_frontend).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(row1, text="Start All", command=self.start_all).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(row1, text="Stop All", command=self.stop_all).pack(side=tk.LEFT, padx=(0, 8))
+
+        # Row 1b: setup status indicator.
+        setup_row = ttk.Frame(controls)
+        setup_row.pack(fill=tk.X, pady=(0, 8))
+        ttk.Label(setup_row, text="Setup:").pack(side=tk.LEFT)
+        ttk.Label(setup_row, textvariable=self.setup_status_var).pack(side=tk.LEFT, padx=(4, 12))
+        self.setup_progress = ttk.Progressbar(setup_row, mode="indeterminate", length=220)
+        self.setup_progress.pack(side=tk.LEFT)
 
         # Row 2: optional explicit video path for AI test app.
         row2 = ttk.Frame(controls)
@@ -209,6 +220,22 @@ class LauncherForm(tk.Tk):
         """Check whether a named managed process is alive."""
         proc = self.processes.get(name)
         return proc is not None and proc.poll() is None
+
+    def _set_setup_state(self, running: bool, message: str | None = None) -> None:
+        """Update setup indicator safely from any thread."""
+
+        def apply() -> None:
+            self._setup_running = running
+            if message is not None:
+                self.setup_status_var.set(message)
+            if running:
+                self.setup_progress.start(10)
+                self.setup_button.configure(state=tk.DISABLED)
+            else:
+                self.setup_progress.stop()
+                self.setup_button.configure(state=tk.NORMAL)
+
+        self.after(0, apply)
 
     def _stream_process(self, name: str, proc: subprocess.Popen) -> None:
         """Read a long-running process output and route lines into the UI log queue."""
@@ -350,45 +377,63 @@ class LauncherForm(tk.Tk):
         """
 
         def worker() -> None:
-            py = venv_python()
-            proxy_env = build_proxy_env()
+            try:
+                py = venv_python()
+                proxy_env = build_proxy_env()
 
-            # Step 1: create venv if needed.
-            if not py.exists():
-                rc = self._run_sync("setup", [sys.executable, "-m", "venv", ".venv"], ROOT)
+                # Step 1: create venv if needed.
+                self._set_setup_state(True, "Checking .venv...")
+                if not py.exists():
+                    self._set_setup_state(True, "Creating .venv...")
+                    rc = self._run_sync("setup", [sys.executable, "-m", "venv", ".venv"], ROOT)
+                    if rc != 0:
+                        self._log("[setup] failed while creating .venv.")
+                        self._set_setup_state(False, "Failed creating .venv")
+                        return
+
+                # Step 2: install Python dependencies.
+                self._set_setup_state(True, "Upgrading pip...")
+                rc = self._run_sync(
+                    "setup",
+                    [str(py), "-m", "pip", "install", "--upgrade", "pip"],
+                    ROOT,
+                    env=proxy_env,
+                )
                 if rc != 0:
-                    self._log("[setup] failed while creating .venv.")
+                    self._log("[setup] failed while upgrading pip.")
+                    self._set_setup_state(False, "Failed upgrading pip")
                     return
 
-            # Step 2: install Python dependencies.
-            rc = self._run_sync(
-                "setup",
-                [str(py), "-m", "pip", "install", "--upgrade", "pip"],
-                ROOT,
-                env=proxy_env,
-            )
-            if rc != 0:
-                self._log("[setup] failed while upgrading pip.")
-                return
+                self._set_setup_state(True, "Installing backend deps...")
+                rc = self._run_sync(
+                    "setup",
+                    [str(py), "-m", "pip", "install", "-r", str(REQUIREMENTS)],
+                    ROOT,
+                    env=proxy_env,
+                )
+                if rc != 0:
+                    self._log("[setup] failed while installing backend requirements.")
+                    self._set_setup_state(False, "Failed backend deps")
+                    return
 
-            rc = self._run_sync(
-                "setup",
-                [str(py), "-m", "pip", "install", "-r", str(REQUIREMENTS)],
-                ROOT,
-                env=proxy_env,
-            )
-            if rc != 0:
-                self._log("[setup] failed while installing backend requirements.")
-                return
+                # Step 3: install frontend dependencies.
+                self._set_setup_state(True, "Installing frontend deps...")
+                rc = self._run_sync("setup", ["npm", "install"], FRONTEND_DIR, env=proxy_env)
+                if rc != 0:
+                    self._log("[setup] failed while running npm install.")
+                    self._set_setup_state(False, "Failed frontend deps")
+                    return
 
-            # Step 3: install frontend dependencies.
-            rc = self._run_sync("setup", ["npm", "install"], FRONTEND_DIR, env=proxy_env)
-            if rc != 0:
-                self._log("[setup] failed while running npm install.")
-                return
+                self._log("[setup] environment ready.")
+                self._set_setup_state(False, "Ready")
+            except Exception as exc:
+                self._log(f"[setup] unexpected error: {exc}")
+                self._set_setup_state(False, "Failed (unexpected)")
 
-            self._log("[setup] environment ready.")
-
+        if self._setup_running:
+            self._log("[setup] setup is already running.")
+            return
+        self._set_setup_state(True, "Starting...")
         threading.Thread(target=worker, daemon=True).start()
 
     def _run_sync(self, name: str, command: list[str], cwd: Path, env: dict[str, str] | None = None) -> int:
