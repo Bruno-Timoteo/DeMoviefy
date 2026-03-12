@@ -4,8 +4,13 @@ import threading
 from flask import current_app, jsonify, request
 from werkzeug.utils import secure_filename
 
-from app import db
-from app.models.video import Video
+from app.repositories.video_repository import (
+    create_video,
+    delete_video,
+    get_video,
+    list_videos as list_videos_repo,
+    update_status,
+)
 from app.services.frame_ai_service import has_analysis, load_analysis
 from app.services.video_service import process_video
 
@@ -43,9 +48,7 @@ def upload_video():
     file.save(filepath)
     current_app.logger.info("upload_video:saved filename=%s path=%s", filename, filepath)
 
-    new_video = Video(filename=filename)
-    db.session.add(new_video)
-    db.session.commit()
+    new_video = create_video(filename=filename)
     current_app.logger.info("upload_video:db_saved video_id=%s", new_video.id)
 
     flask_app = current_app._get_current_object()
@@ -57,7 +60,7 @@ def upload_video():
 
 
 def list_videos():
-    videos = Video.query.order_by(Video.created_at.desc()).all()
+    videos = list_videos_repo()
     payload = []
     for video in videos:
         item = video.to_dict()
@@ -67,7 +70,7 @@ def list_videos():
 
 
 def get_video_analysis(video_id: int):
-    video = db.session.get(Video, video_id)
+    video = get_video(video_id)
     if not video:
         return jsonify({"error": "Video nao encontrado"}), 404
 
@@ -85,6 +88,38 @@ def get_video_analysis(video_id: int):
             "analysis": analysis,
         }
     )
+
+
+def get_video_details(video_id: int):
+    video = get_video(video_id)
+    if not video:
+        return jsonify({"error": "Video nao encontrado"}), 404
+    payload = video.to_dict()
+    payload["analysis_ready"] = has_analysis(video.id)
+    return jsonify(payload)
+
+
+def update_video_status(video_id: int):
+    payload = request.get_json(silent=True) or {}
+    status = payload.get("status")
+    if not status:
+        return jsonify({"error": "Campo status obrigatorio"}), 400
+
+    video = get_video(video_id)
+    if not video:
+        return jsonify({"error": "Video nao encontrado"}), 404
+
+    update_status(video, str(status))
+    return jsonify(video.to_dict())
+
+
+def delete_video_by_id(video_id: int):
+    video = get_video(video_id)
+    if not video:
+        return jsonify({"error": "Video nao encontrado"}), 404
+
+    delete_video(video)
+    return jsonify({"message": "Video removido com sucesso"})
 
 
 def home():

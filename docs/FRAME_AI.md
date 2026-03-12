@@ -1,6 +1,6 @@
 # Frame AI (Detection + Training)
 
-This backend now runs frame-level object detection when a video is uploaded.
+This backend runs frame-level object detection when a video is uploaded.
 
 ## 1) Install dependencies
 
@@ -13,7 +13,7 @@ pip install -r requirements.txt
 
 Environment variables:
 
-- `FRAME_AI_MODEL` (default priority: env var -> `teste/model/yolo26l.pt` -> `yolov8n.pt`)
+- `FRAME_AI_MODEL` (default priority: env var -> `ai_model/model/yolo26l.pt` -> `yolov8n.pt`)
 - `FRAME_AI_FRAME_STRIDE` (default: `8`)
 - `FRAME_AI_CONFIDENCE` (default: `0.35`)
 - `FRAME_AI_MAX_FRAMES` (default: `300`)
@@ -32,6 +32,9 @@ python run.py
 
 - `POST /videos` uploads video and starts background analysis.
 - `GET /videos` returns videos and `analysis_ready` flag.
+- `GET /videos/<id>` returns a single video.
+- `PATCH /videos/<id>` updates a video status.
+- `DELETE /videos/<id>` deletes a video.
 - `GET /videos/<id>/analysis` returns aggregated labels/confidence for that video.
 
 Analysis JSON files are saved in: `uploads/analysis/video_<id>.json`.

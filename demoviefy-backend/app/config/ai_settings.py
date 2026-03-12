@@ -18,7 +18,7 @@ def _default_model_path() -> str:
 
     backend_root = Path(__file__).resolve().parents[2]
     repo_root = backend_root.parent
-    custom_model = repo_root / "teste" / "model" / "yolo26l.pt"
+    custom_model = repo_root / "ai_model" / "model" / "yolo26l.pt"
     if custom_model.exists():
         return str(custom_model)
 
