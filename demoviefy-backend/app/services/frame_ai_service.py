@@ -1,11 +1,10 @@
 import json
-import os
 from collections import Counter, defaultdict
 from functools import lru_cache
 from typing import Any
 
-
-ANALYSIS_DIR = os.path.join("uploads", "analysis")
+from app.config.paths import analysis_file_path as build_analysis_file_path
+from app.config.paths import ensure_storage_dirs
 
 
 @lru_cache(maxsize=2)
@@ -19,13 +18,17 @@ def analyze_video_frames(
     *,
     video_path: str,
     model_path: str = "yolov8n.pt",
+    task_type: str = "object_detection",
     frame_stride: int = 8,
     conf_threshold: float = 0.35,
     max_frames: int = 300,
     logger: Any | None = None,
 ) -> dict[str, Any]:
     """
-    Run object detection in sampled frames and return aggregate statistics.
+    Run frame sampling and summarize the chosen AI task across the video.
+
+    We keep the output format intentionally compact so it can be edited by the
+    frontend and also stored as plain JSON beside the uploaded video.
     """
     try:
         import cv2
@@ -35,7 +38,7 @@ def analyze_video_frames(
     try:
         model = _get_model(model_path)
     except Exception as exc:  # pragma: no cover
-        raise RuntimeError(f"Failed to load detection model '{model_path}'.") from exc
+        raise RuntimeError(f"Failed to load model '{model_path}'.") from exc
 
     capture = cv2.VideoCapture(video_path)
     if not capture.isOpened():
@@ -50,9 +53,10 @@ def analyze_video_frames(
 
     if logger:
         logger.info(
-            "frame_ai:start video_path=%s model=%s stride=%s conf=%.2f max_frames=%s",
+            "frame_ai:start video_path=%s model=%s task=%s stride=%s conf=%.2f max_frames=%s",
             video_path,
             model_path,
+            task_type,
             frame_stride,
             conf_threshold,
             max_frames,
@@ -71,7 +75,14 @@ def analyze_video_frames(
         result = model(frame, verbose=False, conf=conf_threshold)[0]
         names = result.names or {}
 
-        if result.boxes is not None and len(result.boxes) > 0:
+        if task_type == "image_classification" and getattr(result, "probs", None) is not None:
+            top_index = int(result.probs.top1)
+            label = names.get(top_index, str(top_index))
+            confidence = float(result.probs.top1conf)
+            labels_counter[label] += 1
+            confidence_sum[label] += confidence
+            confidence_count[label] += 1
+        elif result.boxes is not None and len(result.boxes) > 0:
             classes = result.boxes.cls.tolist()
             confidences = result.boxes.conf.tolist()
 
@@ -96,6 +107,7 @@ def analyze_video_frames(
     summary = {
         "video_path": video_path,
         "model_path": model_path,
+        "task_type": task_type,
         "frame_stride": frame_stride,
         "confidence_threshold": conf_threshold,
         "max_frames": max_frames,
@@ -119,11 +131,11 @@ def analyze_video_frames(
 
 
 def analysis_file_path(video_id: int) -> str:
-    return os.path.join(ANALYSIS_DIR, f"video_{video_id}.json")
+    return str(build_analysis_file_path(video_id))
 
 
 def save_analysis(video_id: int, summary: dict[str, Any]) -> str:
-    os.makedirs(ANALYSIS_DIR, exist_ok=True)
+    ensure_storage_dirs()
     path = analysis_file_path(video_id)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=True, indent=2)
@@ -132,11 +144,11 @@ def save_analysis(video_id: int, summary: dict[str, Any]) -> str:
 
 def load_analysis(video_id: int) -> dict[str, Any] | None:
     path = analysis_file_path(video_id)
-    if not os.path.exists(path):
+    if not build_analysis_file_path(video_id).exists():
         return None
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def has_analysis(video_id: int) -> bool:
-    return os.path.exists(analysis_file_path(video_id))
+    return build_analysis_file_path(video_id).exists()
