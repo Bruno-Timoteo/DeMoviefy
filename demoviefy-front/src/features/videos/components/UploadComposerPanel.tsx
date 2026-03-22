@@ -1,4 +1,4 @@
-import type { ChangeEvent } from "react";
+import { memo, type ChangeEvent } from "react";
 
 import type { AIModelOption, AITaskOption } from "../types";
 
@@ -9,27 +9,47 @@ type UploadComposerPanelProps = {
   uploading: boolean;
   selectedTask: string;
   selectedModelPath: string;
+  frameStride: string;
+  confidenceThreshold: string;
+  maxFrames: string;
+  clipStart: string;
+  clipEnd: string;
   tasks: AITaskOption[];
   models: AIModelOption[];
   onFileChange: (file: File | null) => void;
   onTaskChange: (taskType: string) => void;
   onModelChange: (modelPath: string) => void;
+  onFrameStrideChange: (value: string) => void;
+  onConfidenceThresholdChange: (value: string) => void;
+  onMaxFramesChange: (value: string) => void;
+  onClipStartChange: (value: string) => void;
+  onClipEndChange: (value: string) => void;
   onUpload: () => void;
   onRefresh: () => void;
 };
 
-export function UploadComposerPanel({
+export const UploadComposerPanel = memo(function UploadComposerPanel({
   file,
   message,
   hint,
   uploading,
   selectedTask,
   selectedModelPath,
+  frameStride,
+  confidenceThreshold,
+  maxFrames,
+  clipStart,
+  clipEnd,
   tasks,
   models,
   onFileChange,
   onTaskChange,
   onModelChange,
+  onFrameStrideChange,
+  onConfidenceThresholdChange,
+  onMaxFramesChange,
+  onClipStartChange,
+  onClipEndChange,
   onUpload,
   onRefresh,
 }: UploadComposerPanelProps) {
@@ -88,7 +108,67 @@ export function UploadComposerPanel({
                 ))}
               </select>
             </label>
+
+            <label className="field-block">
+              <span>Stride de frames</span>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={frameStride}
+                onChange={(event) => onFrameStrideChange(event.target.value)}
+              />
+            </label>
+
+            <label className="field-block">
+              <span>Confianca minima</span>
+              <input
+                type="number"
+                min="0"
+                max="1"
+                step="0.01"
+                value={confidenceThreshold}
+                onChange={(event) => onConfidenceThresholdChange(event.target.value)}
+              />
+            </label>
+
+            <label className="field-block">
+              <span>Maximo de frames</span>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={maxFrames}
+                onChange={(event) => onMaxFramesChange(event.target.value)}
+              />
+            </label>
+
+            <label className="field-block">
+              <span>Inicio da analise (s)</span>
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={clipStart}
+                onChange={(event) => onClipStartChange(event.target.value)}
+              />
+            </label>
+
+            <label className="field-block">
+              <span>Fim da analise (s)</span>
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={clipEnd}
+                onChange={(event) => onClipEndChange(event.target.value)}
+                placeholder="Vazio = ate o fim"
+              />
+            </label>
           </div>
+          <p className="field-help">
+            Escolha exatamente qual trecho do video sera analisado. O preview anotado mostrara esse mesmo recorte.
+          </p>
         </div>
 
         <div className="hero-actions">
@@ -109,4 +189,4 @@ export function UploadComposerPanel({
       )}
     </section>
   );
-}
+});

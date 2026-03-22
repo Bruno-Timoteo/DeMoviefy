@@ -1,6 +1,15 @@
+import { memo, useEffect, useRef, useState } from "react";
+
 import { StatusBadge } from "./StatusBadge";
-import type { AIModelOption, AITaskOption, VideoAnalysisResponse, VideoRecord } from "../types";
-import { toApiUrl } from "../../../services/api";
+import { ProcessingProgress } from "./ProcessingProgress";
+import type {
+  AIModelOption,
+  AITaskOption,
+  VideoAnalysisResponse,
+  VideoRecord,
+  VideoTranscriptionResponse,
+} from "../types";
+import { toApiUrlWithQuery } from "../../../services/api";
 
 type VideoWorkbenchProps = {
   video: VideoRecord | null;
@@ -9,19 +18,33 @@ type VideoWorkbenchProps = {
   analysisMessage: string;
   selectedTask: string;
   selectedModelPath: string;
+  selectedFrameStride: string;
+  selectedConfidenceThreshold: string;
+  selectedMaxFrames: string;
+  selectedClipStart: string;
+  selectedClipEnd: string;
   taskOptions: AITaskOption[];
   modelOptions: AIModelOption[];
   analysisDraft: string;
+  transcription: VideoTranscriptionResponse | null;
   transcriptionDraft: string;
   transcriptionMessage: string;
+  isBusy: boolean;
   onTaskChange: (taskType: string) => void;
   onModelChange: (modelPath: string) => void;
+  onFrameStrideChange: (value: string) => void;
+  onConfidenceThresholdChange: (value: string) => void;
+  onMaxFramesChange: (value: string) => void;
+  onClipStartChange: (value: string) => void;
+  onClipEndChange: (value: string) => void;
   onAnalysisDraftChange: (value: string) => void;
   onTranscriptionDraftChange: (value: string) => void;
   onSaveConfig: () => void;
   onReprocess: () => void;
+  onDeleteVideo: () => void;
   onSaveAnalysis: () => void;
   onDeleteAnalysis: () => void;
+  onGenerateTranscription: () => void;
   onSaveTranscription: () => void;
   onDeleteTranscription: () => void;
 };
@@ -33,29 +56,87 @@ function formatPercent(value: number | undefined) {
   return `${(value * 100).toFixed(1)}%`;
 }
 
-export function VideoWorkbench({
+function formatSeconds(value: number | null | undefined) {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "-";
+  }
+  return `${value.toFixed(1)}s`;
+}
+
+function formatDurationText(value: number | null | undefined) {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "Duracao indisponivel";
+  }
+
+  if (value < 1) {
+    return `Duracao aproximada: ${value.toFixed(2)}s`;
+  }
+
+  return `Duracao aproximada: ${value.toFixed(1)}s`;
+}
+
+export const VideoWorkbench = memo(function VideoWorkbench({
   video,
   analysis,
   analysisState,
   analysisMessage,
   selectedTask,
   selectedModelPath,
+  selectedFrameStride,
+  selectedConfidenceThreshold,
+  selectedMaxFrames,
+  selectedClipStart,
+  selectedClipEnd,
   taskOptions,
   modelOptions,
   analysisDraft,
+  transcription,
   transcriptionDraft,
   transcriptionMessage,
+  isBusy,
   onTaskChange,
   onModelChange,
+  onFrameStrideChange,
+  onConfidenceThresholdChange,
+  onMaxFramesChange,
+  onClipStartChange,
+  onClipEndChange,
   onAnalysisDraftChange,
   onTranscriptionDraftChange,
   onSaveConfig,
   onReprocess,
+  onDeleteVideo,
   onSaveAnalysis,
   onDeleteAnalysis,
+  onGenerateTranscription,
   onSaveTranscription,
   onDeleteTranscription,
 }: VideoWorkbenchProps) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [annotatedPlaybackError, setAnnotatedPlaybackError] = useState(false);
+
+  const summary = analysis?.analysis ?? null;
+  const filteredModels = modelOptions.filter((model) => model.task_type === selectedTask);
+  const transcriptionSegments = transcription?.transcription.segments ?? [];
+  const annotatedVideoSrc = video
+    ? toApiUrlWithQuery(video.annotated_url, {
+        v: video.storage.annotated_exists ? video.created_at ?? video.id : null,
+        status: video.status,
+        stride: video.ai_config.frame_stride,
+        clip_start: video.ai_config.clip_start_sec,
+        clip_end: video.ai_config.clip_end_sec ?? "end",
+      })
+    : "";
+  const originalVideoSrc = video
+    ? toApiUrlWithQuery(video.video_url, {
+        v: video.created_at ?? video.id,
+      })
+    : "";
+
+  useEffect(() => {
+    setAnnotatedPlaybackError(false);
+  }, [annotatedVideoSrc, video?.id]);
+
   if (!video) {
     return (
       <section className="surface inspector-panel empty-state">
@@ -65,8 +146,23 @@ export function VideoWorkbench({
     );
   }
 
-  const summary = analysis?.analysis ?? null;
-  const filteredModels = modelOptions.filter((model) => model.task_type === selectedTask);
+  const seekTo = (seconds: number) => {
+    if (!videoRef.current) {
+      return;
+    }
+    videoRef.current.currentTime = seconds;
+    void videoRef.current.play().catch(() => undefined);
+  };
+
+  const formatTimecode = (seconds: number) => {
+    const safe = Math.max(0, Math.floor(seconds));
+    const hours = Math.floor(safe / 3600);
+    const minutes = Math.floor((safe % 3600) / 60);
+    const remaining = safe % 60;
+    return hours > 0
+      ? `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${remaining.toString().padStart(2, "0")}`
+      : `${minutes.toString().padStart(2, "0")}:${remaining.toString().padStart(2, "0")}`;
+  };
 
   return (
     <section className="surface inspector-panel">
@@ -78,18 +174,78 @@ export function VideoWorkbench({
         <StatusBadge status={video.status} />
       </div>
 
+      {video.status.startsWith("PROCESSANDO") && (
+        <ProcessingProgress
+          progress={video.processing.processing_progress}
+          stage={video.processing.processing_stage}
+          etaSeconds={video.processing.processing_eta_seconds}
+          message={video.processing.processing_message}
+        />
+      )}
+
       <div className="inspector-grid">
         <div className="media-panel">
-          {video.storage.video_exists ? (
-            <video className="video-preview" controls preload="metadata" src={toApiUrl(video.video_url)}>
-              Seu navegador nao suporta reproduzir este video.
-            </video>
-          ) : (
-            <div className="empty-preview">
-              <strong>Arquivo de video nao encontrado.</strong>
-              <p>O registro ainda existe no banco, mas o arquivo nao esta mais em uploads/.</p>
-            </div>
-          )}
+          <div className="preview-grid">
+            <article className="preview-card">
+              <div className="preview-card-header">
+                <span className="eyebrow">Original</span>
+                <strong>Video enviado</strong>
+                <small>{formatDurationText(summary?.video_duration_sec)}</small>
+              </div>
+              {video.storage.video_exists ? (
+                <video
+                  ref={videoRef}
+                  className="video-preview"
+                  controls
+                  preload="metadata"
+                  src={originalVideoSrc}
+                >
+                  Seu navegador nao suporta reproduzir este video.
+                </video>
+              ) : (
+                <div className="empty-preview">
+                  <strong>Arquivo de video nao encontrado.</strong>
+                  <p>O registro ainda existe no banco, mas o arquivo nao esta mais em uploads/.</p>
+                </div>
+              )}
+            </article>
+
+            <article className="preview-card">
+              <div className="preview-card-header">
+                <span className="eyebrow">Marcacoes</span>
+                <strong>Video anotado pela IA</strong>
+                <small>{formatDurationText(summary?.video_duration_sec)}</small>
+              </div>
+              {video.storage.annotated_exists && !annotatedPlaybackError ? (
+                <video
+                  key={annotatedVideoSrc}
+                  className="video-preview"
+                  controls
+                  preload="metadata"
+                  src={annotatedVideoSrc}
+                  onError={() => setAnnotatedPlaybackError(true)}
+                >
+                  Seu navegador nao suporta reproduzir este video.
+                </video>
+              ) : (
+                <div className="empty-preview">
+                  <strong>{annotatedPlaybackError ? "Nao foi possivel reproduzir o video anotado." : "Video anotado ainda nao disponivel."}</strong>
+                  <p>
+                    {annotatedPlaybackError
+                      ? "O arquivo foi gerado, mas o navegador nao conseguiu abrir esse preview. Tente reprocessar o video ou baixar o arquivo salvo."
+                      : analysisState === "pending"
+                        ? "A IA ainda esta processando o arquivo. Quando terminar, o preview anotado aparece aqui."
+                        : "Reprocesse o video para gerar um preview com marcacoes da IA."}
+                  </p>
+                  {video.storage.annotated_exists && (
+                    <a className="ghost-button inline-link-button" href={annotatedVideoSrc} target="_blank" rel="noreferrer">
+                      Abrir video anotado
+                    </a>
+                  )}
+                </div>
+              )}
+            </article>
+          </div>
 
           <div className="info-grid">
             <div className="info-card">
@@ -101,6 +257,11 @@ export function VideoWorkbench({
               <span>Resumo salvo em</span>
               <strong>{video.storage.analysis_relative_path}</strong>
               <small>{video.storage.analysis_absolute_path}</small>
+            </div>
+            <div className="info-card">
+              <span>Video anotado salvo em</span>
+              <strong>{video.storage.annotated_relative_path}</strong>
+              <small>{video.storage.annotated_absolute_path}</small>
             </div>
             <div className="info-card">
               <span>Transcricao salva em</span>
@@ -129,12 +290,26 @@ export function VideoWorkbench({
                 <strong>{summary.sampled_frames}</strong>
               </div>
               <div className="metric-card">
+                <span>Stride / limite</span>
+                <strong>{summary.frame_stride} / {summary.max_frames}</strong>
+              </div>
+              <div className="metric-card">
                 <span>Tarefa</span>
                 <strong>{video.ai_config.task_label}</strong>
               </div>
               <div className="metric-card">
                 <span>Modelo</span>
                 <strong>{video.ai_config.model_name}</strong>
+              </div>
+              <div className="metric-card">
+                <span>Trecho</span>
+                <strong>
+                  {formatSeconds(summary.clip_start_sec)} - {summary.clip_end_sec === null ? "fim" : formatSeconds(summary.clip_end_sec)}
+                </strong>
+              </div>
+              <div className="metric-card">
+                <span>Confianca minima</span>
+                <strong>{typeof summary.confidence_threshold === "number" ? `${(summary.confidence_threshold * 100).toFixed(0)}%` : "-"}</strong>
               </div>
             </div>
           )}
@@ -197,14 +372,79 @@ export function VideoWorkbench({
                     ))}
                   </select>
                 </label>
+
+                <label className="field-block">
+                  <span>Stride de frames</span>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={selectedFrameStride}
+                    onChange={(event) => onFrameStrideChange(event.target.value)}
+                  />
+                </label>
+
+                <label className="field-block">
+                  <span>Confianca minima</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={selectedConfidenceThreshold}
+                    onChange={(event) => onConfidenceThresholdChange(event.target.value)}
+                  />
+                </label>
+
+                <label className="field-block">
+                  <span>Maximo de frames</span>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={selectedMaxFrames}
+                    onChange={(event) => onMaxFramesChange(event.target.value)}
+                  />
+                </label>
+
+                <label className="field-block">
+                  <span>Inicio da analise (s)</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={selectedClipStart}
+                    onChange={(event) => onClipStartChange(event.target.value)}
+                  />
+                </label>
+
+                <label className="field-block">
+                  <span>Fim da analise (s)</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={selectedClipEnd}
+                    onChange={(event) => onClipEndChange(event.target.value)}
+                    placeholder="Vazio = ate o fim"
+                  />
+                </label>
               </div>
+              <p className="field-help">
+                Ajuste densidade, confianca e recorte para controlar exatamente como a IA vai analisar esse video.
+              </p>
 
               <div className="action-row">
-                <button type="button" className="ghost-button" onClick={onSaveConfig}>
+                <button type="button" className="ghost-button danger-button" onClick={onDeleteVideo}>
+                  Excluir video
+                </button>
+                <button type="button" className="ghost-button" onClick={onSaveConfig} disabled={isBusy}>
                   Salvar configuracao
                 </button>
-                <button type="button" className="primary-button" onClick={onReprocess}>
-                  Reprocessar video
+                <button type="button" className="primary-button" onClick={onReprocess} disabled={isBusy}>
+                  {isBusy
+                    ? `Reprocessando... ${video.processing.processing_progress}%`
+                    : "Reprocessar video"}
                 </button>
               </div>
             </section>
@@ -226,7 +466,7 @@ export function VideoWorkbench({
                 <button type="button" className="ghost-button danger-button" onClick={onDeleteAnalysis}>
                   Excluir analise
                 </button>
-                <button type="button" className="primary-button" onClick={onSaveAnalysis}>
+                <button type="button" className="primary-button" onClick={onSaveAnalysis} disabled={isBusy}>
                   Salvar analise
                 </button>
               </div>
@@ -239,6 +479,11 @@ export function VideoWorkbench({
                   <h3>Texto editavel</h3>
                 </div>
               </div>
+              <div className="action-row action-row-start">
+                <button type="button" className="ghost-button" onClick={onGenerateTranscription} disabled={isBusy}>
+                  {isBusy ? "Transcricao aguardando..." : "Gerar transcricao IA"}
+                </button>
+              </div>
               <textarea
                 className="editor-area transcription-area"
                 value={transcriptionDraft}
@@ -246,15 +491,33 @@ export function VideoWorkbench({
                 placeholder="Cole ou escreva aqui a transcricao do video."
               />
               <p className="transcription-note">{transcriptionMessage}</p>
+              {transcriptionSegments.length > 0 && (
+                <div className="segment-list">
+                  {transcriptionSegments.map((segment) => (
+                    <button
+                      key={`${segment.id}-${segment.start}`}
+                      type="button"
+                      className="segment-item"
+                      onClick={() => seekTo(segment.start)}
+                    >
+                      <span className="segment-time">
+                        {formatTimecode(segment.start)} - {formatTimecode(segment.end)}
+                      </span>
+                      <span className="segment-text">{segment.text}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="action-row">
                 <button
                   type="button"
                   className="ghost-button danger-button"
                   onClick={onDeleteTranscription}
+                  disabled={isBusy}
                 >
                   Excluir transcricao
                 </button>
-                <button type="button" className="primary-button" onClick={onSaveTranscription}>
+                <button type="button" className="primary-button" onClick={onSaveTranscription} disabled={isBusy}>
                   Salvar transcricao
                 </button>
               </div>
@@ -264,4 +527,4 @@ export function VideoWorkbench({
       </div>
     </section>
   );
-}
+});

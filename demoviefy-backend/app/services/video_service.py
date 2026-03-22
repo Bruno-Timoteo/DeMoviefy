@@ -1,8 +1,9 @@
 from app import db
-from app.config.paths import video_file_path
+from app.config.paths import annotated_video_path, annotated_video_temp_path, video_file_path
 from app.repositories.video_repository import get_video, update_status
 from app.services.frame_ai_service import analyze_video_frames, save_analysis
-from app.services.video_artifact_service import load_ai_config
+from app.services.transcription_service import save_transcription, transcribe_video_with_timestamps
+from app.services.video_artifact_service import delete_analysis, load_ai_config, save_processing_state
 
 
 def process_video(flask_app, video_id):
@@ -22,23 +23,125 @@ def process_video(flask_app, video_id):
 
         try:
             update_status(video, "PROCESSANDO_IA")
+            save_processing_state(
+                video_id,
+                progress=5,
+                stage="preparing",
+                eta_seconds=None,
+                message="Preparando video e configuracoes da analise.",
+            )
             # The per-video config lets the user reprocess the same upload with
             # a different model or task without duplicating the file itself.
             ai_config = load_ai_config(video_id)
+            annotated_path = annotated_video_path(video_id)
+            annotated_temp_path = annotated_video_temp_path(video_id)
+
+            # Remove the previous analysis/preview so the UI clearly reflects
+            # that a fresh processing cycle is underway.
+            delete_analysis(video_id)
+            if annotated_path.exists():
+                annotated_path.unlink()
+            if annotated_temp_path.exists():
+                annotated_temp_path.unlink()
+            last_reported_progress = {"value": 5}
+
+            def report_analysis_progress(progress_payload: dict) -> None:
+                ratio = float(progress_payload.get("ratio", 0.0))
+                sampled_frames = int(progress_payload.get("sampled_frames", 0))
+                estimated_total = int(progress_payload.get("estimated_total_samples", 1))
+                elapsed_seconds = float(progress_payload.get("elapsed_seconds", 0.0))
+                progress_value = 10 + int(ratio * 80)
+                if progress_value <= last_reported_progress["value"]:
+                    return
+
+                last_reported_progress["value"] = progress_value
+                eta_seconds = None
+                if ratio > 0:
+                    eta_seconds = max(0, int((elapsed_seconds / ratio) - elapsed_seconds))
+
+                save_processing_state(
+                    video_id,
+                    progress=progress_value,
+                    stage="analyzing",
+                    eta_seconds=eta_seconds,
+                    message=f"Analisando frames {sampled_frames}/{estimated_total}.",
+                )
 
             summary = analyze_video_frames(
                 video_path=str(video_path),
                 model_path=ai_config["model_path"],
                 task_type=ai_config["task_type"],
-                frame_stride=int(flask_app.config.get("FRAME_AI_FRAME_STRIDE", 8)),
-                conf_threshold=float(flask_app.config.get("FRAME_AI_CONFIDENCE", 0.35)),
-                max_frames=int(flask_app.config.get("FRAME_AI_MAX_FRAMES", 300)),
+                frame_stride=int(ai_config.get("frame_stride") or flask_app.config.get("FRAME_AI_FRAME_STRIDE", 8)),
+                conf_threshold=float(
+                    ai_config.get("confidence_threshold") or flask_app.config.get("FRAME_AI_CONFIDENCE", 0.35)
+                ),
+                max_frames=int(ai_config.get("max_frames") or flask_app.config.get("FRAME_AI_MAX_FRAMES", 300)),
+                clip_start_sec=float(ai_config.get("clip_start_sec") or 0.0),
+                clip_end_sec=ai_config.get("clip_end_sec"),
+                annotated_output_path=str(annotated_path),
+                progress_callback=report_analysis_progress,
                 logger=flask_app.logger,
             )
             summary["selected_model"] = ai_config
             analysis_path = save_analysis(video_id, summary)
+            save_processing_state(
+                video_id,
+                progress=92,
+                stage="analysis_complete",
+                eta_seconds=None,
+                message="Analise de frames concluida. Finalizando artefatos.",
+            )
+
+            if flask_app.config.get("AUTO_TRANSCRIPTION_ENABLED", True):
+                try:
+                    save_processing_state(
+                        video_id,
+                        progress=95,
+                        stage="transcribing",
+                        eta_seconds=None,
+                        message="Gerando transcricao automatica.",
+                    )
+                    transcription = transcribe_video_with_timestamps(
+                        video_path=str(video_path),
+                        model_name=str(flask_app.config.get("TRANSCRIPTION_MODEL", "base")),
+                        language=flask_app.config.get("TRANSCRIPTION_LANGUAGE"),
+                        logger=flask_app.logger,
+                    )
+                    save_transcription(video_id, **transcription)
+                except Exception as transcription_exc:
+                    # Transcription should enrich the result, not block the core
+                    # moderation flow when Whisper or ffmpeg is unavailable.
+                    save_transcription(
+                        video_id,
+                        content="",
+                        source="whisper",
+                        language=flask_app.config.get("TRANSCRIPTION_LANGUAGE"),
+                        segments=[],
+                        model_name=str(flask_app.config.get("TRANSCRIPTION_MODEL", "base")),
+                        status="unavailable",
+                        error=str(transcription_exc),
+                    )
+                    save_processing_state(
+                        video_id,
+                        progress=98,
+                        stage="transcription_skipped",
+                        eta_seconds=None,
+                        message="Analise concluida. Transcricao automatica indisponivel neste ambiente.",
+                    )
+                    flask_app.logger.warning(
+                        "process_video:transcription_skipped video_id=%s reason=%s",
+                        video_id,
+                        transcription_exc,
+                    )
 
             update_status(video, "PROCESSADO")
+            save_processing_state(
+                video_id,
+                progress=100,
+                stage="completed",
+                eta_seconds=0,
+                message="Processamento concluido.",
+            )
             flask_app.logger.info(
                 "process_video:completed video_id=%s filename=%s analysis=%s",
                 video.id,
@@ -50,4 +153,14 @@ def process_video(flask_app, video_id):
             video = get_video(video_id)
             if video:
                 update_status(video, "ERRO_IA")
+            save_processing_state(
+                video_id,
+                progress=100,
+                stage="error",
+                eta_seconds=None,
+                message="Falha durante o processamento.",
+            )
+            annotated_temp_path = annotated_video_temp_path(video_id)
+            if annotated_temp_path.exists():
+                annotated_temp_path.unlink()
             flask_app.logger.exception("process_video:failed video_id=%s", video_id)
