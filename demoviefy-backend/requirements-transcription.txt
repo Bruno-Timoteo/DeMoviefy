@@ -1,0 +1,9 @@
+# Optional transcription stack.
+# Install only if you need speech-to-text features.
+#
+# NOTE:
+# openai-whisper may fail on newer Python versions (for example Python 3.13)
+# because of upstream packaging/build issues. Prefer Python 3.11/3.12 for this.
+
+openai-whisper==20231117
+torch==2.2.2

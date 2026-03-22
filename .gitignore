@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+app.log
+uploads/
+ai_model/results/
+.venv/
+demoviefy-front/node_modules/
+demoviefy-front/dist/
+demoviefy-backend/instance/
