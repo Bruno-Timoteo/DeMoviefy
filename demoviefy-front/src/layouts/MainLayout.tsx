@@ -1,33 +1,18 @@
-/* Layout básico:
+﻿import type { ReactNode } from "react";
 
-Navbar
-Sidebar
-Rodapé
-
-Espaço para conteúdo
-
-*/
-
-// import React from "react";
 import Footer from "../components/Footer";
+import Header from "../components/Header";
 
-export default function MainLayout(
-    //{ children }: { children: React.ReactNode }
-    ) {
-    return (
-        // Usamos classes do Tailwind para garantir que o layout ocupe a tela toda
-        <div className="flex flex-col min-h-screen">
-            
-            {/* O conteúdo da página entra aqui */}
-            <main className="grow">
-                {/* {children} */}
-                <p>Teste</p>
-            </main>
+type MainLayoutProps = {
+  children: ReactNode;
+};
 
-            <footer>
-                <Footer />
-            </footer>
-            
-        </div>
-    );
+export default function MainLayout({ children }: MainLayoutProps) {
+  return (
+    <div className="app-shell">
+      <Header />
+      <main className="app-main">{children}</main>
+      <Footer />
+    </div>
+  );
 }

@@ -1,41 +1,64 @@
-# DeMoviefy - Run Instructions
+﻿# DeMoviefy
 
-These steps run backend and frontend locally.
+Monorepo para upload, analise e acompanhamento de videos com backend Flask, frontend React e pipeline YOLO.
 
-## Prerequisites
+## Estrutura
 
-- Python 3.11+ (recommended)
-- Node.js 20+ and npm
-- FFmpeg installed and available in PATH (required for future video/audio processing)
+- `demoviefy-backend/`: API Flask, persistencia e processamento
+- `demoviefy-front/`: interface React para upload, biblioteca e visualizacao da analise
+- `ai_model/`: modelo YOLO, app de teste e utilitarios de IA
+- `docs/`: instrucoes complementares
+- `uploads/`: videos enviados e arquivos de analise gerados em tempo de execucao
+- `run_form.py`: launcher principal, multiplataforma, capaz de criar ou reparar a `.venv`
 
-Check versions:
+## Onde os arquivos ficam
+
+- Video enviado: `uploads/<nome-do-arquivo>`
+- Resumo da analise: `uploads/analysis/video_<id>.json`
+- Banco SQLite local: `demoviefy-backend/instance/demoviefy.db`
+
+O frontend agora mostra esses caminhos diretamente no painel de detalhes, junto com o preview do video e o status do processamento.
+
+## Fluxo rapido
+
+### Launcher
+
+Windows PowerShell:
 
 ```powershell
-python --version
-node --version
-npm --version
-ffmpeg -version
+.\run_form.ps1
 ```
 
-## 1) Start Backend (Terminal 1)
+Linux:
 
-From repo root:
+```bash
+./run_form.sh
+```
+
+Com proxy da escola:
 
 ```powershell
-cd demoviefy-backend
+python run_form.py --proxy http://proxy.spo.ifsp.edu.br:3128
+```
+
+Ou use o atalho pronto:
+
+```powershell
+python run_form_proxy.py
+```
+
+O launcher pode ser iniciado com o Python do sistema, mesmo sem `.venv`. Ao clicar em `Setup Environment`, ele cria ou repara o ambiente automaticamente.
+
+### Execucao manual
+
+```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-python run.py
+python -m pip install --upgrade pip
+pip install -r demoviefy-backend/requirements.txt
 ```
 
-Backend runs at:
-
-- http://127.0.0.1:5000
-
-## 2) Start Frontend (Terminal 2)
-
-From repo root:
+Frontend:
 
 ```powershell
 cd demoviefy-front
@@ -43,34 +66,31 @@ npm install
 npm run dev
 ```
 
-Frontend (Vite) usually runs at:
-
-- http://localhost:5173
-
-## 3) Verify Integration
-
-- Open `http://localhost:5173`
-- Go to Upload page and send a video file
-- Frontend calls backend at `http://127.0.0.1:5000` (configured in `demoviefy-front/src/services/api.ts`)
-
-## Troubleshooting
-
-- If backend fails due to PowerShell script policy:
+Backend:
 
 ```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+cd demoviefy-backend
+python run.py
 ```
 
-Then activate venv again:
+## Organizacao interna
 
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
+Backend Flask:
 
-- If `npm install` fails with peer dependency conflicts, run:
+- `demoviefy-backend/app/controllers/`: entrada HTTP
+- `demoviefy-backend/app/services/`: regras de negocio e IA
+- `demoviefy-backend/app/repositories/`: acesso a dados
+- `demoviefy-backend/app/config/`: configuracoes e paths compartilhados
 
-```powershell
-npm install
-```
+Frontend React:
 
-(the current frontend dependencies are already aligned for a normal install).
+- `demoviefy-front/src/features/videos/`: fluxo principal de upload e inspecao
+- `demoviefy-front/src/components/`: cabecalho e rodape
+- `demoviefy-front/src/layouts/`: estrutura visual da aplicacao
+- `demoviefy-front/src/services/`: cliente HTTP
+
+## Observacoes
+
+- O backend usa `ai_model/model/yolo26l.pt` automaticamente quando esse arquivo existe.
+- Se o launcher for iniciado dentro de um debugger, ele remove variaveis de debug dos subprocessos para evitar o erro de `__firstlineno__` no SQLAlchemy.
+- `docs/RUN_INSTRUCTIONS.md`, `docs/FRAME_AI.md` e `docs/TRAINING_MODELS.md` continuam como referencia de execucao e da pipeline de IA.

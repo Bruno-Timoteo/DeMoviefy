@@ -1,5 +1,0 @@
-1  python3 -m venv venv
-    2  cd venv
-    3  source bin/activate
-    4  pip install ultralytics #normal
-    8  pip install ultralytics --proxy http://proxy.spo.ifsp.edu.br:3128 #para a escola

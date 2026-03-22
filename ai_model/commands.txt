@@ -1,0 +1,19 @@
+# Single venv for the whole repository (run from repo root)
+
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install --upgrade pip --proxy http://proxy.spo.ifsp.edu.br:3128
+pip install -r demoviefy-backend/requirements.txt
+
+#--proxy http://proxy.spo.ifsp.edu.br:3128
+
+# GUI launcher for the whole project
+python run_form.py
+
+# Run the MVC YOLO test app
+python ai_model/app/app.py
+
+# Optional: analyze a specific video path
+$env:TEST_VIDEO_PATH="uploads\your_video.mp4"
+python ai_model/app/app.py
