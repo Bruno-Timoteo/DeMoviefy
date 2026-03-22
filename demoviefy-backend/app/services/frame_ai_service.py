@@ -1,9 +1,12 @@
 import json
+import time
 from collections import Counter, defaultdict
 from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
 from app.config.paths import analysis_file_path as build_analysis_file_path
+from app.config.paths import annotated_video_path as build_annotated_video_path
 from app.config.paths import ensure_storage_dirs
 
 
@@ -22,6 +25,10 @@ def analyze_video_frames(
     frame_stride: int = 8,
     conf_threshold: float = 0.35,
     max_frames: int = 300,
+    clip_start_sec: float = 0.0,
+    clip_end_sec: float | None = None,
+    annotated_output_path: str | None = None,
+    progress_callback: Any | None = None,
     logger: Any | None = None,
 ) -> dict[str, Any]:
     """
@@ -50,24 +57,94 @@ def analyze_video_frames(
     sampled_frames = 0
     processed_frames = 0
     frame_index = 0
+    annotated_frames_written = 0
+    writer = None
+    annotated_path = Path(annotated_output_path) if annotated_output_path else None
+    temp_annotated_path = (
+        annotated_path.parent / f"{annotated_path.stem}.processing{annotated_path.suffix}"
+        if annotated_path is not None
+        else None
+    )
+    fps = capture.get(cv2.CAP_PROP_FPS) or 0.0
+    fps = fps if fps > 0 else 24.0
+    frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
+    duration_seconds = round(frame_count / fps, 2) if frame_count > 0 else None
+    start_frame = max(0, int(round(clip_start_sec * fps)))
+    end_frame = int(round(clip_end_sec * fps)) if clip_end_sec is not None else None
+    total_available_frames = (end_frame - start_frame) if end_frame is not None else max(frame_count - start_frame, 0)
+    estimated_total_samples = max(
+        1,
+        min(
+            max_frames,
+            ((max(total_available_frames, 1) - 1) // max(frame_stride, 1)) + 1,
+        ),
+    )
+    started_at = time.monotonic()
+
+    if end_frame is not None and frame_count > 0:
+        end_frame = min(end_frame, frame_count)
+
+    if frame_count > 0 and start_frame >= frame_count:
+        capture.release()
+        raise RuntimeError("O trecho selecionado comeca depois do fim do video.")
+
+    if clip_end_sec is not None and clip_end_sec <= clip_start_sec:
+        capture.release()
+        raise RuntimeError("O trecho selecionado possui fim invalido.")
+
+    if start_frame > 0:
+        capture.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+        frame_index = start_frame
+
+    if annotated_path is not None and temp_annotated_path is not None:
+        temp_annotated_path.parent.mkdir(parents=True, exist_ok=True)
+        if temp_annotated_path.exists():
+            temp_annotated_path.unlink()
 
     if logger:
         logger.info(
-            "frame_ai:start video_path=%s model=%s task=%s stride=%s conf=%.2f max_frames=%s",
+            "frame_ai:start video_path=%s model=%s task=%s stride=%s conf=%.2f max_frames=%s clip_start=%.2f clip_end=%s annotated=%s",
             video_path,
             model_path,
             task_type,
             frame_stride,
             conf_threshold,
             max_frames,
+            clip_start_sec,
+            clip_end_sec if clip_end_sec is not None else "video_end",
+            annotated_output_path or "disabled",
         )
 
-    while processed_frames < max_frames:
+    while True:
+        if processed_frames >= max_frames:
+            break
+
+        if end_frame is not None and frame_index >= end_frame:
+            break
+
         ok, frame = capture.read()
         if not ok:
             break
 
-        if frame_index % frame_stride != 0:
+        if annotated_path and writer is None:
+            height, width = frame.shape[:2]
+            writer = cv2.VideoWriter(
+                str(temp_annotated_path),
+                cv2.VideoWriter_fourcc(*"mp4v"),
+                fps,
+                (width, height),
+            )
+            if not writer.isOpened():
+                writer.release()
+                writer = None
+                annotated_path = None
+                if logger:
+                    logger.warning("frame_ai:annotated_video_disabled path=%s", annotated_output_path)
+
+        if frame_index % frame_stride != 0 or processed_frames >= max_frames:
+            if writer is not None:
+                writer.write(frame)
+                annotated_frames_written += 1
             frame_index += 1
             continue
 
@@ -92,10 +169,34 @@ def analyze_video_frames(
                 confidence_sum[label] += float(conf)
                 confidence_count[label] += 1
 
+        if writer is not None:
+            writer.write(result.plot())
+            annotated_frames_written += 1
+
         processed_frames += 1
         frame_index += 1
 
+        if progress_callback is not None:
+            ratio = min(sampled_frames / max(estimated_total_samples, 1), 1.0)
+            elapsed_seconds = time.monotonic() - started_at
+            progress_callback(
+                {
+                    "ratio": ratio,
+                    "sampled_frames": sampled_frames,
+                    "estimated_total_samples": estimated_total_samples,
+                    "elapsed_seconds": elapsed_seconds,
+                }
+            )
+
     capture.release()
+    if writer is not None:
+        writer.release()
+        if annotated_path is not None and temp_annotated_path is not None and annotated_frames_written > 0:
+            if annotated_path.exists():
+                annotated_path.unlink()
+            temp_annotated_path.replace(annotated_path)
+        elif temp_annotated_path is not None and temp_annotated_path.exists():
+            temp_annotated_path.unlink()
 
     avg_confidence = {
         label: round(confidence_sum[label] / confidence_count[label], 4)
@@ -111,20 +212,26 @@ def analyze_video_frames(
         "frame_stride": frame_stride,
         "confidence_threshold": conf_threshold,
         "max_frames": max_frames,
+        "clip_start_sec": round(clip_start_sec, 2),
+        "clip_end_sec": round(clip_end_sec, 2) if clip_end_sec is not None else None,
+        "video_duration_sec": duration_seconds,
         "sampled_frames": sampled_frames,
         "processed_frames": processed_frames,
         "total_detections": int(sum(label_counts.values())),
         "label_counts": label_counts,
         "avg_confidence_by_label": avg_confidence,
         "top_labels": top_labels,
+        "annotated_video_path": str(annotated_path) if annotated_path and annotated_frames_written > 0 else None,
+        "annotated_frames_written": annotated_frames_written,
     }
 
     if logger:
         logger.info(
-            "frame_ai:done sampled_frames=%s detections=%s unique_labels=%s",
+            "frame_ai:done sampled_frames=%s detections=%s unique_labels=%s annotated_frames=%s",
             sampled_frames,
             summary["total_detections"],
             len(label_counts),
+            annotated_frames_written,
         )
 
     return summary
@@ -132,6 +239,10 @@ def analyze_video_frames(
 
 def analysis_file_path(video_id: int) -> str:
     return str(build_analysis_file_path(video_id))
+
+
+def annotated_file_path(video_id: int) -> str:
+    return str(build_annotated_video_path(video_id))
 
 
 def save_analysis(video_id: int, summary: dict[str, Any]) -> str:
@@ -152,3 +263,7 @@ def load_analysis(video_id: int) -> dict[str, Any] | None:
 
 def has_analysis(video_id: int) -> bool:
     return build_analysis_file_path(video_id).exists()
+
+
+def has_annotated_video(video_id: int) -> bool:
+    return build_annotated_video_path(video_id).exists()
