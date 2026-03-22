@@ -5,7 +5,8 @@ python-dotenv==1.0.1
 Werkzeug==3.0.3
 
 # Database
-SQLAlchemy==2.0.30
+# SQLAlchemy 2.0.30 is not compatible with Python 3.13; require a newer patch.
+SQLAlchemy>=2.0.36,<3
 
 # Video processing
 ffmpeg-python==0.2.0
