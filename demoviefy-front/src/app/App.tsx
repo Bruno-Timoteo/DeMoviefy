@@ -1,7 +1,12 @@
 import Upload from "../pages/Upload";
+import MainLayout from "../layouts/MainLayout";
 
 function App() {
-  return <Upload />;
+  return (
+    <MainLayout>
+      <Upload />
+    </MainLayout>
+  );
 }
 
 export default App;

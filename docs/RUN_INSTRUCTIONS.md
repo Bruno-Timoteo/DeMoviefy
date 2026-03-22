@@ -1,48 +1,47 @@
-# DeMoviefy - Run Instructions
+﻿# DeMoviefy - Run Instructions
 
-These steps run backend, frontend, and the YOLO test app with one shared Python environment.
+## Inicio rapido
 
-## Quick Start (GUI form)
-
-From repo root:
+Launcher com deteccao automatica de Python:
 
 ```powershell
-python run_form.py
+.\run_form.ps1
 ```
 
-Then click:
+No Linux:
+
+```bash
+./run_form.sh
+```
+
+Com proxy da escola:
+
+```powershell
+python run_form.py --proxy http://proxy.spo.ifsp.edu.br:3128
+```
+
+Ou:
+
+```powershell
+python run_form_proxy.py
+```
+
+Depois clique em:
+
 - `Setup Environment`
 - `Start All`
-- `Run AI Test` (optional)
 
-## Proxy install (school network)
+## Fluxo de upload
 
-Set the proxy once per session:
+1. Envie o video pela interface.
+2. O backend salva o arquivo em `uploads/`.
+3. A thread de processamento executa a analise com YOLO.
+4. O resumo final vai para `uploads/analysis/video_<id>.json`.
+5. A pagina mostra preview, status, caminho do video e caminho do JSON.
 
-```powershell
-$env:PROXY_URL="http://proxy.spo.ifsp.edu.br:3128"
-```
+## Execucao manual
 
-Then click `Setup Environment` in the launcher.
-
-## Prerequisites
-
-- Python 3.11+ (recommended)
-- Node.js 20+ and npm
-- FFmpeg installed and available in PATH (required for future video/audio processing)
-
-Check versions:
-
-```powershell
-python --version
-node --version
-npm --version
-ffmpeg -version
-```
-
-## 0) Create one shared Python venv (repo root)
-
-From repo root:
+### Python
 
 ```powershell
 python -m venv .venv
@@ -51,29 +50,18 @@ python -m pip install --upgrade pip
 pip install -r demoviefy-backend/requirements.txt
 ```
 
-Optional (only if you need transcription features):
-
-```powershell
-pip install -r demoviefy-backend/requirements-transcription.txt
-```
-
-## 1) Start Backend (Terminal 1)
-
-From repo root:
+### Backend
 
 ```powershell
 cd demoviefy-backend
-..\.venv\Scripts\Activate.ps1
 python run.py
 ```
 
-Backend runs at:
+Backend padrao:
 
-- http://127.0.0.1:5000
+- `http://127.0.0.1:5000`
 
-## 2) Start Frontend (Terminal 2)
-
-From repo root:
+### Frontend
 
 ```powershell
 cd demoviefy-front
@@ -81,43 +69,20 @@ npm install
 npm run dev
 ```
 
-Frontend (Vite) usually runs at:
+Frontend padrao:
 
-- http://localhost:5173
+- `http://localhost:5173`
 
-## 3) Run YOLO test app (optional)
+## Variaveis uteis
 
-From repo root:
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-python ai_model/app/app.py
-```
-
-## 4) Verify Integration
-
-- Open `http://localhost:5173`
-- Go to Upload page and send a video file
-- Frontend calls backend at `http://127.0.0.1:5000` (configured in `demoviefy-front/src/services/api.ts`)
+- `PROXY_URL`: proxy HTTP/HTTPS para pip, npm e subprocessos do launcher
+- `FRAME_AI_MODEL`: caminho alternativo para o modelo YOLO
+- `FRAME_AI_FRAME_STRIDE`: intervalo de frames amostrados
+- `FRAME_AI_CONFIDENCE`: confianca minima da deteccao
+- `FRAME_AI_MAX_FRAMES`: limite de frames processados
 
 ## Troubleshooting
 
-- If backend fails due to PowerShell script policy:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-```
-
-Then activate venv again:
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-- If `npm install` fails with peer dependency conflicts, run:
-
-```powershell
-npm install
-```
-
-(the current frontend dependencies are already aligned for a normal install).
+- Se a `.venv` estiver quebrada, o launcher recria durante `Setup Environment`.
+- Se algum upload parecer "sumido", abra o painel do video na interface: o caminho do arquivo e do JSON aparecem ali.
+- Se `npm` ou `pip` precisarem do proxy da escola, use `--proxy http://proxy.spo.ifsp.edu.br:3128`.

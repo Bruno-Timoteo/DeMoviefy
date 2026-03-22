@@ -1,15 +1,55 @@
-# DeMoviefy
+﻿# DeMoviefy
 
-## Monorepo structure
+Monorepo para upload, analise e acompanhamento de videos com backend Flask, frontend React e pipeline YOLO.
 
-- `demoviefy-backend`: Flask API
-- `demoviefy-front`: React frontend
-- `ai_model`: YOLO model assets + test app (MVC)
-- `docs`: project documentation
+## Estrutura
 
-## Single Python venv for the whole repo
+- `demoviefy-backend/`: API Flask, persistencia e processamento
+- `demoviefy-front/`: interface React para upload, biblioteca e visualizacao da analise
+- `ai_model/`: modelo YOLO, app de teste e utilitarios de IA
+- `docs/`: instrucoes complementares
+- `uploads/`: videos enviados e arquivos de analise gerados em tempo de execucao
+- `run_form.py`: launcher principal, multiplataforma, capaz de criar ou reparar a `.venv`
 
-Run from repository root:
+## Onde os arquivos ficam
+
+- Video enviado: `uploads/<nome-do-arquivo>`
+- Resumo da analise: `uploads/analysis/video_<id>.json`
+- Banco SQLite local: `demoviefy-backend/instance/demoviefy.db`
+
+O frontend agora mostra esses caminhos diretamente no painel de detalhes, junto com o preview do video e o status do processamento.
+
+## Fluxo rapido
+
+### Launcher
+
+Windows PowerShell:
+
+```powershell
+.\run_form.ps1
+```
+
+Linux:
+
+```bash
+./run_form.sh
+```
+
+Com proxy da escola:
+
+```powershell
+python run_form.py --proxy http://proxy.spo.ifsp.edu.br:3128
+```
+
+Ou use o atalho pronto:
+
+```powershell
+python run_form_proxy.py
+```
+
+O launcher pode ser iniciado com o Python do sistema, mesmo sem `.venv`. Ao clicar em `Setup Environment`, ele cria ou repara o ambiente automaticamente.
+
+### Execucao manual
 
 ```powershell
 python -m venv .venv
@@ -18,60 +58,7 @@ python -m pip install --upgrade pip
 pip install -r demoviefy-backend/requirements.txt
 ```
 
-Optional transcription dependencies (not required for current video detection flow):
-
-```powershell
-pip install -r demoviefy-backend/requirements-transcription.txt
-```
-
-## Proxy install (school network)
-
-Set the proxy once per session:
-
-```powershell
-$env:PROXY_URL="http://proxy.spo.ifsp.edu.br:3128"
-```
-
-Then use the launcher:
-
-```powershell
-python run_form.py
-```
-
-## Easiest way: launcher form
-
-```powershell
-python run_form.py
-```
-
-Use the buttons:
-- `Setup Environment`
-- `Start All`
-- `Run AI Test` (optional video path)
-
-## Docs
-
-- `docs/RUN_INSTRUCTIONS.md`
-- `docs/FRAME_AI.md`
-
-## Run backend
-
-```powershell
-cd demoviefy-backend
-..\.venv\Scripts\Activate.ps1
-python run.py
-```
-
-Backend now analyzes uploaded videos with YOLO in MVC flow:
-
-- routes: `demoviefy-backend/app/routes`
-- controller: `demoviefy-backend/app/controllers`
-- services: `demoviefy-backend/app/services`
-- models: `demoviefy-backend/app/models`
-
-By default, video analysis uses your custom model at `ai_model/model/yolo26l.pt` when present.
-
-## Run frontend
+Frontend:
 
 ```powershell
 cd demoviefy-front
@@ -79,25 +66,31 @@ npm install
 npm run dev
 ```
 
-## Run YOLO MVC test app
+Backend:
 
 ```powershell
-.\.venv\Scripts\Activate.ps1
-python ai_model/app/app.py
+cd demoviefy-backend
+python run.py
 ```
 
-`ai_model/app` now reuses backend AI services directly. By default it analyzes the latest video in `uploads/`.
-To target a specific file:
+## Organizacao interna
 
-```powershell
-$env:TEST_VIDEO_PATH="uploads\your_video.mp4"
-python ai_model/app/app.py
-```
+Backend Flask:
 
-## YOLO test app MVC layout
+- `demoviefy-backend/app/controllers/`: entrada HTTP
+- `demoviefy-backend/app/services/`: regras de negocio e IA
+- `demoviefy-backend/app/repositories/`: acesso a dados
+- `demoviefy-backend/app/config/`: configuracoes e paths compartilhados
 
-- `ai_model/app/controllers`: orchestration layer
-- `ai_model/app/models`: YOLO inference layer
-- `ai_model/app/views`: output/log rendering
-- `ai_model/app/config`: app settings
-- `ai_model/app/core`: infrastructure utilities
+Frontend React:
+
+- `demoviefy-front/src/features/videos/`: fluxo principal de upload e inspecao
+- `demoviefy-front/src/components/`: cabecalho e rodape
+- `demoviefy-front/src/layouts/`: estrutura visual da aplicacao
+- `demoviefy-front/src/services/`: cliente HTTP
+
+## Observacoes
+
+- O backend usa `ai_model/model/yolo26l.pt` automaticamente quando esse arquivo existe.
+- Se o launcher for iniciado dentro de um debugger, ele remove variaveis de debug dos subprocessos para evitar o erro de `__firstlineno__` no SQLAlchemy.
+- `docs/RUN_INSTRUCTIONS.md`, `docs/FRAME_AI.md` e `docs/TRAINING_MODELS.md` continuam como referencia de execucao e da pipeline de IA.
