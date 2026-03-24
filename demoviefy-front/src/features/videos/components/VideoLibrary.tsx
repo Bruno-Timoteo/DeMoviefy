@@ -1,4 +1,7 @@
+import { memo } from "react";
+
 import { StatusBadge } from "./StatusBadge";
+import { ProcessingProgress } from "./ProcessingProgress";
 import type { VideoRecord } from "../types";
 
 type VideoLibraryProps = {
@@ -19,7 +22,14 @@ function formatDate(createdAt: string | null) {
   }).format(new Date(createdAt));
 }
 
-export function VideoLibrary({
+function formatSeconds(value: number | null | undefined) {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "-";
+  }
+  return `${value.toFixed(1)}s`;
+}
+
+export const VideoLibrary = memo(function VideoLibrary({
   videos,
   selectedVideoId,
   loading,
@@ -74,10 +84,26 @@ export function VideoLibrary({
                       : "Sem transcricao"}
                 </span>
               </div>
+
+              <div className="video-card-footer">
+                <span>
+                  Trecho: {formatSeconds(video.ai_config.clip_start_sec)} - {video.ai_config.clip_end_sec === null ? "fim" : formatSeconds(video.ai_config.clip_end_sec)}
+                </span>
+                <span>{video.storage.annotated_exists ? "Preview anotado pronto" : "Preview anotado pendente"}</span>
+              </div>
+
+              {video.status.startsWith("PROCESSANDO") && (
+                <ProcessingProgress
+                  progress={video.processing.processing_progress}
+                  stage={video.processing.processing_stage}
+                  etaSeconds={video.processing.processing_eta_seconds}
+                  message={video.processing.processing_message}
+                />
+              )}
             </button>
           ))}
         </div>
       )}
     </section>
   );
-}
+});

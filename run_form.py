@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import sys
 import threading
+import traceback
 import tkinter as tk
 from pathlib import Path
 from tkinter import ttk
@@ -25,6 +26,8 @@ BACKEND_DIR = ROOT / "demoviefy-backend"
 FRONTEND_DIR = ROOT / "demoviefy-front"
 TEST_APP = ROOT / "ai_model" / "app" / "app.py"
 REQUIREMENTS = ROOT / "demoviefy-backend" / "requirements.txt"
+TRANSCRIPTION_REQUIREMENTS = ROOT / "demoviefy-backend" / "requirements-transcription.txt"
+TRANSCRIPTION_VENV_DIR = ROOT / ".venv-transcription"
 LAUNCHER_VERSION = "1.2.0"
 
 
@@ -53,6 +56,50 @@ def venv_python() -> Path:
     if venv_path is not None:
         return venv_path
     return Path(sys.executable)
+
+
+def transcription_venv_python() -> Path | None:
+    """Return the dedicated transcription interpreter when available."""
+    return find_venv_python(TRANSCRIPTION_VENV_DIR)
+
+
+def python_command_works(command: list[str]) -> bool:
+    """Check if a Python launcher command is callable in the current machine."""
+    try:
+        completed = subprocess.run(
+            [*command, "-c", "import sys; print(sys.executable)"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+    except Exception:
+        return False
+    return completed.returncode == 0
+
+
+def discover_transcription_python_command() -> list[str] | None:
+    """Find a Python 3.11/3.12 launcher for the optional Whisper env."""
+    override = os.environ.get("DEMOVIEFY_TRANSCRIPTION_BOOTSTRAP_PYTHON")
+    if override and Path(override).exists():
+        return [override]
+
+    if os.name == "nt":
+        py_launcher = shutil.which("py")
+        if py_launcher:
+            for version in ("3.12", "3.11"):
+                command = [py_launcher, f"-{version}"]
+                if python_command_works(command):
+                    return command
+
+    for executable in ("python3.12", "python3.11"):
+        resolved = shutil.which(executable)
+        if resolved and python_command_works([resolved]):
+            return [resolved]
+
+    return None
 
 
 def resolve_npm_executable() -> str:
@@ -155,6 +202,14 @@ def apply_proxy_env(env: dict[str, str], proxy: str | None) -> dict[str, str]:
     return env
 
 
+def apply_transcription_env(env: dict[str, str]) -> dict[str, str]:
+    """Expose the dedicated Whisper interpreter to backend subprocesses."""
+    transcription_python_path = transcription_venv_python()
+    if transcription_python_path is not None:
+        env.setdefault("DEMOVIEFY_TRANSCRIPTION_PYTHON", str(transcription_python_path))
+    return env
+
+
 class LauncherForm(tk.Tk):
     """Main Tkinter form with controls and integrated logs."""
 
@@ -177,12 +232,20 @@ class LauncherForm(tk.Tk):
         self.frontend_status_var = tk.StringVar(value="Stopped")
         self.setup_status_var = tk.StringVar(value="Idle")
         self._setup_running = False
+        self._closing = False
 
         self._build_ui()
         self._log(f"[launcher] DeMoviefy Launcher v{LAUNCHER_VERSION}")
         self._log(f"[launcher] root={ROOT}")
         self.after(100, self._drain_log_queue)
         self.protocol("WM_DELETE_WINDOW", self._on_close)
+
+    def report_callback_exception(self, exc, val, tb) -> None:  # type: ignore[override]
+        """Log Tk callback failures instead of letting them disappear truncated."""
+        details = "".join(traceback.format_exception(exc, val, tb)).rstrip()
+        self._log("[launcher] Tkinter callback exception detected:")
+        for line in details.splitlines():
+            self._log(f"[launcher] {line}")
 
     def _build_ui(self) -> None:
         """Construct all form widgets."""
@@ -250,16 +313,25 @@ class LauncherForm(tk.Tk):
 
     def _drain_log_queue(self) -> None:
         """Move queued logs into the text box (main/UI thread only)."""
+        if self._closing:
+            return
+
         while True:
             try:
                 line = self.log_queue.get_nowait()
             except queue.Empty:
                 break
-            self.log_text.insert(tk.END, line + "\n")
-            self.log_text.see(tk.END)
+            try:
+                self.log_text.insert(tk.END, line + "\n")
+                self.log_text.see(tk.END)
+            except tk.TclError:
+                return
 
-        self._refresh_status()
-        self.after(100, self._drain_log_queue)
+        try:
+            self._refresh_status()
+            self.after(100, self._drain_log_queue)
+        except tk.TclError:
+            return
 
     def _refresh_status(self) -> None:
         """Refresh backend/frontend running status labels."""
@@ -275,6 +347,8 @@ class LauncherForm(tk.Tk):
         """Update setup indicator safely from any thread."""
 
         def apply() -> None:
+            if self._closing:
+                return
             self._setup_running = running
             if message is not None:
                 self.setup_status_var.set(message)
@@ -285,7 +359,10 @@ class LauncherForm(tk.Tk):
                 self.setup_progress.stop()
                 self.setup_button.configure(state=tk.NORMAL)
 
-        self.after(0, apply)
+        try:
+            self.after(0, apply)
+        except tk.TclError:
+            return
 
     def _stream_process(self, name: str, proc: subprocess.Popen) -> None:
         """Read a long-running process output and route lines into the UI log queue."""
@@ -301,6 +378,7 @@ class LauncherForm(tk.Tk):
         """Merge proxy config and remove debugger hooks from the environment."""
         base = env.copy() if env is not None else os.environ.copy()
         base = apply_proxy_env(base, self.proxy_url)
+        base = apply_transcription_env(base)
         return sanitize_env(base)
 
     def _start_long_process(
@@ -500,6 +578,11 @@ class LauncherForm(tk.Tk):
                     self._set_setup_state(False, "Failed frontend deps")
                     return
 
+                # Step 4: prepare the optional Whisper environment in isolation.
+                if TRANSCRIPTION_REQUIREMENTS.exists():
+                    self._set_setup_state(True, "Checking transcription env...")
+                    self._setup_transcription_environment()
+
                 self._log("[setup] environment ready.")
                 self._set_setup_state(False, "Ready")
             except Exception as exc:
@@ -567,6 +650,71 @@ class LauncherForm(tk.Tk):
         self._log(f"[{name}] step exited with code {code}")
         return code
 
+    def _setup_transcription_environment(self) -> None:
+        """
+        Best-effort setup for Whisper in a separate virtual environment.
+
+        This is optional on purpose: the main app should still run even when a
+        compatible Python 3.11/3.12 interpreter is not installed locally.
+        """
+        venv_python_path = find_venv_python(TRANSCRIPTION_VENV_DIR)
+        venv_cfg_path = TRANSCRIPTION_VENV_DIR / "pyvenv.cfg"
+        broken = venv_python_path is None or not venv_cfg_path.exists()
+
+        if broken:
+            bootstrap_command = discover_transcription_python_command()
+            if bootstrap_command is None:
+                self._log(
+                    "[setup] transcription env skipped: Python 3.11/3.12 not found. "
+                    "Install one of them or set DEMOVIEFY_TRANSCRIPTION_BOOTSTRAP_PYTHON."
+                )
+                return
+
+            if TRANSCRIPTION_VENV_DIR.exists():
+                try:
+                    shutil.rmtree(TRANSCRIPTION_VENV_DIR)
+                except Exception:
+                    self._log("[setup] warning: could not clean previous .venv-transcription.")
+
+            self._set_setup_state(True, "Creating transcription env...")
+            rc = self._run_sync(
+                "setup",
+                [*bootstrap_command, "-m", "venv", ".venv-transcription"],
+                ROOT,
+                env=None,
+            )
+            if rc != 0:
+                self._log("[setup] transcription env skipped: failed creating .venv-transcription.")
+                return
+            venv_python_path = transcription_venv_python()
+
+        if venv_python_path is None:
+            self._log("[setup] transcription env skipped: python executable not found inside .venv-transcription.")
+            return
+
+        self._set_setup_state(True, "Installing transcription deps...")
+        rc = self._run_sync(
+            "setup",
+            [str(venv_python_path), "-m", "pip", "install", "--upgrade", "pip"],
+            ROOT,
+            env=None,
+        )
+        if rc != 0:
+            self._log("[setup] transcription env skipped: failed upgrading pip.")
+            return
+
+        rc = self._run_sync(
+            "setup",
+            [str(venv_python_path), "-m", "pip", "install", "-r", str(TRANSCRIPTION_REQUIREMENTS)],
+            ROOT,
+            env=None,
+        )
+        if rc != 0:
+            self._log("[setup] transcription env skipped: failed installing requirements-transcription.txt.")
+            return
+
+        self._log(f"[setup] transcription env ready: {venv_python_path}")
+
     def start_backend(self) -> None:
         """Start Flask backend service."""
         # ``py`` may fall back to the system interpreter; instead verify that
@@ -629,6 +777,7 @@ class LauncherForm(tk.Tk):
 
     def _on_close(self) -> None:
         """Ensure child processes are stopped before closing window."""
+        self._closing = True
         self.stop_all()
         self.destroy()
 
