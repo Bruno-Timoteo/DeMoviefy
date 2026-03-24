@@ -5,6 +5,9 @@ export type VideoStorage = {
   analysis_relative_path: string;
   analysis_absolute_path: string;
   analysis_exists: boolean;
+  annotated_relative_path: string;
+  annotated_absolute_path: string;
+  annotated_exists: boolean;
   transcription_relative_path: string;
   transcription_absolute_path: string;
   transcription_exists: boolean;
@@ -30,6 +33,11 @@ export type AIConfig = {
   model_path: string;
   model_relative_path: string;
   model_name: string;
+  frame_stride: number;
+  confidence_threshold: number;
+  max_frames: number;
+  clip_start_sec: number;
+  clip_end_sec: number | null;
 };
 
 export type VideoRecord = {
@@ -40,9 +48,16 @@ export type VideoRecord = {
   analysis_ready: boolean;
   transcription_ready: boolean;
   video_url: string;
+  annotated_url: string;
   analysis_url: string;
   transcription_url: string;
   ai_config: AIConfig;
+  processing: {
+    processing_progress: number;
+    processing_stage: string;
+    processing_eta_seconds: number | null;
+    processing_message: string | null;
+  };
   storage: VideoStorage;
 };
 
@@ -53,6 +68,9 @@ export type VideoAnalysisSummary = {
   frame_stride: number;
   confidence_threshold: number;
   max_frames: number;
+  clip_start_sec: number;
+  clip_end_sec: number | null;
+  video_duration_sec: number | null;
   sampled_frames: number;
   processed_frames: number;
   total_detections: number;
@@ -65,6 +83,8 @@ export type VideoAnalysisResponse = {
   video_id: number;
   filename: string;
   status: string;
+  available?: boolean;
+  message?: string;
   ai_config: AIConfig;
   storage: VideoStorage;
   analysis: VideoAnalysisSummary;
@@ -73,12 +93,28 @@ export type VideoAnalysisResponse = {
 export type VideoTranscriptionResponse = {
   video_id: number;
   filename: string;
+  available?: boolean;
   storage: VideoStorage;
   transcription: {
     content: string;
     source: string;
     language: string | null;
+    model_name?: string | null;
+    status?: string;
+    error?: string | null;
+    segments: Array<{
+      id: number;
+      start: number;
+      end: number;
+      text: string;
+    }>;
   };
+};
+
+export type BackendVersionResponse = {
+  backend_name: string;
+  backend_app_version: string;
+  api_contract_version: string;
 };
 
 export type ModelCatalogResponse = {
@@ -92,7 +128,13 @@ export type UploadResponse = {
   next_steps: {
     video_saved_in: string;
     analysis_will_be_saved_in: string;
+    annotated_will_be_saved_in: string;
     transcription_will_be_saved_in: string;
     analysis_status: string;
+    runtime_settings?: {
+      frame_stride: number;
+      confidence_threshold: number;
+      max_frames: number;
+    };
   };
 };
