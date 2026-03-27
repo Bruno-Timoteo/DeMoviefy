@@ -1,5 +1,7 @@
 ﻿# DeMoviefy
 
+![License](https://img.shields.io/badge/license-MIT-green)
+
 Monorepo para upload, analise e acompanhamento de videos com backend Flask, frontend React e pipeline YOLO.
 
 ## Estrutura
