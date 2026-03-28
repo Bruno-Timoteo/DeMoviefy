@@ -86,21 +86,26 @@ Frontend padrao:
 
 O sistema agora tenta gerar transcricao automatica com timestamps apos o processamento do video e tambem oferece um botao manual na interface.
 
-O launcher tenta preparar automaticamente uma `.venv-transcription` com Python 3.11 ou 3.12. Se quiser fazer manualmente:
+A transcricao agora é executada no mesmo ambiente virtual principal (`.venv`) por padrão (modo single-venv). A criacao de `.venv-transcription` não é mais obrigatoria, mas o launcher ainda oferece compatibilidade retroativa se ela existir.
 
-```powershell
-py -3.12 -m venv .venv-transcription
-.\.venv-transcription\Scripts\python -m pip install --upgrade pip
-.\.venv-transcription\Scripts\python -m pip install -r demoviefy-backend/requirements-transcription.txt
+> Importante: priorize manter `torch` na versao compatível com `ultralytics` (`2.11.0`) e `torchvision` com `0.26.0`.
+> O arquivo `demoviefy-backend/requirements-transcription.txt` agora usa `torch==2.11.0` para evitar conflitos.
+
+O launcher também valida após a instalação se há `torch`+`torchvision` compatíveis; se detectar conflito, tenta forcar `torchvision==0.26.0` e emite aviso.
+
+Recomendado (single venv):
+```
+\.venv\Scripts\python -m pip install --upgrade pip
+\.venv\Scripts\python -m pip install -r demoviefy-backend/requirements-transcription.txt
 ```
 
-No Linux, troque `.\.venv-transcription\Scripts\python` por `.venv-transcription/bin/python`.
+No Linux, use `.venv/bin/python`.
 
 Sem o Whisper instalado, o restante da analise continua funcionando normalmente. A tela vai mostrar o status da transcricao e ainda permitira edicao manual.
 
 ## Troubleshooting
 
 - Se a `.venv` estiver quebrada, o launcher recria durante `Setup Environment`.
-- Se a transcricao automatica nao aparecer, confira se a `.venv-transcription` foi criada com Python 3.11/3.12.
+- Se a transcricao automatica nao aparecer, confira se o pacote `openai-whisper` foi instalado no ven ambiente (`.venv`) e se a aplicacao foi reiniciada.
 - Se algum upload parecer "sumido", abra o painel do video na interface: o caminho do arquivo e do JSON aparecem ali.
 - Se `npm` ou `pip` precisarem do proxy da escola, use `--proxy http://proxy.spo.ifsp.edu.br:3128`.

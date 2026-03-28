@@ -10,11 +10,30 @@ from app.config.paths import annotated_video_path as build_annotated_video_path
 from app.config.paths import ensure_storage_dirs
 
 
+def _ensure_ultralytics_pose_compat() -> None:
+    """Ensure old Pose26 class alias exists for legacy model checkpoints."""
+    try:
+        import ultralytics.nn.modules.head as head
+    except Exception:
+        return
+
+    if not hasattr(head, "Pose26") and hasattr(head, "Pose"):
+        head.Pose26 = head.Pose  # type: ignore[attr-defined]
+
+
 @lru_cache(maxsize=2)
 def _get_model(model_path: str):
     from ultralytics import YOLO  # Imported lazily to avoid hard failure at app import time.
 
-    return YOLO(model_path)
+    _ensure_ultralytics_pose_compat()
+
+    try:
+        return YOLO(model_path)
+    except Exception as exc:
+        if hasattr(exc, "args") and any("Pose26" in str(arg) for arg in exc.args):
+            _ensure_ultralytics_pose_compat()
+            return YOLO(model_path)
+        raise
 
 
 def analyze_video_frames(

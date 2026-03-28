@@ -19,15 +19,15 @@ import type {
 type AnalysisState = "idle" | "loading" | "ready" | "pending" | "error";
 type CompatibilityState =
   | {
-      status: "checking";
-      message: string;
-      backendInfo: null;
-    }
+    status: "checking";
+    message: string;
+    backendInfo: null;
+  }
   | {
-      status: "compatible" | "mismatch" | "unavailable";
-      message: string;
-      backendInfo: BackendVersionResponse | null;
-    };
+    status: "compatible" | "mismatch" | "unavailable";
+    message: string;
+    backendInfo: BackendVersionResponse | null;
+  };
 
 const DEFAULT_PROCESSING = {
   processing_progress: 0,
@@ -358,7 +358,7 @@ export default function VideoDashboard() {
         if (response.data.transcription.status === "unavailable") {
           setTranscriptionMessage(
             response.data.transcription.error ??
-              "A transcricao automatica nao esta disponivel neste ambiente ainda.",
+            "A transcricao automatica nao esta disponivel neste ambiente ainda.",
           );
         } else {
           setTranscriptionMessage(
@@ -371,14 +371,14 @@ export default function VideoDashboard() {
       if (response.status === 202) {
         setTranscriptionMessage(
           response.data.transcription.error ??
-            "A transcricao ainda esta em processamento e sera atualizada em breve.",
+          "A transcricao ainda esta em processamento e sera atualizada em breve.",
         );
         return;
       }
 
       setTranscriptionMessage(
         response.data.transcription.error ??
-          "Ainda nao existe transcricao salva. Voce pode criar uma manualmente aqui.",
+        "Ainda nao existe transcricao salva. Voce pode criar uma manualmente aqui.",
       );
     } catch (error) {
       console.error(error);
@@ -792,8 +792,30 @@ export default function VideoDashboard() {
     );
   }
 
+  const globalProcessState = uploading
+    ? { text: "Upload em andamento", progress: null }
+    : loadingVideos
+      ? { text: "Atualizando biblioteca", progress: null }
+      : selectedVideoIsBusy && selectedVideo
+        ? { text: `Processando video: ${selectedVideo.filename}`, progress: selectedVideo.processing.processing_progress }
+        : null;
+
+  const globalProgressValue = globalProcessState?.progress ?? 0;
+
   return (
     <div className="workspace">
+      {globalProcessState && (
+        <section className="surface site-progress-panel">
+          <div className="site-progress-title">
+            <strong>{globalProcessState.text}</strong>
+            <span>{globalProgressValue ? `${globalProgressValue}%` : "..."}</span>
+          </div>
+          <div className="site-progress-bar" aria-hidden="true">
+            <span style={{ width: `${globalProgressValue}%` }} />
+          </div>
+        </section>
+      )}
+
       <UploadComposerPanel
         file={file}
         message={message}
