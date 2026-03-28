@@ -95,5 +95,6 @@ Frontend React:
 
 - O backend usa `ai_model/model/yolo26l.pt` automaticamente quando esse arquivo existe.
 - A transcricao automatica com timestamps usa Whisper quando instalado; prefira Python 3.11/3.12 para esse recurso.
+- Para evitar conflitos de dependencias, o `demoviefy-backend/requirements-transcription.txt` usa `torch==2.11.0` e o launcher faz um ajustamento de `torchvision` quando necessario.
 - Se o launcher for iniciado dentro de um debugger, ele remove variaveis de debug dos subprocessos para evitar o erro de `__firstlineno__` no SQLAlchemy.
 - `docs/RUN_INSTRUCTIONS.md`, `docs/FRAME_AI.md` e `docs/TRAINING_MODELS.md` continuam como referencia de execucao e da pipeline de IA.
