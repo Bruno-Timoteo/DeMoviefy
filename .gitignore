@@ -12,6 +12,8 @@ ai_model/results/
 # Virtual environments
 .venv/
 
+.ffmpeg/
+
 # Frontend dependencies and build
 demoviefy-front/node_modules/
 demoviefy-front/dist/
