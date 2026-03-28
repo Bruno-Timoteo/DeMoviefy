@@ -56,40 +56,114 @@ def ffmpeg_available() -> bool:
 
 
 def download_ffmpeg() -> bool:
-    """Download and unpack ffmpeg to the local launcher cache.
-
-    Currently Windows-only (static zip builds).
+    """Download and install ffmpeg for Windows, Linux, or macOS.
+    Returns True if ffmpeg is available after this call.
     """
     if ffmpeg_available():
         return True
 
-    if os.name != "nt":
-        return False
+    import platform
+    import shutil
+    import subprocess
+    import sys
 
-    try:
-        FFMPEG_DIR.mkdir(parents=True, exist_ok=True)
-        archive_fd, archive_path = tempfile.mkstemp(suffix=".zip")
-        os.close(archive_fd)
+    system = platform.system()
+    # Windows: download static build zip
+    if system == "Windows":
+        try:
+            FFMPEG_DIR.mkdir(parents=True, exist_ok=True)
+            archive_fd, archive_path = tempfile.mkstemp(suffix=".zip")
+            os.close(archive_fd)
+            print("[setup] Downloading ffmpeg zip for Windows...")
+            urllib.request.urlretrieve(FFMPEG_DOWNLOAD_URL_WIN, archive_path)
+            with zipfile.ZipFile(archive_path, "r") as zf:
+                members = [m for m in zf.namelist() if m.endswith("ffmpeg.exe") or m.endswith("ffprobe.exe")]
+                if not members:
+                    print("[setup] ffmpeg.exe not found in zip!")
+                    return False
+                for member in members:
+                    dest_name = Path(member).name
+                    target = FFMPEG_BIN_DIR / dest_name
+                    FFMPEG_BIN_DIR.mkdir(parents=True, exist_ok=True)
+                    with zf.open(member) as src, open(target, "wb") as out:
+                        out.write(src.read())
+                    target.chmod(0o755)
+            os.remove(archive_path)
+            return ffmpeg_available()
+        except Exception as exc:
+            print(f"[setup] Windows ffmpeg install failed: {exc}")
+            return False
 
-        urllib.request.urlretrieve(FFMPEG_DOWNLOAD_URL_WIN, archive_path)
+    # Linux: try apt or dnf
+    if system == "Linux":
+        # Try apt
+        if shutil.which("apt"):
+            try:
+                print("[setup] Installing ffmpeg via apt...")
+                rc = subprocess.call(["sudo", "apt", "update"])
+                rc2 = subprocess.call(["sudo", "apt", "install", "-y", "ffmpeg"])
+                if rc == 0 and rc2 == 0 and ffmpeg_available():
+                    return True
+            except Exception as exc:
+                print(f"[setup] apt install failed: {exc}")
+        # Try dnf
+        if shutil.which("dnf"):
+            try:
+                print("[setup] Installing ffmpeg via dnf...")
+                rc = subprocess.call(["sudo", "dnf", "install", "-y", "ffmpeg"])
+                if rc == 0 and ffmpeg_available():
+                    return True
+            except Exception as exc:
+                print(f"[setup] dnf install failed: {exc}")
+        # Try tarball fallback
+        try:
+            print("[setup] Downloading static ffmpeg tarball for Linux...")
+            # Use John Van Sickle static builds
+            url = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
+            archive_fd, archive_path = tempfile.mkstemp(suffix=".tar.xz")
+            os.close(archive_fd)
+            urllib.request.urlretrieve(url, archive_path)
+            import tarfile
+            with tarfile.open(archive_path, "r:xz") as tf:
+                members = [m for m in tf.getnames() if m.endswith("/ffmpeg") or m.endswith("/ffprobe")]
+                if not members:
+                    print("[setup] ffmpeg not found in tarball!")
+                    return False
+                for member in members:
+                    dest_name = Path(member).name
+                    target = FFMPEG_BIN_DIR / dest_name
+                    FFMPEG_BIN_DIR.mkdir(parents=True, exist_ok=True)
+                    with tf.extractfile(member) as src, open(target, "wb") as out:
+                        out.write(src.read())
+                    target.chmod(0o755)
+            os.remove(archive_path)
+            return ffmpeg_available()
+        except Exception as exc:
+            print(f"[setup] Linux tarball install failed: {exc}")
+            return False
 
-        with zipfile.ZipFile(archive_path, "r") as zf:
-            members = [m for m in zf.namelist() if m.endswith("ffmpeg.exe") or m.endswith("ffprobe.exe")]
-            if not members:
-                return False
+    # macOS: try brew
+    if system == "Darwin":
+        if shutil.which("brew"):
+            try:
+                print("[setup] Installing ffmpeg via brew...")
+                rc = subprocess.call(["brew", "install", "ffmpeg"])
+                if rc == 0 and ffmpeg_available():
+                    return True
+            except Exception as exc:
+                print(f"[setup] brew install failed: {exc}")
+        # Try static build fallback (not always available for macOS)
+        try:
+            print("[setup] Downloading static ffmpeg for macOS (not guaranteed)...")
+            # No official static build for macOS, so just instruct user
+            print("[setup] Please install ffmpeg manually using Homebrew: brew install ffmpeg")
+            return False
+        except Exception as exc:
+            print(f"[setup] macOS static install failed: {exc}")
+            return False
 
-            for member in members:
-                dest_name = Path(member).name
-                target = FFMPEG_BIN_DIR / dest_name
-                FFMPEG_BIN_DIR.mkdir(parents=True, exist_ok=True)
-                with zf.open(member) as src, open(target, "wb") as out:
-                    out.write(src.read())
-                target.chmod(0o755)
-
-        os.remove(archive_path)
-        return ffmpeg_available()
-    except Exception:
-        return False
+    print("[setup] Could not install ffmpeg automatically. Please install it manually.")
+    return False
 
 
 def venv_python_candidates(venv_dir: Path) -> list[Path]:
@@ -274,10 +348,12 @@ class LauncherForm(tk.Tk):
         self.backend_status_var = tk.StringVar(value="Stopped")
         self.frontend_status_var = tk.StringVar(value="Stopped")
         self.setup_status_var = tk.StringVar(value="Idle")
+        self.ffmpeg_status_var = tk.StringVar(value="Unknown")
         self._setup_running = False
         self._closing = False
 
         self._build_ui()
+        self._update_ffmpeg_status()
         self._log(f"[launcher] DeMoviefy Launcher v{LAUNCHER_VERSION}")
         self._log(f"[launcher] root={ROOT}")
         self.after(100, self._drain_log_queue)
@@ -301,6 +377,7 @@ class LauncherForm(tk.Tk):
 
         self.setup_button = ttk.Button(row1, text="Setup Environment", command=self.setup_environment)
         self.setup_button.pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Button(row1, text="Install FFmpeg", command=self.install_ffmpeg).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(row1, text="Start Backend", command=self.start_backend).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(row1, text="Start Frontend", command=self.start_frontend).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(row1, text="Start All", command=self.start_all).pack(side=tk.LEFT, padx=(0, 8))
@@ -315,6 +392,10 @@ class LauncherForm(tk.Tk):
         ttk.Label(setup_row, textvariable=self.setup_status_var).pack(side=tk.LEFT, padx=(4, 12))
         self.setup_progress = ttk.Progressbar(setup_row, mode="indeterminate", length=220)
         self.setup_progress.pack(side=tk.LEFT)
+
+        # FFmpeg status
+        ttk.Label(setup_row, text="FFmpeg:").pack(side=tk.LEFT, padx=(12, 0))
+        ttk.Label(setup_row, textvariable=self.ffmpeg_status_var).pack(side=tk.LEFT, padx=(4, 12))
 
         # Row 2: optional explicit video path for AI test app.
         row2 = ttk.Frame(controls)
@@ -443,6 +524,40 @@ class LauncherForm(tk.Tk):
             self.after(0, apply)
         except tk.TclError:
             return
+
+    def _update_ffmpeg_status(self) -> None:
+        """Refresh on-screen FFmpeg availability status."""
+        status = "Available" if ffmpeg_available() else "Missing"
+        if status == "Available":
+            status += f" ({ffmpeg_executable_path()})"
+        self.ffmpeg_status_var.set(status)
+
+    def install_ffmpeg(self) -> None:
+        """Background task to download and install ffmpeg locally for the launcher."""
+
+        def worker() -> None:
+            self._set_setup_state(True, "Installing FFmpeg...")
+            self._log("[setup] installing ffmpeg")
+            success = download_ffmpeg()
+            if success:
+                self._log("[setup] ffmpeg installed successfully")
+                self._update_ffmpeg_status()
+                self._set_setup_state(False, "FFmpeg ready")
+            else:
+                self._log("[setup] ffmpeg installation failed")
+                self._update_ffmpeg_status()
+                self._set_setup_state(False, "FFmpeg install failed")
+
+        if self._setup_running:
+            self._log("[setup] already running, cannot install ffmpeg concurrently")
+            return
+
+        if ffmpeg_available():
+            self._log("[setup] ffmpeg already present")
+            self._update_ffmpeg_status()
+            return
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def _stream_process(self, name: str, proc: subprocess.Popen) -> None:
         """Read a long-running process output and route lines into the UI log queue."""
