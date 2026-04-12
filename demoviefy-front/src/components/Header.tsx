@@ -1,3 +1,5 @@
+import { NavLink } from "react-router-dom";
+
 type HeaderProps = {
   themeLabel: string;
   onToggleTheme: () => void;
@@ -9,6 +11,14 @@ export default function Header({ themeLabel, onToggleTheme }: HeaderProps) {
       <div>
         <span className="eyebrow">DeMoviefy</span>
         <h1>Painel de analise de videos</h1>
+        <nav className="header-navigation">
+          <NavLink to="/" end className={({ isActive }) => `header-link${isActive ? " is-active" : ""}`}>
+            Home
+          </NavLink>
+          <NavLink to="/upload" className={({ isActive }) => `header-link${isActive ? " is-active" : ""}`}>
+            Upload
+          </NavLink>
+        </nav>
       </div>
       <div className="header-actions">
         <p>

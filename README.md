@@ -21,21 +21,18 @@ Monorepo para upload, analise e acompanhamento de videos com backend Flask, fron
 
 O frontend agora mostra esses caminhos diretamente no painel de detalhes, junto com o preview do video e o status do processamento.
 
-## Fluxo rapido
+## Quick Start
 
-### Launcher
-
-Windows PowerShell:
+### Com o Launcher (Recomendado)
 
 ```powershell
-.\run_form.ps1
+python run_form.py
 ```
 
-Linux:
+Depois clique em:
 
-```bash
-./run_form.sh
-```
+1. `Setup Environment` (primeira vez apenas)
+2. `Start All` (inicia backend + frontend)
 
 Com proxy da escola:
 
@@ -43,11 +40,75 @@ Com proxy da escola:
 python run_form.py --proxy http://proxy.spo.ifsp.edu.br:3128
 ```
 
-Ou use o atalho pronto:
+Ou manualmente:
 
 ```powershell
 python run_form_proxy.py
 ```
+
+### Execução Manual
+
+**Setup Python:**
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r demoviefy-backend/requirements.txt
+```
+
+**Backend:**
+
+```powershell
+cd demoviefy-backend
+python run.py
+```
+
+Acesse: `http://127.0.0.1:5000`
+
+**Frontend (em outro terminal):**
+
+```powershell
+cd demoviefy-front
+npm install
+npm run dev
+```
+
+Acesse: `http://localhost:5173`
+
+## Fluxo de Upload
+
+1. Envie o video pela interface
+2. Backend salva em `uploads/`
+3. Thread de processamento executa analise com YOLO
+4. Resumo final vai para `uploads/analysis/video_<id>.json`
+5. Preview anotado vai para `uploads/annotated/video_<id>.mp4`
+6. Interface mostra preview, status e caminhos dos artefatos
+
+## Configurações
+
+- `PROXY_URL`: proxy HTTP/HTTPS para pip, npm e subprocessos
+- `FRAME_AI_MODEL`: caminho alternativo para modelo YOLO
+- `FRAME_AI_FRAME_STRIDE`: intervalo de frames amostrados
+- `FRAME_AI_CONFIDENCE`: confianca minima da deteccao
+- `FRAME_AI_MAX_FRAMES`: limite de frames processados
+
+## Transcrição Automática
+
+O sistema gera transcrição automatica com timestamps apos processamento. Recomendado:
+
+```powershell
+.\.venv\Scripts\python -m pip install -r demoviefy-backend/requirements-transcription.txt
+```
+
+> **Importante**: Manter `torch==2.11.0` e `torchvision==0.26.0` para compatibilidade.
+
+## Documentação Adicional
+
+- [Organização de Código](CODE_ORGANIZATION_GUIDE.md) - Arquitetura MVC do backend e frontend
+- [Guia de Contribuição](CONTRIBUTING.md) - Como contribuir com o projeto
+- [IA & Frame Processing](docs/FRAME_AI.md) - Detalhes do pipeline de IA
+- [Treinamento de Modelos](docs/TRAINING_MODELS.md) - Como treinar novos modelos YOLO
 
 O launcher pode ser iniciado com o Python do sistema, mesmo sem `.venv`. Ao clicar em `Setup Environment`, ele cria ou repara o ambiente automaticamente.
 
