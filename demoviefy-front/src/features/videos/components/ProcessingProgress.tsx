@@ -51,23 +51,15 @@ export const ProcessingProgress = memo(function ProcessingProgress({
   const safeProgress = Math.max(0, Math.min(progress, 100));
   const currentIndex = STAGE_INDEX[stage] ?? -1;
 
-  const currentStep = PIPELINE_STEPS.find((item) => item.id === stage)?.label ?? stage;
-  const displayStage = currentStep === "completed" ? "Concluído" : currentStep;
-
   return (
     <div className="processing-progress">
       <div className="processing-progress-header">
-        <div className="progress-metrics">
-          <strong>{safeProgress}%</strong>
-          <span>{displayStage}</span>
-        </div>
-        <span className="progress-eta">{formatEta(etaSeconds)}</span>
+        <strong>{safeProgress}%</strong>
+        <span>{formatEta(etaSeconds)}</span>
       </div>
-
       <div className="progress-bar" aria-hidden="true">
         <span style={{ width: `${safeProgress}%` }} />
       </div>
-
       <div className="pipeline-steps" aria-label="Etapas do processamento">
         {PIPELINE_STEPS.map((step, index) => {
           const isDone = index < currentIndex || stage === "completed";
@@ -81,14 +73,12 @@ export const ProcessingProgress = memo(function ProcessingProgress({
               key={step.id}
               className={`pipeline-step ${isDone ? "is-done" : ""} ${isCurrent ? "is-current" : ""}`}
             >
-              <span className="step-indicator" />
-              <span className="step-label">{step.label}</span>
+              {step.label}
             </span>
           );
         })}
       </div>
-
-      <small>{message ?? "Aguardando proximo status..."}</small>
+      <small>{message || stage}</small>
     </div>
   );
 });
