@@ -18,12 +18,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       console.warn("Nao foi possivel ler o tema salvo.", error);
     }
 
-    try {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    } catch (error) {
-      console.warn("Nao foi possivel consultar o tema do sistema.", error);
-      return "light";
-    }
+    return "dark";
   });
 
   useEffect(() => {
@@ -46,8 +41,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
         themeLabel={themeLabel}
         onToggleTheme={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
       />
-      <main className="app-main">{children}</main>
-      <Footer />
+      <div className="app-content-shell">
+        <main className="app-main">{children}</main>
+        <Footer />
+      </div>
     </div>
   );
 }

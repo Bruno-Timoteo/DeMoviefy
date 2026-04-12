@@ -1,78 +1,62 @@
-# 🎬 DeMoviefy Frontend
+# DeMoviefy Frontend
 
-Frontend do projeto **DeMoviefy**, desenvolvido com **React + TypeScript + Vite** e estilizado com **Tailwind CSS**.
+Frontend do projeto DeMoviefy, desenvolvido com React, TypeScript, Vite e Tailwind CSS.
 
----
+## O que existe hoje
 
-## 📋 Pré-requisitos
+- Landing page publica em `/`
+- Modo convidado em `/guest`
+- Login admin em `/login`
+- Laboratorio admin protegido em `/admin/lab`
 
-Antes de começar, você precisa ter instalado:
+## Objetivo do frontend
 
-* **Node.js** (recomendado: versão LTS 20+)
-* **npm**
+O frontend foi reorganizado para separar tres experiencias:
 
-Verifique:
+- Apresentacao institucional do produto
+- Exploracao publica sem login
+- Operacao tecnica e administrativa autenticada
 
-```bash
-node -v
-npm -v
-```
-
----
-
-## 🚀 Como rodar o projeto
-
-### 1️⃣ Clonar o repositório
-
-```bash
-git clone <URL_DO_REPOSITORIO>
-```
-
-Entre na pasta:
+## Como rodar
 
 ```bash
 cd demoviefy-front
-```
-
----
-
-### 2️⃣ Instalar as dependências
-
-```bash
 npm install
-```
-
----
-
-### 3️⃣ Instalar Tailwind CSS
-
-O projeto utiliza Tailwind integrado ao Vite:
-
-```bash
-npm install tailwindcss @tailwindcss/vite
-```
-
----
-
-### 4️⃣ Rodar o servidor de desenvolvimento
-
-```bash
 npm run dev
 ```
 
-O terminal mostrará algo como:
+Build de producao:
 
+```bash
+npm run build
 ```
-Local: http://localhost:5173
-```
 
-Abra o endereço no navegador.
+## Integracao com backend
 
----
+O frontend consome a API Flask e depende principalmente de:
 
-### Extensões
+- `/auth/login`
+- `/auth/logout`
+- `/auth/me`
+- `/videos`
+- `/videos/:id/analysis`
+- `/videos/:id/transcription`
+- `/ai/models`
 
-O projeto pode ser melhor utilizado com as seguintes extensões do VS Code:
+A autenticacao usa sessao no backend com `withCredentials: true` no cliente HTTP.
 
-- Tailwind CSS IntelliSense
-- Pretty TypeScript Errors
+## Estrutura principal
+
+- `src/app/`: roteamento principal
+- `src/layouts/`: shell visual da aplicacao
+- `src/components/`: header e footer
+- `src/pages/Home/`: homepage publica
+- `src/pages/Guest/`: modo convidado
+- `src/pages/Login/`: login admin
+- `src/pages/Upload/`: laboratorio admin
+- `src/features/auth/`: autenticacao e protecao de rotas
+- `src/features/videos/`: biblioteca, fila, badges, workbench e dashboard tecnico
+
+## Observacao importante
+
+O modo convidado atual e uma experiencia publica de exploracao da plataforma. Persistencia completa de historico para usuarios comuns ainda depende da evolucao da camada de contas alem do perfil administrativo.

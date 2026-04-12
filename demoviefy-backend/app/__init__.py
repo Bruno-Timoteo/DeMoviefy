@@ -3,6 +3,7 @@ import os
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
 
 from app.config.ai_settings import load_frame_ai_settings
 from app.config.paths import (
@@ -20,11 +21,24 @@ db = SQLAlchemy()
 
 
 def create_app():
+    load_dotenv()
     app = Flask(__name__)
     ai_settings = load_frame_ai_settings()
+    allowed_origins = [
+        origin.strip()
+        for origin in os.environ.get(
+            "DEMOVIEFY_FRONTEND_ORIGINS",
+            "http://127.0.0.1:5173,http://localhost:5173",
+        ).split(",")
+        if origin.strip()
+    ]
 
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///demoviefy.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SECRET_KEY"] = os.environ.get("DEMOVIEFY_SECRET_KEY", "demoviefy-dev-secret-key")
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["SESSION_COOKIE_SECURE"] = os.environ.get("DEMOVIEFY_SESSION_COOKIE_SECURE", "0") == "1"
     app.config["UPLOADS_DIR"] = str(UPLOADS_DIR)
     app.config["ANALYSIS_DIR"] = str(ANALYSIS_DIR)
     app.config["ANNOTATED_DIR"] = str(ANNOTATED_DIR)
@@ -40,18 +54,23 @@ def create_app():
     app.config["BACKEND_APP_VERSION"] = BACKEND_APP_VERSION
     app.config["API_CONTRACT_VERSION"] = API_CONTRACT_VERSION
 
-    CORS(app)
+    CORS(app, supports_credentials=True, origins=allowed_origins)
     db.init_app(app)
     ensure_storage_dirs()
 
+    from .routes.auth_routes import auth_bp
     from .routes.video_routes import video_bp
+    app.register_blueprint(auth_bp)
     app.register_blueprint(video_bp)
 
     # Criar banco automaticamente
     with app.app_context():
         from app.models.video import Video
+        from app.models.user import User
+        from app.services.auth_service import create_initial_admin_if_needed
 
         db.create_all()
+        create_initial_admin_if_needed()
         migrate_metadata_files(video_ids=[video.id for video in Video.query.all()], logger=app.logger)
 
     return app
