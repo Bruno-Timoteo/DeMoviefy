@@ -3,8 +3,13 @@ import type { AxiosError } from "axios";
 
 import { api, frontendApiContractVersion, frontendAppVersion } from "../../services/api";
 import { UploadComposerPanel } from "./components/UploadComposerPanel";
+import { NewVideoPanel } from "./components/NewVideoPanel";
 import { VideoLibrary } from "./components/VideoLibrary";
 import { VideoWorkbench } from "./components/VideoWorkbench";
+import { ProcessingQueuePanel } from "./components/ProcessingQueuePanel";
+import "./styles/VideoDashboard.css";
+import "./styles/NewVideoPanel.css";
+import "./styles/ProcessingQueuePanel.css";
 import type {
   AIModelOption,
   AITaskOption,
@@ -869,43 +874,74 @@ export default function VideoDashboard() {
           onSelect={setSelectedVideoId}
         />
 
-        <VideoWorkbench
-          video={selectedVideo}
-          analysis={analysis}
-          analysisState={analysisState}
-          analysisMessage={buildAnalysisMessage(analysisState, selectedVideo, analysis)}
-          selectedTask={videoTask}
-          selectedModelPath={videoModelPath}
-          selectedFrameStride={videoFrameStride}
-          selectedConfidenceThreshold={videoConfidenceThreshold}
-          selectedMaxFrames={videoMaxFrames}
-          selectedClipStart={videoClipStart}
-          selectedClipEnd={videoClipEnd}
-          taskOptions={tasks}
-          modelOptions={models}
-          analysisDraft={analysisDraft}
-          transcription={transcription}
-          transcriptionDraft={transcriptionDraft}
-          transcriptionMessage={transcriptionMessage}
-          isBusy={selectedVideoIsBusy}
-          onTaskChange={handleVideoTaskChange}
-          onModelChange={setVideoModelPath}
-          onFrameStrideChange={setVideoFrameStride}
-          onConfidenceThresholdChange={setVideoConfidenceThreshold}
-          onMaxFramesChange={setVideoMaxFrames}
-          onClipStartChange={setVideoClipStart}
-          onClipEndChange={setVideoClipEnd}
-          onAnalysisDraftChange={setAnalysisDraft}
-          onTranscriptionDraftChange={setTranscriptionDraft}
-          onSaveConfig={handleSaveConfig}
-          onReprocess={handleReprocess}
-          onDeleteVideo={handleDeleteVideo}
-          onSaveAnalysis={handleSaveAnalysis}
-          onDeleteAnalysis={handleDeleteAnalysis}
-          onGenerateTranscription={handleGenerateTranscription}
-          onSaveTranscription={handleSaveTranscription}
-          onDeleteTranscription={handleDeleteTranscription}
-        />
+        {selectedVideo ? (
+          <VideoWorkbench
+            video={selectedVideo}
+            analysis={analysis}
+            analysisState={analysisState}
+            analysisMessage={buildAnalysisMessage(analysisState, selectedVideo, analysis)}
+            selectedTask={videoTask}
+            selectedModelPath={videoModelPath}
+            selectedFrameStride={videoFrameStride}
+            selectedConfidenceThreshold={videoConfidenceThreshold}
+            selectedMaxFrames={videoMaxFrames}
+            selectedClipStart={videoClipStart}
+            selectedClipEnd={videoClipEnd}
+            taskOptions={tasks}
+            modelOptions={models}
+            analysisDraft={analysisDraft}
+            transcription={transcription}
+            transcriptionDraft={transcriptionDraft}
+            transcriptionMessage={transcriptionMessage}
+            isBusy={selectedVideoIsBusy}
+            onTaskChange={handleVideoTaskChange}
+            onModelChange={setVideoModelPath}
+            onFrameStrideChange={setVideoFrameStride}
+            onConfidenceThresholdChange={setVideoConfidenceThreshold}
+            onMaxFramesChange={setVideoMaxFrames}
+            onClipStartChange={setVideoClipStart}
+            onClipEndChange={setVideoClipEnd}
+            onAnalysisDraftChange={setAnalysisDraft}
+            onTranscriptionDraftChange={setTranscriptionDraft}
+            onSaveConfig={handleSaveConfig}
+            onReprocess={handleReprocess}
+            onDeleteVideo={handleDeleteVideo}
+            onSaveAnalysis={handleSaveAnalysis}
+            onDeleteAnalysis={handleDeleteAnalysis}
+            onGenerateTranscription={handleGenerateTranscription}
+            onSaveTranscription={handleSaveTranscription}
+            onDeleteTranscription={handleDeleteTranscription}
+          />
+        ) : (
+          <div className="right-panel-empty">
+            <NewVideoPanel
+              file={file}
+              message={message}
+              hint={hint}
+              uploading={uploading}
+              selectedTask={uploadTask}
+              selectedModelPath={uploadModelPath}
+              frameStride={parseInt(uploadFrameStride, 10)}
+              confidenceThreshold={parseFloat(uploadConfidenceThreshold)}
+              maxFrames={parseInt(uploadMaxFrames, 10)}
+              clipStart={parseInt(uploadClipStart, 10)}
+              clipEnd={uploadClipEnd ? parseInt(uploadClipEnd, 10) : null}
+              tasks={tasks}
+              models={models}
+              onFileChange={setFile}
+              onTaskChange={handleUploadTaskChange}
+              onModelChange={setUploadModelPath}
+              onFrameStrideChange={(val) => setUploadFrameStride(String(val))}
+              onConfidenceThresholdChange={(val) => setUploadConfidenceThreshold(String(val))}
+              onMaxFramesChange={(val) => setUploadMaxFrames(String(val))}
+              onClipStartChange={(val) => setUploadClipStart(String(val))}
+              onClipEndChange={(val) => setUploadClipEnd(val ? String(val) : "")}
+              onUpload={handleUpload}
+              onRefresh={() => void fetchVideos({ preserveHint: false })}
+            />
+            <ProcessingQueuePanel videos={videos} />
+          </div>
+        )}
       </section>
     </div>
   );
