@@ -171,7 +171,7 @@ export const VideoWorkbench = memo(function VideoWorkbench({
           <span className="eyebrow">Workbench</span>
           <h2>{video.filename}</h2>
         </div>
-        <StatusBadge status={video.status} />
+        <StatusBadge status={video.status} processing={video.processing} />
       </div>
 
       {video.status.startsWith("PROCESSANDO") && (
