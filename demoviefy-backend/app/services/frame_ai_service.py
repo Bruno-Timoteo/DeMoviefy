@@ -1,3 +1,20 @@
+"""
+FRAME AI SERVICE
+----------------
+Service layer for AI-powered video frame analysis using YOLO models.
+Handles video processing, frame sampling, model inference, and annotation.
+Part of the MVC pattern (Model-View-Controller).
+
+Key Responsibilities:
+- Load and cache YOLO models
+- Sample frames from videos at specified stride intervals
+- Run inference on sampled frames
+- Aggregate detection results
+- Generate annotated videos with bounding boxes
+- Handle progress tracking and error recovery
+- Persist analysis results to JSON files
+"""
+
 import json
 import time
 from collections import Counter, defaultdict
@@ -10,8 +27,17 @@ from app.config.paths import annotated_video_path as build_annotated_video_path
 from app.config.paths import ensure_storage_dirs
 
 
+# ============================================================================
+# HELPER FUNCTIONS - Model Loading & Compatibility
+# ============================================================================
+
 def _ensure_ultralytics_pose_compat() -> None:
-    """Ensure old Pose26 class alias exists for legacy model checkpoints."""
+    """
+    Ensure backward compatibility with legacy Pose26 model checkpoints.
+    
+    Some older YOLO models reference a 'Pose26' class that may not exist
+    in newer versions. This creates an alias to maintain compatibility.
+    """
     try:
         import ultralytics.nn.modules.head as head
     except Exception:
@@ -23,6 +49,21 @@ def _ensure_ultralytics_pose_compat() -> None:
 
 @lru_cache(maxsize=2)
 def _get_model(model_path: str):
+    """
+    Load and cache YOLO model with lazy initialization.
+    
+    Lazy imports the YOLO model only when needed to avoid hard failures
+    at app startup. Results are cached to avoid reloading the same model.
+    
+    Args:
+        model_path (str): Path to the YOLO model file
+        
+    Returns:
+        YOLO: Loaded model instance ready for inference
+        
+    Raises:
+        RuntimeError: If model fails to load
+    """
     from ultralytics import YOLO  # Imported lazily to avoid hard failure at app import time.
 
     _ensure_ultralytics_pose_compat()
@@ -35,6 +76,10 @@ def _get_model(model_path: str):
             return YOLO(model_path)
         raise
 
+
+# ============================================================================
+# MAIN ANALYSIS FUNCTION
+# ============================================================================
 
 def analyze_video_frames(
     *,
@@ -51,10 +96,52 @@ def analyze_video_frames(
     logger: Any | None = None,
 ) -> dict[str, Any]:
     """
-    Run frame sampling and summarize the chosen AI task across the video.
+    Analyze video frames using YOLO model with frame sampling.
 
-    We keep the output format intentionally compact so it can be edited by the
-    frontend and also stored as plain JSON beside the uploaded video.
+    This is the main entry point for video analysis. It:
+    1. Opens the video file and extracts metadata (FPS, frame count, duration)
+    2. Samples frames at specified stride intervals
+    3. Runs inference on each sampled frame
+    4. Aggregates results by detected object class and confidence
+    5. Optionally generates annotated video with bounding boxes
+    6. Reports progress via callback function
+    
+    Output format is intentionally compact for frontend editing and JSON storage.
+
+    Args:
+        video_path (str): Path to the video file to analyze
+        model_path (str): Path to YOLO model file (default: yolov8n.pt - nano model)
+        task_type (str): Type of AI task - "object_detection", "classification", etc.
+        frame_stride (int): Sample every nth frame (e.g., stride=8 means every 8th frame)
+        conf_threshold (float): Confidence threshold for detections (0.0-1.0)
+        max_frames (int): Maximum number of frames to process
+        clip_start_sec (float): Start time of video segment (seconds)
+        clip_end_sec (float|None): End time of video segment (seconds). None = video end
+        annotated_output_path (str|None): Path to save annotated video. None = no output
+        progress_callback (callable|None): Function to report progress (current, total)
+        logger (logging.Logger|None): Logger for debug output
+        
+    Returns:
+        dict: Analysis results with aggregated detections:
+            {
+                'task_type': str,
+                'model_path': str,
+                'total_frames': int,
+                'sampled_frames': int,
+                'fps': float,
+                'duration_seconds': float,
+                'detected_labels': dict,           # {label: count, ...}
+                'class_confidences': dict,        # {label: [conf, ...], ...}
+                'detected_classes': list,         # unique class names
+                'average_confidences': dict,      # {label: avg_confidence, ...}
+                'start_frame': int,
+                'end_frame': int,
+                'clip_start_sec': float,
+                'clip_end_sec': float
+            }
+            
+    Raises:
+        RuntimeError: If opencv-python not installed, model fails to load, or video is invalid
     """
     try:
         import cv2

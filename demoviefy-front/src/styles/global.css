@@ -1,40 +1,101 @@
+/* ============================================================================
+   DEMOVIEFY - GLOBAL STYLES
+   ============================================================================
+   
+   This file contains the foundational styles for the DeMoviefy application.
+   It uses CSS variables for theming, supporting both light and dark modes.
+   
+   Structure:
+   1. Theme Variables (Light/Dark)
+   2. Base Resets & Typography
+   3. Layout System
+   4. Header & Navigation
+   5. Forms & Inputs
+   6. Buttons & Actions
+   7. Cards & Surfaces
+   8. Utility Classes
+   9. Responsive Breakpoints
+   ============================================================================ */
+
 @import "tailwindcss";
 
+/* ============================================================================
+   1. THEME VARIABLES - Color Palette & Design Tokens
+   ============================================================================ */
+
+/* Dark Mode (Default) */
 :root {
   color-scheme: dark;
-  --bg: #020817;
-  --bg-accent: #0f172a;
-  --surface: rgba(8, 15, 30, 0.88);
-  --surface-strong: #111c34;
-  --border: rgba(148, 163, 184, 0.18);
-  --text: #e2e8f0;
-  --muted: #94a3b8;
-  --brand: #3b82f6;
-  --brand-strong: #93c5fd;
-  --brand-soft: rgba(59, 130, 246, 0.14);
-  --danger: #f87171;
-  --shadow: 0 18px 34px rgba(2, 6, 23, 0.24);
-  --radius-lg: 28px;
-  --radius-md: 18px;
-  --radius-sm: 12px;
+  
+  /* Background Colors */
+  --bg: #020817;                                    /* Main background */
+  --bg-accent: #0f172a;                             /* Accent background */
+  
+  /* Surface Colors */
+  --surface: rgba(8, 15, 30, 0.88);                /* Default surface */
+  --surface-strong: #111c34;                        /* Strong/elevated surface */
+  
+  /* Border & Dividers */
+  --border: rgba(148, 163, 184, 0.18);             /* Default border color */
+  
+  /* Text Colors */
+  --text: #e2e8f0;                                  /* Primary text */
+  --muted: #94a3b8;                                 /* Secondary/muted text */
+  
+  /* Brand Colors */
+  --brand: #3b82f6;                                 /* Primary brand color */
+  --brand-strong: #93c5fd;                          /* Bright variant */
+  --brand-soft: rgba(59, 130, 246, 0.14);          /* Soft background variant */
+  
+  /* Status Colors */
+  --danger: #f87171;                                /* Error/danger state */
+  
+  /* Effects */
+  --shadow: 0 18px 34px rgba(2, 6, 23, 0.24);     /* Elevation shadow */
+  
+  /* Border Radius */
+  --radius-lg: 28px;                                /* Large radius (panels) */
+  --radius-md: 18px;                                /* Medium radius (buttons) */
+  --radius-sm: 12px;                                /* Small radius (inputs) */
+  
+  /* Typography */
   font-family: "Aptos", "Segoe UI Variable", "Avenir Next", sans-serif;
 }
 
+/* Light Mode */
 :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #edf3ff;
-  --bg-accent: #dbeafe;
-  --surface: rgba(255, 255, 255, 0.86);
-  --surface-strong: #ffffff;
-  --border: rgba(15, 23, 42, 0.1);
-  --text: #0f172a;
-  --muted: #475569;
-  --brand: #2563eb;
-  --brand-strong: #1d4ed8;
-  --brand-soft: rgba(37, 99, 235, 0.1);
-  --danger: #dc2626;
-  --shadow: 0 18px 34px rgba(15, 23, 42, 0.08);
+  
+  /* Background Colors */
+  --bg: #edf3ff;                                    /* Light blue background */
+  --bg-accent: #dbeafe;                             /* Accent background */
+  
+  /* Surface Colors */
+  --surface: rgba(255, 255, 255, 0.86);            /* White surface */
+  --surface-strong: #ffffff;                        /* Pure white */
+  
+  /* Border & Dividers */
+  --border: rgba(15, 23, 42, 0.1);                 /* Light border */
+  
+  /* Text Colors */
+  --text: #0f172a;                                  /* Dark text */
+  --muted: #475569;                                 /* Gray muted text */
+  
+  /* Brand Colors */
+  --brand: #2563eb;                                 /* Blue brand */
+  --brand-strong: #1d4ed8;                          /* Darker blue */
+  --brand-soft: rgba(37, 99, 235, 0.1);            /* Light blue background */
+  
+  /* Status Colors */
+  --danger: #dc2626;                                /* Red error */
+  
+  /* Effects */
+  --shadow: 0 18px 34px rgba(15, 23, 42, 0.08);   /* Lighter shadow */
 }
+
+/* ============================================================================
+   2. BASE RESETS & TYPOGRAPHY
+   ============================================================================ */
 
 * {
   box-sizing: border-box;
@@ -42,6 +103,7 @@
 
 html {
   min-height: 100%;
+  /* Animated gradient background */
   background:
     radial-gradient(circle at top left, rgba(59, 130, 246, 0.22), transparent 26%),
     radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 24%),
@@ -53,8 +115,10 @@ body {
   min-height: 100vh;
   color: var(--text);
   background: transparent;
+  line-height: 1.6;
 }
 
+/* Form elements inherit font family */
 button,
 input,
 textarea,
@@ -62,16 +126,22 @@ select {
   font: inherit;
 }
 
+/* Code/pre formatting */
 code {
   font-family: "Consolas", "Courier New", monospace;
   background: rgba(148, 163, 184, 0.14);
   padding: 0.15rem 0.35rem;
   border-radius: 6px;
+  font-size: 0.9em;
 }
 
 #root {
   min-height: 100vh;
 }
+
+/* ============================================================================
+   3. LAYOUT SYSTEM - Grid & Container Utilities
+   ============================================================================ */
 
 .app-startup-shell,
 .app-shell {
@@ -80,116 +150,14 @@ code {
   padding: 16px 0 20px;
 }
 
+/* Full viewport container */
 .app-startup-shell {
   min-height: 100vh;
   display: grid;
   place-items: center;
 }
 
-.app-header,
-.app-footer,
-.surface {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-}
-
-.app-header {
-  position: sticky;
-  top: 16px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 24px;
-  min-height: calc(100vh - 32px);
-  padding: 28px 24px;
-  border-radius: 32px;
-  background:
-    linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(8, 15, 30, 0.94)),
-    var(--surface);
-  border-color: rgba(96, 165, 250, 0.16);
-}
-
-.app-header h1,
-.hero-panel h1,
-.section-heading h2 {
-  margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
-  letter-spacing: -0.03em;
-}
-
-.app-header h1 {
-  font-size: clamp(1.8rem, 2.4vw, 2.55rem);
-}
-
-.app-header p {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.65;
-}
-
-.app-sidebar-top {
-  display: grid;
-  gap: 20px;
-}
-
-.sidebar-brand {
-  display: grid;
-  gap: 10px;
-}
-
-.sidebar-nav {
-  display: grid;
-  gap: 10px;
-}
-
-.sidebar-nav-link {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  color: var(--text);
-  text-decoration: none;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  transition: background-color 140ms ease, transform 140ms ease, border-color 140ms ease;
-}
-
-.sidebar-nav-link:hover {
-  transform: translateX(2px);
-  background: rgba(59, 130, 246, 0.12);
-  border-color: rgba(96, 165, 250, 0.22);
-}
-
-.sidebar-nav-link.is-active {
-  background: rgba(59, 130, 246, 0.18);
-  border-color: rgba(96, 165, 250, 0.28);
-  color: #ffffff;
-}
-
-.sidebar-highlight {
-  display: grid;
-  gap: 8px;
-  padding: 16px;
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(59, 130, 246, 0.16), rgba(15, 23, 42, 0));
-  border: 1px solid rgba(96, 165, 250, 0.14);
-}
-
-.sidebar-highlight strong {
-  font-size: 1.05rem;
-}
-
-.header-actions {
-  display: grid;
-  gap: 12px;
-}
-
-.theme-toggle {
-  width: 100%;
-}
-
+/* Main application layout */
 .app-shell {
   min-height: 100vh;
   display: grid;
@@ -214,26 +182,6 @@ code {
 .workspace {
   display: grid;
   gap: 20px;
-}
-
-.surface {
-  border-radius: var(--radius-lg);
-}
-
-.hero-panel {
-  padding: 28px;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-panel::after {
-  content: "";
-  position: absolute;
-  inset: auto -48px -48px auto;
-  width: 180px;
-  height: 180px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.2), transparent 70%);
-  pointer-events: none;
 }
 
 .eyebrow {
