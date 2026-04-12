@@ -24,7 +24,6 @@ from app.repositories.video_repository import (
     update_status,
 )
 from app.services.ai_catalog_service import get_model_by_relative_path, list_available_models
-from app.services.auth_service import require_admin
 from app.services.frame_ai_service import has_analysis, load_analysis
 from app.services.transcription_service import transcribe_video_with_timestamps, whisper_available
 from app.services.video_artifact_service import (
@@ -236,7 +235,6 @@ def _empty_transcription_payload(video, storage: dict, *, status: str, error: st
     }
 
 
-@require_admin
 def upload_video():
     if "file" not in request.files:
         current_app.logger.warning("upload_video:missing_file")
@@ -348,7 +346,6 @@ def get_video_analysis(video_id: int):
     )
 
 
-@require_admin
 def update_video_analysis_by_id(video_id: int):
     video = get_video(video_id)
     if not video:
@@ -370,7 +367,6 @@ def update_video_analysis_by_id(video_id: int):
     )
 
 
-@require_admin
 def delete_video_analysis_by_id(video_id: int):
     video = get_video(video_id)
     if not video:
@@ -418,7 +414,6 @@ def get_video_transcription(video_id: int):
     )
 
 
-@require_admin
 def generate_video_transcription_by_id(video_id: int):
     video = get_video(video_id)
     if not video:
@@ -432,7 +427,7 @@ def generate_video_transcription_by_id(video_id: int):
         return (
             jsonify(
                 {
-                    "error": "Transcricao automatica indisponivel. Instale openai-whisper no ambiente atual ou ative a opcao de transcricao no setup.",
+                    "error": "Transcricao automatica indisponivel. Configure a .venv-transcription com Python 3.11/3.12 ou instale openai-whisper no ambiente atual.",
                 }
             ),
             503,
@@ -460,7 +455,6 @@ def generate_video_transcription_by_id(video_id: int):
     )
 
 
-@require_admin
 def update_video_transcription_by_id(video_id: int):
     video = get_video(video_id)
     if not video:
@@ -486,7 +480,6 @@ def update_video_transcription_by_id(video_id: int):
     )
 
 
-@require_admin
 def delete_video_transcription_by_id(video_id: int):
     video = get_video(video_id)
     if not video:
@@ -540,7 +533,6 @@ def get_annotated_video_file(video_id: int):
     )
 
 
-@require_admin
 def update_video_status(video_id: int):
     payload = request.get_json(silent=True) or {}
     status = payload.get("status")
@@ -555,7 +547,6 @@ def update_video_status(video_id: int):
     return jsonify(_serialize_video(video))
 
 
-@require_admin
 def update_video_ai_config(video_id: int):
     video = get_video(video_id)
     if not video:
@@ -584,7 +575,6 @@ def update_video_ai_config(video_id: int):
     return jsonify({"message": "Configuracao de IA atualizada", "ai_config": saved, "video": _serialize_video(video)})
 
 
-@require_admin
 def reprocess_video_by_id(video_id: int):
     video = get_video(video_id)
     if not video:
@@ -615,7 +605,6 @@ def reprocess_video_by_id(video_id: int):
     return jsonify({"message": "Reprocessamento iniciado", "video": _serialize_video(video)})
 
 
-@require_admin
 def delete_video_by_id(video_id: int):
     video = get_video(video_id)
     if not video:
@@ -634,7 +623,6 @@ def delete_video_by_id(video_id: int):
     return jsonify({"message": "Video removido com sucesso"})
 
 
-@require_admin
 def list_ai_models():
     models = list_available_models()
     tasks = sorted({(model["task_type"], model["task_label"]) for model in models})

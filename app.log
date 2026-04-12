@@ -37,17 +37,3 @@ Traceback (most recent call last):
         "No uploaded videos found in uploads/. Upload a video first or set TEST_VIDEO_PATH."
     )
 FileNotFoundError: No uploaded videos found in uploads/. Upload a video first or set TEST_VIDEO_PATH.
-2026-03-28 15:15:04,233 - INFO - Starting unified video detection workflow (ai_model -> backend service).
-2026-03-28 15:15:04,245 - INFO - Using latest uploaded video: D:\IFSP\Repositorios Git\DeMoviefy\uploads\Batida_do_Carai_Eita_porra_Reporter.mp4
-2026-03-28 15:15:35,507 - INFO - Video analyzed: D:\IFSP\Repositorios Git\DeMoviefy\uploads\Batida_do_Carai_Eita_porra_Reporter.mp4
-2026-03-28 15:15:35,507 - INFO - Processing time: 30.70s
-2026-03-28 15:15:35,507 - INFO - Model used: D:\IFSP\Repositorios Git\DeMoviefy\ai_model\model\Object_Detection\yolo26l.pt
-2026-03-28 15:15:35,507 - INFO - Sampled frames: 56
-2026-03-28 15:15:35,507 - INFO - Total detections: 182
-2026-03-28 15:15:35,507 - INFO - Top labels: ['car', 'person', 'truck', 'bus', 'cell phone']
-2026-03-28 15:15:35,507 - INFO - Label=car count=111 avg_conf=0.52
-2026-03-28 15:15:35,507 - INFO - Label=person count=56 avg_conf=0.93
-2026-03-28 15:15:35,507 - INFO - Label=truck count=13 avg_conf=0.46
-2026-03-28 15:15:35,507 - INFO - Label=bus count=1 avg_conf=0.37
-2026-03-28 15:15:35,508 - INFO - Label=cell phone count=1 avg_conf=0.41
-2026-03-28 15:15:35,521 - INFO - Workflow completed.

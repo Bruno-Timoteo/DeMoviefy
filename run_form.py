@@ -14,14 +14,10 @@ import shutil
 import subprocess
 import sys
 import threading
-import time
 import traceback
 import tkinter as tk
 from pathlib import Path
 from tkinter import ttk
-import urllib.request
-import zipfile
-import tempfile
 
 
 # Repository-level paths used by launcher actions.
@@ -31,139 +27,8 @@ FRONTEND_DIR = ROOT / "demoviefy-front"
 TEST_APP = ROOT / "ai_model" / "app" / "app.py"
 REQUIREMENTS = ROOT / "demoviefy-backend" / "requirements.txt"
 TRANSCRIPTION_REQUIREMENTS = ROOT / "demoviefy-backend" / "requirements-transcription.txt"
+TRANSCRIPTION_VENV_DIR = ROOT / ".venv-transcription"
 LAUNCHER_VERSION = "1.2.0"
-
-FFMPEG_DIR = ROOT / ".ffmpeg"
-FFMPEG_BIN_DIR = FFMPEG_DIR / "bin"
-FFMPEG_DOWNLOAD_URL_WIN = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
-
-
-def ffmpeg_executable_path() -> Path | None:
-    """Return path to ffmpeg in system PATH or local cache (if installed via launcher)."""
-    for name in ("ffmpeg", "ffmpeg.exe"):
-        if shutil.which(name):
-            return Path(shutil.which(name))
-
-    local = FFMPEG_BIN_DIR / ("ffmpeg.exe" if os.name == "nt" else "ffmpeg")
-    if local.exists():
-        return local
-    return None
-
-
-def ffmpeg_available() -> bool:
-    """True when ffmpeg is available for subprocesses."""
-    return ffmpeg_executable_path() is not None
-
-
-def download_ffmpeg() -> bool:
-    """Download and install ffmpeg for Windows, Linux, or macOS.
-    Returns True if ffmpeg is available after this call.
-    """
-    if ffmpeg_available():
-        return True
-
-    import platform
-    import shutil
-    import subprocess
-    import sys
-
-    system = platform.system()
-    # Windows: download static build zip
-    if system == "Windows":
-        try:
-            FFMPEG_DIR.mkdir(parents=True, exist_ok=True)
-            archive_fd, archive_path = tempfile.mkstemp(suffix=".zip")
-            os.close(archive_fd)
-            print("[setup] Downloading ffmpeg zip for Windows...")
-            urllib.request.urlretrieve(FFMPEG_DOWNLOAD_URL_WIN, archive_path)
-            with zipfile.ZipFile(archive_path, "r") as zf:
-                members = [m for m in zf.namelist() if m.endswith("ffmpeg.exe") or m.endswith("ffprobe.exe")]
-                if not members:
-                    print("[setup] ffmpeg.exe not found in zip!")
-                    return False
-                for member in members:
-                    dest_name = Path(member).name
-                    target = FFMPEG_BIN_DIR / dest_name
-                    FFMPEG_BIN_DIR.mkdir(parents=True, exist_ok=True)
-                    with zf.open(member) as src, open(target, "wb") as out:
-                        out.write(src.read())
-                    target.chmod(0o755)
-            os.remove(archive_path)
-            return ffmpeg_available()
-        except Exception as exc:
-            print(f"[setup] Windows ffmpeg install failed: {exc}")
-            return False
-
-    # Linux: try apt or dnf
-    if system == "Linux":
-        # Try apt
-        if shutil.which("apt"):
-            try:
-                print("[setup] Installing ffmpeg via apt...")
-                rc = subprocess.call(["sudo", "apt", "update"])
-                rc2 = subprocess.call(["sudo", "apt", "install", "-y", "ffmpeg"])
-                if rc == 0 and rc2 == 0 and ffmpeg_available():
-                    return True
-            except Exception as exc:
-                print(f"[setup] apt install failed: {exc}")
-        # Try dnf
-        if shutil.which("dnf"):
-            try:
-                print("[setup] Installing ffmpeg via dnf...")
-                rc = subprocess.call(["sudo", "dnf", "install", "-y", "ffmpeg"])
-                if rc == 0 and ffmpeg_available():
-                    return True
-            except Exception as exc:
-                print(f"[setup] dnf install failed: {exc}")
-        # Try tarball fallback
-        try:
-            print("[setup] Downloading static ffmpeg tarball for Linux...")
-            # Use John Van Sickle static builds
-            url = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
-            archive_fd, archive_path = tempfile.mkstemp(suffix=".tar.xz")
-            os.close(archive_fd)
-            urllib.request.urlretrieve(url, archive_path)
-            import tarfile
-            with tarfile.open(archive_path, "r:xz") as tf:
-                members = [m for m in tf.getnames() if m.endswith("/ffmpeg") or m.endswith("/ffprobe")]
-                if not members:
-                    print("[setup] ffmpeg not found in tarball!")
-                    return False
-                for member in members:
-                    dest_name = Path(member).name
-                    target = FFMPEG_BIN_DIR / dest_name
-                    FFMPEG_BIN_DIR.mkdir(parents=True, exist_ok=True)
-                    with tf.extractfile(member) as src, open(target, "wb") as out:
-                        out.write(src.read())
-                    target.chmod(0o755)
-            os.remove(archive_path)
-            return ffmpeg_available()
-        except Exception as exc:
-            print(f"[setup] Linux tarball install failed: {exc}")
-            return False
-
-    # macOS: try brew
-    if system == "Darwin":
-        if shutil.which("brew"):
-            try:
-                print("[setup] Installing ffmpeg via brew...")
-                rc = subprocess.call(["brew", "install", "ffmpeg"])
-                if rc == 0 and ffmpeg_available():
-                    return True
-            except Exception as exc:
-                print(f"[setup] brew install failed: {exc}")
-        # Try static build fallback (not always available for macOS)
-        try:
-            print("[setup] Downloading static ffmpeg for macOS (not guaranteed)...")
-            # No official static build for macOS, so just instruct user
-            print("[setup] Please install ffmpeg manually using Homebrew: brew install ffmpeg")
-            return False
-        except Exception as exc:
-            print(f"[setup] macOS static install failed: {exc}")
-            return False
-
-    print("[setup] Could not install ffmpeg automatically. Please install it manually.")
-    return False
 
 
 def venv_python_candidates(venv_dir: Path) -> list[Path]:
@@ -192,6 +57,49 @@ def venv_python() -> Path:
         return venv_path
     return Path(sys.executable)
 
+
+def transcription_venv_python() -> Path | None:
+    """Return the dedicated transcription interpreter when available."""
+    return find_venv_python(TRANSCRIPTION_VENV_DIR)
+
+
+def python_command_works(command: list[str]) -> bool:
+    """Check if a Python launcher command is callable in the current machine."""
+    try:
+        completed = subprocess.run(
+            [*command, "-c", "import sys; print(sys.executable)"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+    except Exception:
+        return False
+    return completed.returncode == 0
+
+
+def discover_transcription_python_command() -> list[str] | None:
+    """Find a Python 3.11/3.12 launcher for the optional Whisper env."""
+    override = os.environ.get("DEMOVIEFY_TRANSCRIPTION_BOOTSTRAP_PYTHON")
+    if override and Path(override).exists():
+        return [override]
+
+    if os.name == "nt":
+        py_launcher = shutil.which("py")
+        if py_launcher:
+            for version in ("3.12", "3.11"):
+                command = [py_launcher, f"-{version}"]
+                if python_command_works(command):
+                    return command
+
+    for executable in ("python3.12", "python3.11"):
+        resolved = shutil.which(executable)
+        if resolved and python_command_works([resolved]):
+            return [resolved]
+
+    return None
 
 
 def resolve_npm_executable() -> str:
@@ -294,37 +202,12 @@ def apply_proxy_env(env: dict[str, str], proxy: str | None) -> dict[str, str]:
     return env
 
 
-def get_installed_package_version(py: Path, package: str) -> str | None:
-    """Return installed package version in the venv or None if missing."""
-    try:
-        proc = subprocess.run(
-            [str(py), "-m", "pip", "show", package],
-            capture_output=True,
-            text=True,
-            env=sanitize_env(),
-            check=False,
-        )
-        if proc.returncode != 0 or not proc.stdout:
-            return None
-        for line in proc.stdout.splitlines():
-            if line.startswith("Version:"):
-                return line.split(":", 1)[1].strip()
-    except Exception:
-        return None
-    return None
-
-
-def torch_torchvision_compatible(torch_ver: str | None, torchvision_ver: str | None) -> bool:
-    """Return True if torch and torchvision versions look compatible."""
-    if not torch_ver or not torchvision_ver:
-        return True
-
-    # Simple heuristics for the present repo constraints.
-    if torchvision_ver.startswith("0.26") and not torch_ver.startswith("2.11"):
-        return False
-    if torchvision_ver.startswith("0.27") and not torch_ver.startswith("2.12"):
-        return False
-    return True
+def apply_transcription_env(env: dict[str, str]) -> dict[str, str]:
+    """Expose the dedicated Whisper interpreter to backend subprocesses."""
+    transcription_python_path = transcription_venv_python()
+    if transcription_python_path is not None:
+        env.setdefault("DEMOVIEFY_TRANSCRIPTION_PYTHON", str(transcription_python_path))
+    return env
 
 
 class LauncherForm(tk.Tk):
@@ -348,12 +231,10 @@ class LauncherForm(tk.Tk):
         self.backend_status_var = tk.StringVar(value="Stopped")
         self.frontend_status_var = tk.StringVar(value="Stopped")
         self.setup_status_var = tk.StringVar(value="Idle")
-        self.ffmpeg_status_var = tk.StringVar(value="Unknown")
         self._setup_running = False
         self._closing = False
 
         self._build_ui()
-        self._update_ffmpeg_status()
         self._log(f"[launcher] DeMoviefy Launcher v{LAUNCHER_VERSION}")
         self._log(f"[launcher] root={ROOT}")
         self.after(100, self._drain_log_queue)
@@ -377,13 +258,10 @@ class LauncherForm(tk.Tk):
 
         self.setup_button = ttk.Button(row1, text="Setup Environment", command=self.setup_environment)
         self.setup_button.pack(side=tk.LEFT, padx=(0, 8))
-        ttk.Button(row1, text="Install FFmpeg", command=self.install_ffmpeg).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(row1, text="Start Backend", command=self.start_backend).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(row1, text="Start Frontend", command=self.start_frontend).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(row1, text="Start All", command=self.start_all).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(row1, text="Stop All", command=self.stop_all).pack(side=tk.LEFT, padx=(0, 8))
-        ttk.Button(row1, text="Clear Log", command=self.clear_log).pack(side=tk.LEFT, padx=(0, 8))
-        ttk.Button(row1, text="Copy Log", command=self.copy_log).pack(side=tk.LEFT, padx=(0, 8))
 
         # Row 1b: setup status indicator.
         setup_row = ttk.Frame(controls)
@@ -392,10 +270,6 @@ class LauncherForm(tk.Tk):
         ttk.Label(setup_row, textvariable=self.setup_status_var).pack(side=tk.LEFT, padx=(4, 12))
         self.setup_progress = ttk.Progressbar(setup_row, mode="indeterminate", length=220)
         self.setup_progress.pack(side=tk.LEFT)
-
-        # FFmpeg status
-        ttk.Label(setup_row, text="FFmpeg:").pack(side=tk.LEFT, padx=(12, 0))
-        ttk.Label(setup_row, textvariable=self.ffmpeg_status_var).pack(side=tk.LEFT, padx=(4, 12))
 
         # Row 2: optional explicit video path for AI test app.
         row2 = ttk.Frame(controls)
@@ -409,21 +283,15 @@ class LauncherForm(tk.Tk):
         status_row = ttk.Frame(controls)
         status_row.pack(fill=tk.X)
         ttk.Label(status_row, text="Backend:").pack(side=tk.LEFT)
-        self.backend_status_label = tk.Label(status_row, textvariable=self.backend_status_var, width=12, anchor=tk.W)
-        self.backend_status_label.pack(side=tk.LEFT, padx=(4, 16))
+        ttk.Label(status_row, textvariable=self.backend_status_var).pack(side=tk.LEFT, padx=(4, 16))
         ttk.Label(status_row, text="Frontend:").pack(side=tk.LEFT)
-        self.frontend_status_label = tk.Label(status_row, textvariable=self.frontend_status_var, width=12, anchor=tk.W)
-        self.frontend_status_label.pack(side=tk.LEFT, padx=(4, 0))
-
-        # Helper status text.
-        self.setup_detail_var = tk.StringVar(value="")
-        ttk.Label(controls, textvariable=self.setup_detail_var, foreground="#333333").pack(fill=tk.X)
+        ttk.Label(status_row, textvariable=self.frontend_status_var).pack(side=tk.LEFT, padx=(4, 0))
 
         # Bottom: shared log panel.
         log_frame = ttk.Frame(self, padding=(12, 0, 12, 12))
         log_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.log_text = tk.Text(log_frame, wrap=tk.NONE, height=30, state=tk.DISABLED)
+        self.log_text = tk.Text(log_frame, wrap=tk.NONE, height=30)
         y_scroll = ttk.Scrollbar(log_frame, orient=tk.VERTICAL, command=self.log_text.yview)
         x_scroll = ttk.Scrollbar(log_frame, orient=tk.HORIZONTAL, command=self.log_text.xview)
         self.log_text.configure(yscrollcommand=y_scroll.set, xscrollcommand=x_scroll.set)
@@ -443,23 +311,6 @@ class LauncherForm(tk.Tk):
             safe = message.encode("utf-8", errors="replace").decode("utf-8", errors="replace")
             print(safe, flush=True)
 
-    def clear_log(self) -> None:
-        """Clear the on-screen log."""
-        self.log_text.config(state=tk.NORMAL)
-        self.log_text.delete("1.0", tk.END)
-        self.log_text.config(state=tk.NORMAL)
-        self._log("[launcher] log cleared")
-
-    def copy_log(self) -> None:
-        """Copy log contents to clipboard."""
-        try:
-            log_data = self.log_text.get("1.0", tk.END)
-            self.clipboard_clear()
-            self.clipboard_append(log_data)
-            self._log("[launcher] log copied to clipboard")
-        except tk.TclError as exc:
-            self._log(f"[launcher] copy log failed: {exc}")
-
     def _drain_log_queue(self) -> None:
         """Move queued logs into the text box (main/UI thread only)."""
         if self._closing:
@@ -471,10 +322,8 @@ class LauncherForm(tk.Tk):
             except queue.Empty:
                 break
             try:
-                self.log_text.config(state=tk.NORMAL)
                 self.log_text.insert(tk.END, line + "\n")
                 self.log_text.see(tk.END)
-                self.log_text.config(state=tk.DISABLED)
             except tk.TclError:
                 return
 
@@ -486,18 +335,8 @@ class LauncherForm(tk.Tk):
 
     def _refresh_status(self) -> None:
         """Refresh backend/frontend running status labels."""
-        backend_running = self._is_running("backend")
-        frontend_running = self._is_running("frontend")
-
-        self.backend_status_var.set("Running" if backend_running else "Stopped")
-        self.frontend_status_var.set("Running" if frontend_running else "Stopped")
-
-        self.backend_status_label.config(fg="#009900" if backend_running else "#cc0000")
-        self.frontend_status_label.config(fg="#009900" if frontend_running else "#cc0000")
-
-        self.setup_detail_var.set(
-            f"Backend: {'running' if backend_running else 'stopped'}; Frontend: {'running' if frontend_running else 'stopped'}"
-        )
+        self.backend_status_var.set("Running" if self._is_running("backend") else "Stopped")
+        self.frontend_status_var.set("Running" if self._is_running("frontend") else "Stopped")
 
     def _is_running(self, name: str) -> bool:
         """Check whether a named managed process is alive."""
@@ -525,40 +364,6 @@ class LauncherForm(tk.Tk):
         except tk.TclError:
             return
 
-    def _update_ffmpeg_status(self) -> None:
-        """Refresh on-screen FFmpeg availability status."""
-        status = "Available" if ffmpeg_available() else "Missing"
-        if status == "Available":
-            status += f" ({ffmpeg_executable_path()})"
-        self.ffmpeg_status_var.set(status)
-
-    def install_ffmpeg(self) -> None:
-        """Background task to download and install ffmpeg locally for the launcher."""
-
-        def worker() -> None:
-            self._set_setup_state(True, "Installing FFmpeg...")
-            self._log("[setup] installing ffmpeg")
-            success = download_ffmpeg()
-            if success:
-                self._log("[setup] ffmpeg installed successfully")
-                self._update_ffmpeg_status()
-                self._set_setup_state(False, "FFmpeg ready")
-            else:
-                self._log("[setup] ffmpeg installation failed")
-                self._update_ffmpeg_status()
-                self._set_setup_state(False, "FFmpeg install failed")
-
-        if self._setup_running:
-            self._log("[setup] already running, cannot install ffmpeg concurrently")
-            return
-
-        if ffmpeg_available():
-            self._log("[setup] ffmpeg already present")
-            self._update_ffmpeg_status()
-            return
-
-        threading.Thread(target=worker, daemon=True).start()
-
     def _stream_process(self, name: str, proc: subprocess.Popen) -> None:
         """Read a long-running process output and route lines into the UI log queue."""
         assert proc.stdout is not None
@@ -573,13 +378,7 @@ class LauncherForm(tk.Tk):
         """Merge proxy config and remove debugger hooks from the environment."""
         base = env.copy() if env is not None else os.environ.copy()
         base = apply_proxy_env(base, self.proxy_url)
-
-        if FFMPEG_BIN_DIR.exists():
-            path = base.get("PATH", "")
-            ffmpeg_path_str = str(FFMPEG_BIN_DIR)
-            if ffmpeg_path_str not in path.split(os.pathsep):
-                base["PATH"] = ffmpeg_path_str + os.pathsep + path if path else ffmpeg_path_str
-
+        base = apply_transcription_env(base)
         return sanitize_env(base)
 
     def _start_long_process(
@@ -709,9 +508,7 @@ class LauncherForm(tk.Tk):
         Prepare shared environment:
         - Create .venv if missing
         - Upgrade pip
-        - Install setuptools and wheel (required for some packages)
         - Install backend Python deps
-        - Install transcription deps (optional)
         - Install frontend npm deps
         """
 
@@ -748,7 +545,7 @@ class LauncherForm(tk.Tk):
                 else:
                     py = venv_python()
 
-                # Step 2: upgrade pip and install build dependencies
+                # Step 2: install Python dependencies.
                 self._set_setup_state(True, "Upgrading pip...")
                 rc = self._run_sync(
                     "setup",
@@ -761,17 +558,6 @@ class LauncherForm(tk.Tk):
                     self._set_setup_state(False, "Failed upgrading pip")
                     return
 
-                self._set_setup_state(True, "Installing build dependencies...")
-                rc = self._run_sync(
-                    "setup",
-                    [str(py), "-m", "pip", "install", "setuptools==68.0.0", "wheel"],
-                    ROOT,
-                    env=None,
-                )
-                if rc != 0:
-                    self._log("[setup] warning: failed installing setuptools/wheel (continuing anyway).")
-
-                # Step 3: install backend Python dependencies.
                 self._set_setup_state(True, "Installing backend deps...")
                 rc = self._run_sync(
                     "setup",
@@ -784,45 +570,18 @@ class LauncherForm(tk.Tk):
                     self._set_setup_state(False, "Failed backend deps")
                     return
 
-                # Verify torch/torchvision compatibility after backend install.
-                torch_ver = get_installed_package_version(py, "torch")
-                torchvision_ver = get_installed_package_version(py, "torchvision")
-                if torch_ver and torchvision_ver and not torch_torchvision_compatible(torch_ver, torchvision_ver):
-                    self._log(
-                        f"[setup] warning: detected torch {torch_ver} + torchvision {torchvision_ver} which may be incompatible."
-                    )
-                    self._log("[setup] attempting to align torchvision to 0.26.0 for compatibility.")
-                    rc_fix = self._run_sync(
-                        "setup",
-                        [str(py), "-m", "pip", "install", "torchvision==0.26.0"],
-                        ROOT,
-                        env=None,
-                    )
-                    if rc_fix != 0:
-                        self._log("[setup] warning: failed to pin torchvision for compatibility. You may need manual fix.")
-
-                # Step 4: try to install optional transcription dependencies
-                if TRANSCRIPTION_REQUIREMENTS.exists():
-                    self._set_setup_state(True, "Installing transcription deps...")
-                    rc = self._run_sync(
-                        "setup",
-                        [str(py), "-m", "pip", "install", "--no-build-isolation", "-r", str(TRANSCRIPTION_REQUIREMENTS)],
-                        ROOT,
-                        env=None,
-                    )
-                    if rc != 0:
-                        self._log("[setup] warning: transcription deps skipped (continuing anyway).")
-                        self._log("[setup] You can manually install them later with: pip install -r demoviefy-backend/requirements-transcription.txt")
-                    else:
-                        self._log("[setup] transcription deps installed.")
-
-                # Step 5: install frontend dependencies.
+                # Step 3: install frontend dependencies.
                 self._set_setup_state(True, "Installing frontend deps...")
                 rc = self._run_sync("setup", ["npm", "install"], FRONTEND_DIR, env=None)
                 if rc != 0:
                     self._log("[setup] failed while running npm install.")
                     self._set_setup_state(False, "Failed frontend deps")
                     return
+
+                # Step 4: prepare the optional Whisper environment in isolation.
+                if TRANSCRIPTION_REQUIREMENTS.exists():
+                    self._set_setup_state(True, "Checking transcription env...")
+                    self._setup_transcription_environment()
 
                 self._log("[setup] environment ready.")
                 self._set_setup_state(False, "Ready")
@@ -845,7 +604,6 @@ class LauncherForm(tk.Tk):
         command_norm = normalize_command(command)
         env_prepared = self._prepare_env(env)
         self._log(f"[{name}] {' '.join(command_norm)} (cwd={cwd})")
-        start_ts = time.monotonic()
 
         try:
             proc = subprocess.Popen(
@@ -889,9 +647,73 @@ class LauncherForm(tk.Tk):
         for raw_line in proc.stdout:
             self._log(f"[{name}] {raw_line.rstrip()}")
         code = proc.wait()
-        duration = time.monotonic() - start_ts
-        self._log(f"[{name}] step exited with code {code} (duration {duration:.1f}s)")
+        self._log(f"[{name}] step exited with code {code}")
         return code
+
+    def _setup_transcription_environment(self) -> None:
+        """
+        Best-effort setup for Whisper in a separate virtual environment.
+
+        This is optional on purpose: the main app should still run even when a
+        compatible Python 3.11/3.12 interpreter is not installed locally.
+        """
+        venv_python_path = find_venv_python(TRANSCRIPTION_VENV_DIR)
+        venv_cfg_path = TRANSCRIPTION_VENV_DIR / "pyvenv.cfg"
+        broken = venv_python_path is None or not venv_cfg_path.exists()
+
+        if broken:
+            bootstrap_command = discover_transcription_python_command()
+            if bootstrap_command is None:
+                self._log(
+                    "[setup] transcription env skipped: Python 3.11/3.12 not found. "
+                    "Install one of them or set DEMOVIEFY_TRANSCRIPTION_BOOTSTRAP_PYTHON."
+                )
+                return
+
+            if TRANSCRIPTION_VENV_DIR.exists():
+                try:
+                    shutil.rmtree(TRANSCRIPTION_VENV_DIR)
+                except Exception:
+                    self._log("[setup] warning: could not clean previous .venv-transcription.")
+
+            self._set_setup_state(True, "Creating transcription env...")
+            rc = self._run_sync(
+                "setup",
+                [*bootstrap_command, "-m", "venv", ".venv-transcription"],
+                ROOT,
+                env=None,
+            )
+            if rc != 0:
+                self._log("[setup] transcription env skipped: failed creating .venv-transcription.")
+                return
+            venv_python_path = transcription_venv_python()
+
+        if venv_python_path is None:
+            self._log("[setup] transcription env skipped: python executable not found inside .venv-transcription.")
+            return
+
+        self._set_setup_state(True, "Installing transcription deps...")
+        rc = self._run_sync(
+            "setup",
+            [str(venv_python_path), "-m", "pip", "install", "--upgrade", "pip"],
+            ROOT,
+            env=None,
+        )
+        if rc != 0:
+            self._log("[setup] transcription env skipped: failed upgrading pip.")
+            return
+
+        rc = self._run_sync(
+            "setup",
+            [str(venv_python_path), "-m", "pip", "install", "-r", str(TRANSCRIPTION_REQUIREMENTS)],
+            ROOT,
+            env=None,
+        )
+        if rc != 0:
+            self._log("[setup] transcription env skipped: failed installing requirements-transcription.txt.")
+            return
+
+        self._log(f"[setup] transcription env ready: {venv_python_path}")
 
     def start_backend(self) -> None:
         """Start Flask backend service."""
