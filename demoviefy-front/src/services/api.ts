@@ -6,7 +6,6 @@ export const frontendApiContractVersion = "2026-03-22.1";
 
 export const api = axios.create({
   baseURL: apiBaseUrl,
-  withCredentials: true,
 });
 
 export function toApiUrl(path: string) {
