@@ -9,6 +9,7 @@ dependency is installed.
 import json
 import os
 import subprocess
+import sys
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -36,6 +37,10 @@ def _transcription_python_candidates() -> list[Path]:
     if override:
         candidates.append(Path(override))
 
+    # Use the current running Python interpreter first (single venv mode).
+    candidates.append(Path(sys.executable))
+    # Allow legacy path from .venv-transcription for backward compatibility,
+    # but not required in the new behavior.
     if os.name == "nt":
         candidates.append(TRANSCRIPTION_ENV_DIR / "Scripts" / "python.exe")
     else:
@@ -207,8 +212,8 @@ def transcribe_video_with_timestamps(
         ) from worker_error
 
     raise RuntimeError(
-        "Transcricao automatica indisponivel: crie a .venv-transcription com Python 3.11/3.12 "
-        "ou instale openai-whisper no ambiente atual."
+        "Transcricao automatica indisponivel: instale openai-whisper no ambiente atual "
+        "ou habilite a transcricao via setup e execute novamente."
     )
 
 
