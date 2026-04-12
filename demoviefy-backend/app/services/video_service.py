@@ -86,62 +86,13 @@ def process_video(flask_app, video_id):
             analysis_path = save_analysis(video_id, summary)
             save_processing_state(
                 video_id,
-                progress=92,
-                stage="analysis_complete",
-                eta_seconds=None,
-                message="Analise de frames concluida. Finalizando artefatos.",
-            )
-
-            if flask_app.config.get("AUTO_TRANSCRIPTION_ENABLED", True):
-                try:
-                    save_processing_state(
-                        video_id,
-                        progress=95,
-                        stage="transcribing",
-                        eta_seconds=None,
-                        message="Gerando transcricao automatica.",
-                    )
-                    transcription = transcribe_video_with_timestamps(
-                        video_path=str(video_path),
-                        model_name=str(flask_app.config.get("TRANSCRIPTION_MODEL", "base")),
-                        language=flask_app.config.get("TRANSCRIPTION_LANGUAGE"),
-                        logger=flask_app.logger,
-                    )
-                    save_transcription(video_id, **transcription)
-                except Exception as transcription_exc:
-                    # Transcription should enrich the result, not block the core
-                    # moderation flow when Whisper or ffmpeg is unavailable.
-                    save_transcription(
-                        video_id,
-                        content="",
-                        source="whisper",
-                        language=flask_app.config.get("TRANSCRIPTION_LANGUAGE"),
-                        segments=[],
-                        model_name=str(flask_app.config.get("TRANSCRIPTION_MODEL", "base")),
-                        status="unavailable",
-                        error=str(transcription_exc),
-                    )
-                    save_processing_state(
-                        video_id,
-                        progress=98,
-                        stage="transcription_skipped",
-                        eta_seconds=None,
-                        message="Analise concluida. Transcricao automatica indisponivel neste ambiente.",
-                    )
-                    flask_app.logger.warning(
-                        "process_video:transcription_skipped video_id=%s reason=%s",
-                        video_id,
-                        transcription_exc,
-                    )
-
-            update_status(video, "PROCESSADO")
-            save_processing_state(
-                video_id,
                 progress=100,
                 stage="completed",
                 eta_seconds=0,
-                message="Processamento concluido.",
+                message="Processamento concluido. Clique em 'Gerar transcricao IA' para transcricao sob demanda.",
             )
+
+            update_status(video, "PROCESSADO")
             flask_app.logger.info(
                 "process_video:completed video_id=%s filename=%s analysis=%s",
                 video.id,

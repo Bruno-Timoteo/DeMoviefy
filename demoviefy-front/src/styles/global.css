@@ -166,6 +166,11 @@ code {
   align-items: start;
 }
 
+/* Full width layout for home page */
+.app-shell.app-shell--full-width {
+  grid-template-columns: 1fr;
+}
+
 .app-content-shell {
   min-width: 0;
   min-height: calc(100vh - 32px);
@@ -993,15 +998,107 @@ code {
   background: linear-gradient(180deg, rgba(15, 23, 42, 0.72), rgba(15, 23, 42, 0.48));
 }
 
-.crash-panel {
-  margin-top: 24px;
-  padding: 28px;
-}
+  .app-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 28px;
+    border-radius: var(--radius-lg);
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
 
-.crash-panel h1 {
-  margin: 8px 0 12px;
-  font-family: Georgia, "Times New Roman", serif;
-}
+  .app-header h1 {
+    margin: 8px 0 0;
+    font-size: clamp(1.9rem, 3.4vw, 2.8rem);
+  }
+
+  .header-navigation {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .header-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .header-link.is-active {
+    color: #fff;
+    background: linear-gradient(135deg, var(--brand), #1d4ed8);
+    border-color: rgba(59, 130, 246, 0.32);
+  }
+
+  .hero-panel {
+    padding: 34px;
+    border-radius: var(--radius-lg);
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    margin-top: 20px;
+  }
+
+  .hero-panel h2 {
+    margin: 0;
+    font-size: clamp(2.4rem, 4vw, 3.6rem);
+    line-height: 1.02;
+  }
+
+  .hero-copy {
+    margin-top: 18px;
+    color: var(--muted);
+    max-width: 720px;
+    line-height: 1.75;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 26px;
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    margin-top: 24px;
+  }
+
+  .feature-card {
+    padding: 22px;
+    border-radius: var(--radius-md);
+    background: rgba(15, 23, 42, 0.56);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+  }
+
+  .feature-card h3 {
+    margin: 0 0 10px;
+  }
+
+  .feature-card p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .app-header .header-actions {
+    min-width: 240px;
+    max-width: 420px;
+  }
 
 .crash-panel p {
   margin: 0 0 14px;
