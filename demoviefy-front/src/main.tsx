@@ -4,7 +4,7 @@ import "./styles/global.css";
 
 function StartupScreen({ title, message }: { title: string; message: string }) {
   return (
-    <div className="app-startup-shell">
+    <div className="app-shell">
       <section className="surface crash-panel">
         <span className="eyebrow">Inicializacao</span>
         <h1>{title}</h1>
@@ -16,7 +16,7 @@ function StartupScreen({ title, message }: { title: string; message: string }) {
 
 function FatalStartupScreen({ errorMessage }: { errorMessage: string }) {
   return (
-    <div className="app-startup-shell">
+    <div className="app-shell">
       <section className="surface crash-panel">
         <span className="eyebrow">Inicializacao</span>
         <h1>O frontend nao conseguiu carregar.</h1>
