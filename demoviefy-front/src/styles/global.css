@@ -195,7 +195,8 @@ code {
   gap: 8px;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  font-size: 0.72rem;
+  font-size: 1.1rem;
+  font-weight: 700;
   color: var(--brand-strong);
 }
 
@@ -337,10 +338,23 @@ code {
 }
 
 :root[data-theme="light"] .app-header {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.96)),
-    var(--surface);
-  border-color: rgba(37, 99, 235, 0.12);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="light"] .header-link {
+  color: #64748b;
+}
+
+:root[data-theme="light"] .header-link:hover {
+  background: rgba(37, 99, 235, 0.08);
+  color: #2563eb;
+}
+
+:root[data-theme="light"] .header-link.is-active {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.1);
 }
 
 :root[data-theme="light"] .sidebar-nav-link {
@@ -1000,46 +1014,59 @@ code {
 
   .app-header {
     display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
+    align-items: center;
     justify-content: space-between;
-    align-items: flex-start;
-    padding: 28px;
-    border-radius: var(--radius-lg);
-    background: rgba(15, 23, 42, 0.72);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    min-height: 3.5rem;
   }
 
-  .app-header h1 {
-    margin: 8px 0 0;
-    font-size: clamp(1.9rem, 3.4vw, 2.8rem);
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
   }
 
   .header-navigation {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 18px;
+    gap: 0.75rem;
   }
 
   .header-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 16px;
-    border-radius: var(--radius-md);
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.375rem;
     border: 1px solid transparent;
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--text);
+    background: transparent;
+    color: var(--muted);
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+  }
+
+  .header-link:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--brand);
   }
 
   .header-link.is-active {
-    color: #fff;
-    background: linear-gradient(135deg, var(--brand), #1d4ed8);
-    border-color: rgba(59, 130, 246, 0.32);
+    color: var(--brand);
+    background: rgba(59, 130, 246, 0.15);
+    border-color: var(--brand);
+  }
+
+  .theme-toggle {
+    padding: 0.625rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
   }
 
   .hero-panel {
@@ -1096,8 +1123,7 @@ code {
   }
 
   .app-header .header-actions {
-    min-width: 240px;
-    max-width: 420px;
+    display: none;
   }
 
 .crash-panel p {
@@ -1167,7 +1193,7 @@ code {
   }
 
   .header-actions {
-    width: 100%;
+    display: none;
   }
 
   .stats-row {
