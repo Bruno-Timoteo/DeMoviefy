@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AxiosError } from "axios";
 
 import { api, frontendApiContractVersion, frontendAppVersion } from "../../services/api";
-import { UploadComposerPanel } from "./components/UploadComposerPanel";
 import { NewVideoPanel } from "./components/NewVideoPanel";
 import { VideoLibrary } from "./components/VideoLibrary";
 import { VideoWorkbench } from "./components/VideoWorkbench";
@@ -10,6 +9,7 @@ import { ProcessingQueuePanel } from "./components/ProcessingQueuePanel";
 import "./styles/VideoDashboard.css";
 import "./styles/NewVideoPanel.css";
 import "./styles/ProcessingQueuePanel.css";
+import "./styles/NewDashboardLayout.css";
 import type {
   AIModelOption,
   AITaskOption,
@@ -246,6 +246,7 @@ export default function VideoDashboard() {
     message: "Verificando compatibilidade entre frontend e backend.",
     backendInfo: null,
   });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const initializedRef = useRef(false);
   const lastArtifactSignatureRef = useRef("");
 
@@ -808,141 +809,167 @@ export default function VideoDashboard() {
   const globalProgressValue = globalProcessState?.progress ?? 0;
 
   return (
-    <div className="workspace">
-      {globalProcessState && (
-        <section className="surface site-progress-panel">
-          <div className="site-progress-title">
-            <strong>{globalProcessState.text}</strong>
-            <span>{globalProgressValue ? `${globalProgressValue}%` : "..."}</span>
-          </div>
-          <div className="site-progress-bar" aria-hidden="true">
-            <span style={{ width: `${globalProgressValue}%` }} />
-          </div>
-        </section>
-      )}
-
-      <UploadComposerPanel
-        file={file}
-        message={message}
-        hint={hint}
-        uploading={uploading}
-        selectedTask={uploadTask}
-        selectedModelPath={uploadModelPath}
-        frameStride={uploadFrameStride}
-        confidenceThreshold={uploadConfidenceThreshold}
-        maxFrames={uploadMaxFrames}
-        clipStart={uploadClipStart}
-        clipEnd={uploadClipEnd}
-        tasks={tasks}
-        models={models}
-        onFileChange={setFile}
-        onTaskChange={handleUploadTaskChange}
-        onModelChange={setUploadModelPath}
-        onFrameStrideChange={setUploadFrameStride}
-        onConfidenceThresholdChange={setUploadConfidenceThreshold}
-        onMaxFramesChange={setUploadMaxFrames}
-        onClipStartChange={setUploadClipStart}
-        onClipEndChange={setUploadClipEnd}
-        onUpload={handleUpload}
-        onRefresh={() => void fetchVideos({ preserveHint: false })}
+    <div className="dashboard-container">
+      {/* Sidebar Overlay */}
+      <div
+        className={`sidebar-overlay ${sidebarOpen ? "show" : ""}`}
+        onClick={() => setSidebarOpen(false)}
+        aria-hidden="true"
       />
 
-      <section className="stats-row">
-        <article className="surface stat-panel">
-          <span>Total</span>
-          <strong>{stats.total}</strong>
-        </article>
-        <article className="surface stat-panel">
-          <span>Em processamento</span>
-          <strong>{stats.processing}</strong>
-        </article>
-        <article className="surface stat-panel">
-          <span>Concluidos</span>
-          <strong>{stats.processed}</strong>
-        </article>
-        <article className="surface stat-panel">
-          <span>Com erro</span>
-          <strong>{stats.errors}</strong>
-        </article>
-      </section>
+      {/* Sidebar Drawer */}
+      <aside className={`dashboard-sidebar ${sidebarOpen ? "open" : ""}`}>
+        <div className="dashboard-sidebar-header">
+          <h2>Biblioteca</h2>
+          <button
+            className="sidebar-close-btn"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Fechar sidebar"
+          >
+            ✕
+          </button>
+        </div>
 
-      <section className="content-grid">
         <VideoLibrary
           videos={videos}
           selectedVideoId={selectedVideoId}
           loading={loadingVideos}
-          onSelect={setSelectedVideoId}
+          onSelect={(id) => {
+            setSelectedVideoId(id);
+            setSidebarOpen(false);
+          }}
         />
+      </aside>
 
-        {selectedVideo ? (
-          <VideoWorkbench
-            video={selectedVideo}
-            analysis={analysis}
-            analysisState={analysisState}
-            analysisMessage={buildAnalysisMessage(analysisState, selectedVideo, analysis)}
-            selectedTask={videoTask}
-            selectedModelPath={videoModelPath}
-            selectedFrameStride={videoFrameStride}
-            selectedConfidenceThreshold={videoConfidenceThreshold}
-            selectedMaxFrames={videoMaxFrames}
-            selectedClipStart={videoClipStart}
-            selectedClipEnd={videoClipEnd}
-            taskOptions={tasks}
-            modelOptions={models}
-            analysisDraft={analysisDraft}
-            transcription={transcription}
-            transcriptionDraft={transcriptionDraft}
-            transcriptionMessage={transcriptionMessage}
-            isBusy={selectedVideoIsBusy}
-            onTaskChange={handleVideoTaskChange}
-            onModelChange={setVideoModelPath}
-            onFrameStrideChange={setVideoFrameStride}
-            onConfidenceThresholdChange={setVideoConfidenceThreshold}
-            onMaxFramesChange={setVideoMaxFrames}
-            onClipStartChange={setVideoClipStart}
-            onClipEndChange={setVideoClipEnd}
-            onAnalysisDraftChange={setAnalysisDraft}
-            onTranscriptionDraftChange={setTranscriptionDraft}
-            onSaveConfig={handleSaveConfig}
-            onReprocess={handleReprocess}
-            onDeleteVideo={handleDeleteVideo}
-            onSaveAnalysis={handleSaveAnalysis}
-            onDeleteAnalysis={handleDeleteAnalysis}
-            onGenerateTranscription={handleGenerateTranscription}
-            onSaveTranscription={handleSaveTranscription}
-            onDeleteTranscription={handleDeleteTranscription}
-          />
-        ) : (
-          <div className="right-panel-empty">
-            <NewVideoPanel
-              file={file}
-              message={message}
-              hint={hint}
-              uploading={uploading}
-              selectedTask={uploadTask}
-              selectedModelPath={uploadModelPath}
-              frameStride={parseInt(uploadFrameStride, 10)}
-              confidenceThreshold={parseFloat(uploadConfidenceThreshold)}
-              maxFrames={parseInt(uploadMaxFrames, 10)}
-              clipStart={parseInt(uploadClipStart, 10)}
-              clipEnd={uploadClipEnd ? parseInt(uploadClipEnd, 10) : null}
-              tasks={tasks}
-              models={models}
-              onFileChange={setFile}
-              onTaskChange={handleUploadTaskChange}
-              onModelChange={setUploadModelPath}
-              onFrameStrideChange={(val) => setUploadFrameStride(String(val))}
-              onConfidenceThresholdChange={(val) => setUploadConfidenceThreshold(String(val))}
-              onMaxFramesChange={(val) => setUploadMaxFrames(String(val))}
-              onClipStartChange={(val) => setUploadClipStart(String(val))}
-              onClipEndChange={(val) => setUploadClipEnd(val ? String(val) : "")}
-              onUpload={handleUpload}
-              onRefresh={() => void fetchVideos({ preserveHint: false })}
-            />
-            <ProcessingQueuePanel videos={videos} />
-          </div>
+      {/* Main Content */}
+      <div className="dashboard-main">
+        {/* Header */}
+        <header className="dashboard-header">
+          <button
+            className="menu-toggle"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label="Abrir menu"
+            title="Biblioteca de vídeos"
+          >
+            ☰
+          </button>
+          <h1 className="dashboard-title">DeMoviefy</h1>
+          <div style={{ flex: 1 }} />
+        </header>
+
+        {/* Progress Bar */}
+        {globalProcessState && (
+          <section className="surface site-progress-panel">
+            <div className="site-progress-title">
+              <strong>{globalProcessState.text}</strong>
+              <span>{globalProgressValue ? `${globalProgressValue}%` : "..."}</span>
+            </div>
+            <div className="site-progress-bar" aria-hidden="true">
+              <span style={{ width: `${globalProgressValue}%` }} />
+            </div>
+          </section>
         )}
-      </section>
+
+        {/* Content Area */}
+        <div className="dashboard-content">
+          {selectedVideo ? (
+            // Video Workbench
+            <>
+              <VideoWorkbench
+                video={selectedVideo}
+                analysis={analysis}
+                analysisState={analysisState}
+                analysisMessage={buildAnalysisMessage(analysisState, selectedVideo, analysis)}
+                selectedTask={videoTask}
+                selectedModelPath={videoModelPath}
+                selectedFrameStride={videoFrameStride}
+                selectedConfidenceThreshold={videoConfidenceThreshold}
+                selectedMaxFrames={videoMaxFrames}
+                selectedClipStart={videoClipStart}
+                selectedClipEnd={videoClipEnd}
+                taskOptions={tasks}
+                modelOptions={models}
+                analysisDraft={analysisDraft}
+                transcription={transcription}
+                transcriptionDraft={transcriptionDraft}
+                transcriptionMessage={transcriptionMessage}
+                isBusy={selectedVideoIsBusy}
+                onTaskChange={handleVideoTaskChange}
+                onModelChange={setVideoModelPath}
+                onFrameStrideChange={setVideoFrameStride}
+                onConfidenceThresholdChange={setVideoConfidenceThreshold}
+                onMaxFramesChange={setVideoMaxFrames}
+                onClipStartChange={setVideoClipStart}
+                onClipEndChange={setVideoClipEnd}
+                onAnalysisDraftChange={setAnalysisDraft}
+                onTranscriptionDraftChange={setTranscriptionDraft}
+                onSaveConfig={handleSaveConfig}
+                onReprocess={handleReprocess}
+                onDeleteVideo={handleDeleteVideo}
+                onSaveAnalysis={handleSaveAnalysis}
+                onDeleteAnalysis={handleDeleteAnalysis}
+                onGenerateTranscription={handleGenerateTranscription}
+                onSaveTranscription={handleSaveTranscription}
+                onDeleteTranscription={handleDeleteTranscription}
+              />
+            </>
+          ) : (
+            // New Video + Queue
+            <>
+              {/* Stats */}
+              <div className="dashboard-stats">
+                <div className="stat-card">
+                  <span>Total</span>
+                  <strong>{stats.total}</strong>
+                </div>
+                <div className="stat-card">
+                  <span>Em processamento</span>
+                  <strong>{stats.processing}</strong>
+                </div>
+                <div className="stat-card">
+                  <span>Concluídos</span>
+                  <strong>{stats.processed}</strong>
+                </div>
+                <div className="stat-card">
+                  <span>Com erro</span>
+                  <strong>{stats.errors}</strong>
+                </div>
+              </div>
+
+              {/* Upload + Queue */}
+              <div className="upload-section">
+                <NewVideoPanel
+                  file={file}
+                  message={message}
+                  hint={hint}
+                  uploading={uploading}
+                  selectedTask={uploadTask}
+                  selectedModelPath={uploadModelPath}
+                  frameStride={parseInt(uploadFrameStride, 10)}
+                  confidenceThreshold={parseFloat(uploadConfidenceThreshold)}
+                  maxFrames={parseInt(uploadMaxFrames, 10)}
+                  clipStart={parseInt(uploadClipStart, 10)}
+                  clipEnd={uploadClipEnd ? parseInt(uploadClipEnd, 10) : null}
+                  tasks={tasks}
+                  models={models}
+                  onFileChange={setFile}
+                  onTaskChange={handleUploadTaskChange}
+                  onModelChange={setUploadModelPath}
+                  onFrameStrideChange={(val) => setUploadFrameStride(String(val))}
+                  onConfidenceThresholdChange={(val) => setUploadConfidenceThreshold(String(val))}
+                  onMaxFramesChange={(val) => setUploadMaxFrames(String(val))}
+                  onClipStartChange={(val) => setUploadClipStart(String(val))}
+                  onClipEndChange={(val) => setUploadClipEnd(val ? String(val) : "")}
+                  onUpload={handleUpload}
+                  onRefresh={() => void fetchVideos({ preserveHint: false })}
+                />
+
+                <ProcessingQueuePanel videos={videos} />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
