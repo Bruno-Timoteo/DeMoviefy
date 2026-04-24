@@ -24,15 +24,15 @@ import type {
 type AnalysisState = "idle" | "loading" | "ready" | "pending" | "error";
 type CompatibilityState =
   | {
-    status: "checking";
-    message: string;
-    backendInfo: null;
-  }
+      status: "checking";
+      message: string;
+      backendInfo: null;
+    }
   | {
-    status: "compatible" | "mismatch" | "unavailable";
-    message: string;
-    backendInfo: BackendVersionResponse | null;
-  };
+      status: "compatible" | "mismatch" | "unavailable";
+      message: string;
+      backendInfo: BackendVersionResponse | null;
+    };
 
 const DEFAULT_PROCESSING = {
   processing_progress: 0,
@@ -323,16 +323,24 @@ export default function VideoDashboard() {
     try {
       const response = await api.get<VideoRecord[]>("/videos");
       const normalizedVideos = response.data.map((video) => normalizeVideoRecord(video));
-      setVideos(normalizedVideos);
-      setSelectedVideoId((current) => {
-        if (normalizedVideos.length === 0 || current === null) {
-          return null;
-        }
-        if (normalizedVideos.some((video) => video.id === current)) {
-          return current;
-        }
-        return null;
-      });
+      const nextSignature = buildVideosSignature(normalizedVideos);
+      const hasChanged = videosSignatureRef.current !== nextSignature;
+
+      if (hasChanged) {
+        videosSignatureRef.current = nextSignature;
+        startTransition(() => {
+          setVideos(normalizedVideos);
+          setSelectedVideoId((current) => {
+            if (normalizedVideos.length === 0) {
+              return null;
+            }
+            if (current && normalizedVideos.some((video) => video.id === current)) {
+              return current;
+            }
+            return choosePreferredVideo(normalizedVideos)?.id ?? normalizedVideos[0].id;
+          });
+        });
+      }
 
       if (!preserveHint) {
         setHint(`Biblioteca atualizada com ${normalizedVideos.length} video(s).`);
@@ -360,7 +368,7 @@ export default function VideoDashboard() {
         if (response.data.transcription.status === "unavailable") {
           setTranscriptionMessage(
             response.data.transcription.error ??
-            "A transcricao automatica nao esta disponivel neste ambiente ainda.",
+              "A transcricao automatica nao esta disponivel neste ambiente ainda.",
           );
         } else {
           setTranscriptionMessage(
@@ -373,14 +381,14 @@ export default function VideoDashboard() {
       if (response.status === 202) {
         setTranscriptionMessage(
           response.data.transcription.error ??
-          "A transcricao ainda esta em processamento e sera atualizada em breve.",
+            "A transcricao ainda esta em processamento e sera atualizada em breve.",
         );
         return;
       }
 
       setTranscriptionMessage(
         response.data.transcription.error ??
-        "Ainda nao existe transcricao salva. Voce pode criar uma manualmente aqui.",
+          "Ainda nao existe transcricao salva. Voce pode criar uma manualmente aqui.",
       );
     } catch (error) {
       console.error(error);
@@ -538,7 +546,9 @@ export default function VideoDashboard() {
       setUploadClipStart("0");
       setUploadClipEnd("");
       await fetchVideos();
-      setSelectedVideoId(null);
+      setSelectedVideoId(response.data.video.id);
+      setIsUploadComposerOpen(false);
+      setIsSidebarCollapsed(true);
     } catch (error) {
       console.error(error);
       setMessage(getApiErrorMessage(error, "Erro ao enviar o video."));
@@ -794,187 +804,145 @@ export default function VideoDashboard() {
     );
   }
 
-  const globalProcessState = uploading
-    ? { text: "Upload em andamento", progress: null }
-    : loadingVideos
-      ? { text: "Atualizando biblioteca", progress: null }
-      : selectedVideoIsBusy && selectedVideo
-        ? { text: `Processando video: ${selectedVideo.filename}`, progress: selectedVideo.processing.processing_progress }
-        : null;
-
-  const globalProgressValue = globalProcessState?.progress ?? 0;
-
   return (
-    <div className="dashboard-container">
-      {/* Sidebar Overlay */}
-      <div
-        className={`sidebar-overlay ${sidebarOpen ? "show" : ""}`}
-        onClick={() => setSidebarOpen(false)}
-        aria-hidden="true"
-      />
+    <div className="workspace">
+      {globalProcessState && (
+        <section className="surface site-progress-panel">
+          <div className="site-progress-title">
+            <strong>{globalProcessState.text}</strong>
+            <span>{globalProgressValue ? `${globalProgressValue}%` : "..."}</span>
+          </div>
+          <div className="site-progress-bar" aria-hidden="true">
+            <span style={{ width: `${globalProgressValue}%` }} />
+          </div>
+        </section>
+      )}
 
-      {/* Sidebar Drawer */}
-      <aside className={`dashboard-sidebar ${sidebarOpen ? "open" : ""}`}>
-        <div className="dashboard-sidebar-header">
-          <h2>Biblioteca</h2>
-          <button
-            className="sidebar-close-btn"
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Fechar sidebar"
-          >
-            ✕
+      <section id="home-overview" className="surface flex flex-wrap items-center justify-between gap-4 px-6 py-5">
+        <div>
+          <span className="eyebrow">Home</span>
+          <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Navegue pela biblioteca e abra o video na area principal.
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+            O botao de upload fica fixo no topo porque continua acessivel mesmo quando a sidebar e recolhida.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <button type="button" className="ghost-button" onClick={handleToggleSidebar}>
+            {isSidebarCollapsed ? "Abrir biblioteca" : "Recolher biblioteca"}
+          </button>
+          <button type="button" className="primary-button" onClick={handleToggleUploadComposer}>
+            {isUploadComposerOpen ? "Fechar upload" : "+ Novo Video"}
           </button>
         </div>
+      </section>
 
+      {(isUploadComposerOpen || videos.length === 0) && (
+        <div id="upload-panel">
+          <UploadComposerPanel
+            file={file}
+            message={message}
+            hint={hint}
+            uploading={uploading}
+            selectedTask={uploadTask}
+            selectedModelPath={uploadModelPath}
+            frameStride={uploadFrameStride}
+            confidenceThreshold={uploadConfidenceThreshold}
+            maxFrames={uploadMaxFrames}
+            clipStart={uploadClipStart}
+            clipEnd={uploadClipEnd}
+            tasks={tasks}
+            models={models}
+            onFileChange={setFile}
+            onTaskChange={handleUploadTaskChange}
+            onModelChange={setUploadModelPath}
+            onFrameStrideChange={setUploadFrameStride}
+            onConfidenceThresholdChange={setUploadConfidenceThreshold}
+            onMaxFramesChange={setUploadMaxFrames}
+            onClipStartChange={setUploadClipStart}
+            onClipEndChange={setUploadClipEnd}
+            onUpload={handleUpload}
+            onRefresh={() => void fetchVideos({ preserveHint: false })}
+          />
+        </div>
+      )}
+
+      <section id="processing-summary" className="stats-row">
+        <article className="surface stat-panel">
+          <span>Total</span>
+          <strong>{stats.total}</strong>
+        </article>
+        <article className="surface stat-panel">
+          <span>Em processamento</span>
+          <strong>{stats.processing}</strong>
+        </article>
+        <article className="surface stat-panel">
+          <span>Concluidos</span>
+          <strong>{stats.processed}</strong>
+        </article>
+        <article className="surface stat-panel">
+          <span>Com erro</span>
+          <strong>{stats.errors}</strong>
+        </article>
+      </section>
+
+      <section
+        id="library-panel"
+        className={`grid items-start gap-5 ${
+          isSidebarCollapsed
+            ? "grid-cols-1 xl:grid-cols-[96px_minmax(0,1fr)]"
+            : "grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)]"
+        }`}
+      >
         <VideoLibrary
-          videos={videos}
+          videos={deferredVideos}
           selectedVideoId={selectedVideoId}
           loading={loadingVideos}
-          onSelect={(id) => {
-            setSelectedVideoId(id);
-            setSidebarOpen(false);
-          }}
+          collapsed={isSidebarCollapsed}
+          onSelect={handleSelectVideo}
+          onToggleCollapse={handleToggleSidebar}
+          onOpenUpload={handleOpenUploadComposer}
         />
-      </aside>
 
-      {/* Main Content */}
-      <div className="dashboard-main">
-        {/* Header */}
-        <header className="dashboard-header">
-          <button
-            className="menu-toggle"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            aria-label="Abrir menu"
-            title="Biblioteca de vídeos"
-          >
-            ☰
-          </button>
-          <h1 className="dashboard-title">DeMoviefy</h1>
-          {selectedVideo && (
-            <button
-              type="button"
-              className="ghost-button"
-              onClick={() => setSelectedVideoId(null)}
-            >
-              Novo upload
-            </button>
-          )}
-          <div style={{ flex: 1 }} />
-        </header>
-
-        {/* Progress Bar */}
-        {globalProcessState && (
-          <section className="surface site-progress-panel">
-            <div className="site-progress-title">
-              <strong>{globalProcessState.text}</strong>
-              <span>{globalProgressValue ? `${globalProgressValue}%` : "..."}</span>
-            </div>
-            <div className="site-progress-bar" aria-hidden="true">
-              <span style={{ width: `${globalProgressValue}%` }} />
-            </div>
-          </section>
-        )}
-
-        {/* Content Area */}
-        <div className="dashboard-content">
-          {selectedVideo ? (
-            // Video Workbench
-            <>
-              <VideoWorkbench
-                video={selectedVideo}
-                analysis={analysis}
-                analysisState={analysisState}
-                analysisMessage={buildAnalysisMessage(analysisState, selectedVideo, analysis)}
-                selectedTask={videoTask}
-                selectedModelPath={videoModelPath}
-                selectedFrameStride={videoFrameStride}
-                selectedConfidenceThreshold={videoConfidenceThreshold}
-                selectedMaxFrames={videoMaxFrames}
-                selectedClipStart={videoClipStart}
-                selectedClipEnd={videoClipEnd}
-                taskOptions={tasks}
-                modelOptions={models}
-                analysisDraft={analysisDraft}
-                transcription={transcription}
-                transcriptionDraft={transcriptionDraft}
-                transcriptionMessage={transcriptionMessage}
-                isBusy={selectedVideoIsBusy}
-                onTaskChange={handleVideoTaskChange}
-                onModelChange={setVideoModelPath}
-                onFrameStrideChange={setVideoFrameStride}
-                onConfidenceThresholdChange={setVideoConfidenceThreshold}
-                onMaxFramesChange={setVideoMaxFrames}
-                onClipStartChange={setVideoClipStart}
-                onClipEndChange={setVideoClipEnd}
-                onAnalysisDraftChange={setAnalysisDraft}
-                onTranscriptionDraftChange={setTranscriptionDraft}
-                onSaveConfig={handleSaveConfig}
-                onReprocess={handleReprocess}
-                onDeleteVideo={handleDeleteVideo}
-                onSaveAnalysis={handleSaveAnalysis}
-                onDeleteAnalysis={handleDeleteAnalysis}
-                onGenerateTranscription={handleGenerateTranscription}
-                onSaveTranscription={handleSaveTranscription}
-                onDeleteTranscription={handleDeleteTranscription}
-              />
-            </>
-          ) : (
-            // New Video + Queue
-            <>
-              {/* Stats */}
-              <div className="dashboard-stats">
-                <div className="stat-card">
-                  <span>Total</span>
-                  <strong>{stats.total}</strong>
-                </div>
-                <div className="stat-card">
-                  <span>Em processamento</span>
-                  <strong>{stats.processing}</strong>
-                </div>
-                <div className="stat-card">
-                  <span>Concluídos</span>
-                  <strong>{stats.processed}</strong>
-                </div>
-                <div className="stat-card">
-                  <span>Com erro</span>
-                  <strong>{stats.errors}</strong>
-                </div>
-              </div>
-
-              {/* Upload + Queue */}
-              <div className="upload-section">
-                <NewVideoPanel
-                  file={file}
-                  message={message}
-                  hint={hint}
-                  uploading={uploading}
-                  selectedTask={uploadTask}
-                  selectedModelPath={uploadModelPath}
-                  frameStride={parseInt(uploadFrameStride, 10)}
-                  confidenceThreshold={parseFloat(uploadConfidenceThreshold)}
-                  maxFrames={parseInt(uploadMaxFrames, 10)}
-                  clipStart={parseInt(uploadClipStart, 10)}
-                  clipEnd={uploadClipEnd ? parseInt(uploadClipEnd, 10) : null}
-                  tasks={tasks}
-                  models={models}
-                  onFileChange={setFile}
-                  onTaskChange={handleUploadTaskChange}
-                  onModelChange={setUploadModelPath}
-                  onFrameStrideChange={(val) => setUploadFrameStride(String(val))}
-                  onConfidenceThresholdChange={(val) => setUploadConfidenceThreshold(String(val))}
-                  onMaxFramesChange={(val) => setUploadMaxFrames(String(val))}
-                  onClipStartChange={(val) => setUploadClipStart(String(val))}
-                  onClipEndChange={(val) => setUploadClipEnd(val ? String(val) : "")}
-                  onUpload={handleUpload}
-                  onRefresh={() => void fetchVideos({ preserveHint: false })}
-                />
-
-                <ProcessingQueuePanel videos={videos} />
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+        <VideoWorkbench
+          video={selectedVideo}
+          analysis={analysis}
+          analysisState={analysisState}
+          analysisMessage={buildAnalysisMessage(analysisState, selectedVideo, analysis)}
+          selectedTask={videoTask}
+          selectedModelPath={videoModelPath}
+          selectedFrameStride={videoFrameStride}
+          selectedConfidenceThreshold={videoConfidenceThreshold}
+          selectedMaxFrames={videoMaxFrames}
+          selectedClipStart={videoClipStart}
+          selectedClipEnd={videoClipEnd}
+          taskOptions={tasks}
+          modelOptions={models}
+          analysisDraft={analysisDraft}
+          transcription={transcription}
+          transcriptionDraft={transcriptionDraft}
+          transcriptionMessage={transcriptionMessage}
+          isBusy={selectedVideoIsBusy}
+          onTaskChange={handleVideoTaskChange}
+          onModelChange={setVideoModelPath}
+          onFrameStrideChange={setVideoFrameStride}
+          onConfidenceThresholdChange={setVideoConfidenceThreshold}
+          onMaxFramesChange={setVideoMaxFrames}
+          onClipStartChange={setVideoClipStart}
+          onClipEndChange={setVideoClipEnd}
+          onAnalysisDraftChange={setAnalysisDraft}
+          onTranscriptionDraftChange={setTranscriptionDraft}
+          onSaveConfig={handleSaveConfig}
+          onReprocess={handleReprocess}
+          onDeleteVideo={handleDeleteVideo}
+          onSaveAnalysis={handleSaveAnalysis}
+          onDeleteAnalysis={handleDeleteAnalysis}
+          onGenerateTranscription={handleGenerateTranscription}
+          onSaveTranscription={handleSaveTranscription}
+          onDeleteTranscription={handleDeleteTranscription}
+        />
+      </section>
     </div>
   );
 }

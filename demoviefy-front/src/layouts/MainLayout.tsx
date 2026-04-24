@@ -45,12 +45,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
   );
 
   return (
-    <div className={`app-shell ${isHomePage ? "app-shell--full-width" : ""}`}>
+    <div className="app-shell">
+      <Header
+        themeLabel={themeLabel}
+        onToggleTheme={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
+      />
       <div className="app-content-shell">
-        <Header
-          themeLabel={themeLabel}
-          onToggleTheme={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
-        />
         <main className="app-main">{children}</main>
         <Footer />
       </div>
