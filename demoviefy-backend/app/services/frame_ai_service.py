@@ -1,3 +1,20 @@
+"""
+FRAME AI SERVICE
+----------------
+Service layer for AI-powered video frame analysis using YOLO models.
+Handles video processing, frame sampling, model inference, and annotation.
+Part of the MVC pattern (Model-View-Controller).
+
+Key Responsibilities:
+- Load and cache YOLO models
+- Sample frames from videos at specified stride intervals
+- Run inference on sampled frames (detection, segmentation, pose estimation, classification)
+- Aggregate detection results
+- Generate annotated videos with bounding boxes, masks, or keypoints
+- Handle progress tracking and error recovery
+- Persist analysis results to JSON files
+"""
+
 import json
 import time
 from collections import Counter, defaultdict
@@ -5,16 +22,52 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 from app.config.paths import analysis_file_path as build_analysis_file_path
 from app.config.paths import annotated_video_path as build_annotated_video_path
 from app.config.paths import ensure_storage_dirs
 
 
+def _ensure_ultralytics_pose_compat() -> None:
+    """Ensure old Pose26 class alias exists for legacy model checkpoints."""
+    try:
+        import ultralytics.nn.modules.head as head
+    except Exception:
+        return
+
+    if not hasattr(head, "Pose26") and hasattr(head, "Pose"):
+        head.Pose26 = head.Pose  # type: ignore[attr-defined]
+
+
 @lru_cache(maxsize=2)
 def _get_model(model_path: str):
+    """
+    Load and cache YOLO model with lazy initialization.
+    
+    Lazy imports the YOLO model only when needed to avoid hard failures
+    at app startup. Results are cached to avoid reloading the same model.
+    
+    Args:
+        model_path (str): Path to the YOLO model file
+        
+    Returns:
+        YOLO: Loaded model instance ready for inference
+        
+    Raises:
+        RuntimeError: If model fails to load
+    """
     from ultralytics import YOLO  # Imported lazily to avoid hard failure at app import time.
 
-    return YOLO(model_path)
+    _ensure_ultralytics_pose_compat()
+
+    try:
+        return YOLO(model_path)
+    except Exception as exc:
+        if hasattr(exc, "args") and any("Pose26" in str(arg) for arg in exc.args):
+            _ensure_ultralytics_pose_compat()
+            return YOLO(model_path)
+        raise
 
 
 def analyze_video_frames(
@@ -32,10 +85,52 @@ def analyze_video_frames(
     logger: Any | None = None,
 ) -> dict[str, Any]:
     """
-    Run frame sampling and summarize the chosen AI task across the video.
+    Analyze video frames using YOLO model with frame sampling.
 
-    We keep the output format intentionally compact so it can be edited by the
-    frontend and also stored as plain JSON beside the uploaded video.
+    This is the main entry point for video analysis. It:
+    1. Opens the video file and extracts metadata (FPS, frame count, duration)
+    2. Samples frames at specified stride intervals
+    3. Runs inference on each sampled frame
+    4. Aggregates results by detected object class and confidence
+    5. Optionally generates annotated video with bounding boxes
+    6. Reports progress via callback function
+    
+    Output format is intentionally compact for frontend editing and JSON storage.
+
+    Args:
+        video_path (str): Path to the video file to analyze
+        model_path (str): Path to YOLO model file (default: yolov8n.pt - nano model)
+        task_type (str): Type of AI task - "object_detection", "classification", etc.
+        frame_stride (int): Sample every nth frame (e.g., stride=8 means every 8th frame)
+        conf_threshold (float): Confidence threshold for detections (0.0-1.0)
+        max_frames (int): Maximum number of frames to process
+        clip_start_sec (float): Start time of video segment (seconds)
+        clip_end_sec (float|None): End time of video segment (seconds). None = video end
+        annotated_output_path (str|None): Path to save annotated video. None = no output
+        progress_callback (callable|None): Function to report progress (current, total)
+        logger (logging.Logger|None): Logger for debug output
+        
+    Returns:
+        dict: Analysis results with aggregated detections:
+            {
+                'task_type': str,
+                'model_path': str,
+                'total_frames': int,
+                'sampled_frames': int,
+                'fps': float,
+                'duration_seconds': float,
+                'detected_labels': dict,           # {label: count, ...}
+                'class_confidences': dict,        # {label: [conf, ...], ...}
+                'detected_classes': list,         # unique class names
+                'average_confidences': dict,      # {label: avg_confidence, ...}
+                'start_frame': int,
+                'end_frame': int,
+                'clip_start_sec': float,
+                'clip_end_sec': float
+            }
+            
+    Raises:
+        RuntimeError: If opencv-python not installed, model fails to load, or video is invalid
     """
     try:
         import cv2
@@ -159,7 +254,28 @@ def analyze_video_frames(
             labels_counter[label] += 1
             confidence_sum[label] += confidence
             confidence_count[label] += 1
+        elif task_type == "instance_segmentation" and hasattr(result, "masks") and result.masks is not None:
+            # Process segmentation masks
+            if result.boxes is not None and len(result.boxes) > 0:
+                classes = result.boxes.cls.tolist()
+                confidences = result.boxes.conf.tolist()
+                for cls_idx, conf in zip(classes, confidences):
+                    label = names.get(int(cls_idx), str(int(cls_idx)))
+                    labels_counter[label] += 1
+                    confidence_sum[label] += float(conf)
+                    confidence_count[label] += 1
+        elif task_type == "pose_estimation" and hasattr(result, "keypoints") and result.keypoints is not None:
+            # Process pose keypoints
+            if result.boxes is not None and len(result.boxes) > 0:
+                classes = result.boxes.cls.tolist()
+                confidences = result.boxes.conf.tolist()
+                for cls_idx, conf in zip(classes, confidences):
+                    label = names.get(int(cls_idx), str(int(cls_idx)))
+                    labels_counter[label] += 1
+                    confidence_sum[label] += float(conf)
+                    confidence_count[label] += 1
         elif result.boxes is not None and len(result.boxes) > 0:
+            # Default processing for detection, OBB, etc.
             classes = result.boxes.cls.tolist()
             confidences = result.boxes.conf.tolist()
 
@@ -170,7 +286,8 @@ def analyze_video_frames(
                 confidence_count[label] += 1
 
         if writer is not None:
-            writer.write(result.plot())
+            annotated_frame = _annotate_frame_by_task(frame, result, task_type)
+            writer.write(annotated_frame)
             annotated_frames_written += 1
 
         processed_frames += 1

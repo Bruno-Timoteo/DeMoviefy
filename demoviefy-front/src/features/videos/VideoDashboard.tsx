@@ -2,9 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AxiosError } from "axios";
 
 import { api, frontendApiContractVersion, frontendAppVersion } from "../../services/api";
-import { UploadComposerPanel } from "./components/UploadComposerPanel";
+import { NewVideoPanel } from "./components/NewVideoPanel";
 import { VideoLibrary } from "./components/VideoLibrary";
 import { VideoWorkbench } from "./components/VideoWorkbench";
+import { ProcessingQueuePanel } from "./components/ProcessingQueuePanel";
+import "./styles/VideoDashboard.css";
+import "./styles/NewVideoPanel.css";
+import "./styles/ProcessingQueuePanel.css";
+import "./styles/NewDashboardLayout.css";
 import type {
   AIModelOption,
   AITaskOption,
@@ -174,10 +179,6 @@ function choosePreferredTask(tasks: AITaskOption[]) {
   return tasks.find((task) => task.task_type === "object_detection")?.task_type ?? tasks[0]?.task_type ?? "object_detection";
 }
 
-function choosePreferredVideo(videos: VideoRecord[]) {
-  return videos.find((video) => video.storage.video_exists) ?? videos[0] ?? null;
-}
-
 function buildArtifactSignature(video: VideoRecord | null) {
   if (!video) {
     return "empty";
@@ -241,6 +242,7 @@ export default function VideoDashboard() {
     message: "Verificando compatibilidade entre frontend e backend.",
     backendInfo: null,
   });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const initializedRef = useRef(false);
   const lastArtifactSignatureRef = useRef("");
 
@@ -321,16 +323,24 @@ export default function VideoDashboard() {
     try {
       const response = await api.get<VideoRecord[]>("/videos");
       const normalizedVideos = response.data.map((video) => normalizeVideoRecord(video));
-      setVideos(normalizedVideos);
-      setSelectedVideoId((current) => {
-        if (normalizedVideos.length === 0) {
-          return null;
-        }
-        if (current && normalizedVideos.some((video) => video.id === current)) {
-          return current;
-        }
-        return choosePreferredVideo(normalizedVideos)?.id ?? normalizedVideos[0].id;
-      });
+      const nextSignature = buildVideosSignature(normalizedVideos);
+      const hasChanged = videosSignatureRef.current !== nextSignature;
+
+      if (hasChanged) {
+        videosSignatureRef.current = nextSignature;
+        startTransition(() => {
+          setVideos(normalizedVideos);
+          setSelectedVideoId((current) => {
+            if (normalizedVideos.length === 0) {
+              return null;
+            }
+            if (current && normalizedVideos.some((video) => video.id === current)) {
+              return current;
+            }
+            return choosePreferredVideo(normalizedVideos)?.id ?? normalizedVideos[0].id;
+          });
+        });
+      }
 
       if (!preserveHint) {
         setHint(`Biblioteca atualizada com ${normalizedVideos.length} video(s).`);
@@ -537,6 +547,8 @@ export default function VideoDashboard() {
       setUploadClipEnd("");
       await fetchVideos();
       setSelectedVideoId(response.data.video.id);
+      setIsUploadComposerOpen(false);
+      setIsSidebarCollapsed(true);
     } catch (error) {
       console.error(error);
       setMessage(getApiErrorMessage(error, "Erro ao enviar o video."));
@@ -794,33 +806,69 @@ export default function VideoDashboard() {
 
   return (
     <div className="workspace">
-      <UploadComposerPanel
-        file={file}
-        message={message}
-        hint={hint}
-        uploading={uploading}
-        selectedTask={uploadTask}
-        selectedModelPath={uploadModelPath}
-        frameStride={uploadFrameStride}
-        confidenceThreshold={uploadConfidenceThreshold}
-        maxFrames={uploadMaxFrames}
-        clipStart={uploadClipStart}
-        clipEnd={uploadClipEnd}
-        tasks={tasks}
-        models={models}
-        onFileChange={setFile}
-        onTaskChange={handleUploadTaskChange}
-        onModelChange={setUploadModelPath}
-        onFrameStrideChange={setUploadFrameStride}
-        onConfidenceThresholdChange={setUploadConfidenceThreshold}
-        onMaxFramesChange={setUploadMaxFrames}
-        onClipStartChange={setUploadClipStart}
-        onClipEndChange={setUploadClipEnd}
-        onUpload={handleUpload}
-        onRefresh={() => void fetchVideos({ preserveHint: false })}
-      />
+      {globalProcessState && (
+        <section className="surface site-progress-panel">
+          <div className="site-progress-title">
+            <strong>{globalProcessState.text}</strong>
+            <span>{globalProgressValue ? `${globalProgressValue}%` : "..."}</span>
+          </div>
+          <div className="site-progress-bar" aria-hidden="true">
+            <span style={{ width: `${globalProgressValue}%` }} />
+          </div>
+        </section>
+      )}
 
-      <section className="stats-row">
+      <section id="home-overview" className="surface flex flex-wrap items-center justify-between gap-4 px-6 py-5">
+        <div>
+          <span className="eyebrow">Home</span>
+          <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Navegue pela biblioteca e abra o video na area principal.
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+            O botao de upload fica fixo no topo porque continua acessivel mesmo quando a sidebar e recolhida.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <button type="button" className="ghost-button" onClick={handleToggleSidebar}>
+            {isSidebarCollapsed ? "Abrir biblioteca" : "Recolher biblioteca"}
+          </button>
+          <button type="button" className="primary-button" onClick={handleToggleUploadComposer}>
+            {isUploadComposerOpen ? "Fechar upload" : "+ Novo Video"}
+          </button>
+        </div>
+      </section>
+
+      {(isUploadComposerOpen || videos.length === 0) && (
+        <div id="upload-panel">
+          <UploadComposerPanel
+            file={file}
+            message={message}
+            hint={hint}
+            uploading={uploading}
+            selectedTask={uploadTask}
+            selectedModelPath={uploadModelPath}
+            frameStride={uploadFrameStride}
+            confidenceThreshold={uploadConfidenceThreshold}
+            maxFrames={uploadMaxFrames}
+            clipStart={uploadClipStart}
+            clipEnd={uploadClipEnd}
+            tasks={tasks}
+            models={models}
+            onFileChange={setFile}
+            onTaskChange={handleUploadTaskChange}
+            onModelChange={setUploadModelPath}
+            onFrameStrideChange={setUploadFrameStride}
+            onConfidenceThresholdChange={setUploadConfidenceThreshold}
+            onMaxFramesChange={setUploadMaxFrames}
+            onClipStartChange={setUploadClipStart}
+            onClipEndChange={setUploadClipEnd}
+            onUpload={handleUpload}
+            onRefresh={() => void fetchVideos({ preserveHint: false })}
+          />
+        </div>
+      )}
+
+      <section id="processing-summary" className="stats-row">
         <article className="surface stat-panel">
           <span>Total</span>
           <strong>{stats.total}</strong>
@@ -839,12 +887,22 @@ export default function VideoDashboard() {
         </article>
       </section>
 
-      <section className="content-grid">
+      <section
+        id="library-panel"
+        className={`grid items-start gap-5 ${
+          isSidebarCollapsed
+            ? "grid-cols-1 xl:grid-cols-[96px_minmax(0,1fr)]"
+            : "grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)]"
+        }`}
+      >
         <VideoLibrary
-          videos={videos}
+          videos={deferredVideos}
           selectedVideoId={selectedVideoId}
           loading={loadingVideos}
-          onSelect={setSelectedVideoId}
+          collapsed={isSidebarCollapsed}
+          onSelect={handleSelectVideo}
+          onToggleCollapse={handleToggleSidebar}
+          onOpenUpload={handleOpenUploadComposer}
         />
 
         <VideoWorkbench

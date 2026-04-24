@@ -11,8 +11,6 @@ const PIPELINE_STEPS = [
   { id: "queued", label: "Fila" },
   { id: "preparing", label: "Preparacao" },
   { id: "analyzing", label: "Analise" },
-  { id: "analysis_complete", label: "Artefatos" },
-  { id: "transcribing", label: "Transcricao" },
   { id: "completed", label: "Concluido" },
 ] as const;
 
@@ -21,11 +19,11 @@ const STAGE_INDEX: Record<string, number> = {
   queued: 0,
   preparing: 1,
   analyzing: 2,
-  analysis_complete: 3,
-  transcribing: 4,
-  transcription_skipped: 4,
-  completed: 5,
-  error: 5,
+  analysis_complete: 2,
+  transcribing: 2,
+  transcription_skipped: 2,
+  completed: 3,
+  error: 3,
 };
 
 function formatEta(value: number | null) {
@@ -63,10 +61,7 @@ export const ProcessingProgress = memo(function ProcessingProgress({
       <div className="pipeline-steps" aria-label="Etapas do processamento">
         {PIPELINE_STEPS.map((step, index) => {
           const isDone = index < currentIndex || stage === "completed";
-          const isCurrent =
-            stage === step.id ||
-            (stage === "transcription_skipped" && step.id === "transcribing") ||
-            (stage === "error" && index === Math.max(currentIndex, 0));
+          const isCurrent = stage === step.id || (stage === "error" && index === Math.max(currentIndex, 0));
 
           return (
             <span
