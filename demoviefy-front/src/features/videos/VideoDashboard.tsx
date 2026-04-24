@@ -179,10 +179,6 @@ function choosePreferredTask(tasks: AITaskOption[]) {
   return tasks.find((task) => task.task_type === "object_detection")?.task_type ?? tasks[0]?.task_type ?? "object_detection";
 }
 
-function choosePreferredVideo(videos: VideoRecord[]) {
-  return videos.find((video) => video.storage.video_exists) ?? videos[0] ?? null;
-}
-
 function buildArtifactSignature(video: VideoRecord | null) {
   if (!video) {
     return "empty";
@@ -329,13 +325,13 @@ export default function VideoDashboard() {
       const normalizedVideos = response.data.map((video) => normalizeVideoRecord(video));
       setVideos(normalizedVideos);
       setSelectedVideoId((current) => {
-        if (normalizedVideos.length === 0) {
+        if (normalizedVideos.length === 0 || current === null) {
           return null;
         }
-        if (current && normalizedVideos.some((video) => video.id === current)) {
+        if (normalizedVideos.some((video) => video.id === current)) {
           return current;
         }
-        return choosePreferredVideo(normalizedVideos)?.id ?? normalizedVideos[0].id;
+        return null;
       });
 
       if (!preserveHint) {
@@ -542,7 +538,7 @@ export default function VideoDashboard() {
       setUploadClipStart("0");
       setUploadClipEnd("");
       await fetchVideos();
-      setSelectedVideoId(response.data.video.id);
+      setSelectedVideoId(null);
     } catch (error) {
       console.error(error);
       setMessage(getApiErrorMessage(error, "Erro ao enviar o video."));
@@ -854,6 +850,15 @@ export default function VideoDashboard() {
             ☰
           </button>
           <h1 className="dashboard-title">DeMoviefy</h1>
+          {selectedVideo && (
+            <button
+              type="button"
+              className="ghost-button"
+              onClick={() => setSelectedVideoId(null)}
+            >
+              Novo upload
+            </button>
+          )}
           <div style={{ flex: 1 }} />
         </header>
 

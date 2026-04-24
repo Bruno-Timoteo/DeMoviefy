@@ -172,6 +172,7 @@ code {
 }
 
 .app-content-shell {
+  grid-column: 1 / -1;
   min-width: 0;
   min-height: calc(100vh - 32px);
   display: flex;
@@ -1016,6 +1017,7 @@ code {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 1rem;
     padding: 1rem 1.5rem;
     background: var(--surface);
@@ -1029,11 +1031,15 @@ code {
   .header-brand {
     display: flex;
     align-items: center;
+    flex: 1 1 420px;
+    min-width: 0;
+    flex-wrap: wrap;
     gap: 2rem;
   }
 
   .header-navigation {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.75rem;
   }
 
@@ -1064,6 +1070,8 @@ code {
   }
 
   .theme-toggle {
+    margin-left: auto;
+    flex: 0 0 auto;
     padding: 0.625rem 1rem;
     font-size: 0.9rem;
     font-weight: 500;
@@ -1190,6 +1198,20 @@ code {
 
   .app-header {
     padding: 20px 18px;
+  }
+
+  .header-brand {
+    gap: 1rem;
+  }
+
+  .header-navigation {
+    width: 100%;
+  }
+
+  .theme-toggle {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
   }
 
   .header-actions {
