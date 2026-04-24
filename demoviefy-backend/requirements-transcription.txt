@@ -6,4 +6,6 @@
 # because of upstream packaging/build issues. Prefer Python 3.11/3.12 for this.
 
 openai-whisper==20231117
-torch==2.2.2
+# Keep torch aligned with backend ultralytics dependency to avoid incompatible torchvision pins.
+# If you need a different torch version, check run_form.py and this file contents.
+torch==2.11.0

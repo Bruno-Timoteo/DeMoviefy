@@ -427,7 +427,7 @@ def generate_video_transcription_by_id(video_id: int):
         return (
             jsonify(
                 {
-                    "error": "Transcricao automatica indisponivel. Configure a .venv-transcription com Python 3.11/3.12 ou instale openai-whisper no ambiente atual.",
+                    "error": "Transcricao automatica indisponivel. Instale openai-whisper no ambiente atual ou ative a opcao de transcricao no setup.",
                 }
             ),
             503,

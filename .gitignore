@@ -1,9 +1,22 @@
+# Python cache
 __pycache__/
 *.pyc
+
+# Log files
 app.log
+
+# Runtime data
 uploads/
 ai_model/results/
+
+# Virtual environments
 .venv/
+
+.ffmpeg/
+
+# Frontend dependencies and build
 demoviefy-front/node_modules/
 demoviefy-front/dist/
+
+# Backend database instance
 demoviefy-backend/instance/
