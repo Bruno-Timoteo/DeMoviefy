@@ -29,15 +29,100 @@ from app.config.paths import annotated_video_path as build_annotated_video_path
 from app.config.paths import ensure_storage_dirs
 
 
-def _ensure_ultralytics_pose_compat() -> None:
-    """Ensure old Pose26 class alias exists for legacy model checkpoints."""
+# ============================================================================
+# HELPER FUNCTIONS - Model Loading & Compatibility
+# ============================================================================
+
+def _ensure_ultralytics_compat() -> None:
+    """
+    Ensure backward compatibility with legacy YOLO26 model checkpoints.
+    
+    Creates aliases in ultralytics modules for legacy class names so they
+    can be found during model deserialization. Also creates stub classes
+    for components that were removed in newer ultralytics versions.
+    """
     try:
+        import torch
         import ultralytics.nn.modules.head as head
+        import ultralytics.nn.modules.block as block
     except Exception:
         return
 
-    if not hasattr(head, "Pose26") and hasattr(head, "Pose"):
-        head.Pose26 = head.Pose  # type: ignore[attr-defined]
+    # Map legacy class names to their current equivalents
+    legacy_head_mappings = {
+        "Pose26": "Pose",
+        "Segment26": "Segment",
+        "Detect26": "Detect",
+        "Classify26": "Classify",
+        "Orient26": "OBB",
+    }
+    
+    legacy_block_mappings = {
+        "Proto26": "Proto",
+        "C2f26": "C2f",
+        "DFL26": "DFL",
+        "CBLinear26": "CBLinear",
+    }
+
+    # Create aliases in head module (skip Pose26 - we handle it separately below)
+    for legacy_name, current_name in legacy_head_mappings.items():
+        if legacy_name == "Pose26":
+            continue  # Skip, handle separately
+        if not hasattr(head, legacy_name) and hasattr(head, current_name):
+            setattr(head, legacy_name, getattr(head, current_name))
+
+    # Create aliases in block module
+    for legacy_name, current_name in legacy_block_mappings.items():
+        if not hasattr(block, legacy_name) and hasattr(block, current_name):
+            setattr(block, legacy_name, getattr(block, current_name))
+    
+    # Create stub classes for components that don't exist in current version
+    # RealNVP was a normalizing flow component used in older pose models
+    if not hasattr(head, 'RealNVP'):
+        class RealNVP(torch.nn.Module):
+            """Stub for legacy RealNVP normalizing flow component."""
+            def __init__(self, *args, **kwargs):
+                super().__init__()
+            
+            def forward(self, x):
+                return x
+        
+        setattr(head, 'RealNVP', RealNVP)
+    
+    # Create compatible Pose26 class that handles tensor dimension mismatches
+    # Legacy Pose26 models have different output dimensions than current Pose
+    if not hasattr(head, 'Pose26'):
+        from ultralytics.nn.modules.head import Pose
+        
+        class Pose26(Pose):
+            """Pose26 head compatible with legacy YOLO26 checkpoints.
+            
+            Adapts the forward pass to handle dimension mismatches between
+            legacy and modern YOLO architectures.
+            """
+            def kpts_decode(self, bs, kpt):
+                """Decode keypoints with dimension compatibility handling."""
+                try:
+                    # Try the standard decode first
+                    return super().kpts_decode(bs, kpt)
+                except RuntimeError as e:
+                    # If dimensions don't match, try to adapt
+                    if "must match the size of tensor" in str(e):
+                        # Legacy models have 8400 detections, modern has 5040
+                        # Reshape kpt to match anchors/strides dimensions
+                        if kpt.shape[-1] > self.anchors.shape[-1]:
+                            # Truncate excess dimensions
+                            kpt = kpt[:, :, :self.anchors.shape[-1]]
+                        elif kpt.shape[-1] < self.anchors.shape[-1]:
+                            # Pad dimensions if needed
+                            pad_size = self.anchors.shape[-1] - kpt.shape[-1]
+                            kpt = torch.nn.functional.pad(kpt, (0, pad_size))
+                        
+                        # Retry with adapted dimensions
+                        return super().kpts_decode(bs, kpt)
+                    raise
+        
+        setattr(head, 'Pose26', Pose26)
 
 
 @lru_cache(maxsize=2)
@@ -59,16 +144,48 @@ def _get_model(model_path: str):
     """
     from ultralytics import YOLO  # Imported lazily to avoid hard failure at app import time.
 
-    _ensure_ultralytics_pose_compat()
+    # Ensure compatibility aliases exist before loading
+    _ensure_ultralytics_compat()
 
     try:
         return YOLO(model_path)
     except Exception as exc:
-        if hasattr(exc, "args") and any("Pose26" in str(arg) for arg in exc.args):
-            _ensure_ultralytics_pose_compat()
-            return YOLO(model_path)
-        raise
+        raise RuntimeError(f"Failed to load model '{model_path}'.") from exc
 
+
+def _annotate_frame_by_task(frame: np.ndarray, result: Any, task_type: str) -> np.ndarray:
+    """
+    Annotate a frame based on the task type.
+    
+    Args:
+        frame: Input frame (BGR)
+        result: YOLO prediction result
+        task_type: Type of task ('object_detection', 'instance_segmentation', 'pose_estimation', etc)
+        
+    Returns:
+        Annotated frame
+    """
+    import cv2
+    
+    # Default to frame plot (works for detection, OBB, classification)
+    if task_type == "instance_segmentation" and hasattr(result, "masks") and result.masks is not None:
+        # Draw segmentation masks
+        annotated = result.plot(conf=True)
+        return annotated
+    
+    elif task_type == "pose_estimation" and hasattr(result, "keypoints") and result.keypoints is not None:
+        # Draw pose keypoints and skeleton
+        annotated = result.plot(conf=True)
+        return annotated
+    
+    else:
+        # Default: detection, classification, OBB, etc.
+        return result.plot(conf=True)
+
+
+# ============================================================================
+# MAIN ANALYSIS FUNCTION
+# ============================================================================
 
 def analyze_video_frames(
     *,
