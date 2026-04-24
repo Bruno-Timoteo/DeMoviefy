@@ -1,4 +1,4 @@
-﻿# DeMoviefy - Run Instructions
+# DeMoviefy - Run Instructions
 
 ## Inicio rapido
 

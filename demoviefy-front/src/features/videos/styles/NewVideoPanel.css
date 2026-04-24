@@ -1,0 +1,277 @@
+/* New Video Panel Styles */
+.new-video-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--surface, #1a1f35);
+  border: 1px solid var(--border, #2d3a52);
+  border-radius: 0.75rem;
+  min-height: fit-content;
+}
+
+.new-video-panel .panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.new-video-panel .panel-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text, #e2e8f0);
+}
+
+.new-video-panel .panel-header .ghost-button {
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  border: none;
+  background: transparent;
+  color: var(--text, #e2e8f0);
+  cursor: pointer;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.new-video-panel .panel-header .ghost-button:hover {
+  background-color: var(--hover-bg, #2d3a52);
+}
+
+/* File Dropzone */
+.new-video-panel .file-dropzone {
+  position: relative;
+  padding: 2rem;
+  border: 2px dashed var(--brand, #3b82f6);
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.new-video-panel .file-dropzone:hover {
+  border-color: var(--brand, #3b82f6);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+}
+
+.new-video-panel .file-dropzone.dragging {
+  border-color: var(--brand, #3b82f6);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(59, 130, 246, 0.15) 100%);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.new-video-panel .file-dropzone.has-file {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+  border-color: var(--success, #22c55e);
+}
+
+/* File Placeholder */
+.new-video-panel .file-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  color: var(--muted, #94a3b8);
+}
+
+.new-video-panel .drop-icon {
+  font-size: 2.5rem;
+  display: block;
+  opacity: 0.8;
+}
+
+.new-video-panel .drop-text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text, #e2e8f0);
+}
+
+.new-video-panel .drop-hint {
+  font-size: 0.875rem;
+  color: var(--muted, #94a3b8);
+}
+
+/* File Selected */
+.new-video-panel .file-selected {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.new-video-panel .file-icon {
+  font-size: 2rem;
+  display: block;
+}
+
+.new-video-panel .file-name {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text, #e2e8f0);
+  word-break: break-word;
+  max-width: 90%;
+}
+
+.new-video-panel .file-size {
+  font-size: 0.8rem;
+  color: var(--muted, #94a3b8);
+}
+
+/* Status Message */
+.new-video-panel .status-message {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.new-video-panel .status-message.success {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.new-video-panel .status-message.error {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Configuration Section */
+.new-video-panel .config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border, #2d3a52);
+}
+
+.new-video-panel .config-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.new-video-panel .config-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text, #e2e8f0);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.new-video-panel .form-select,
+.new-video-panel .form-input {
+  padding: 0.625rem 0.75rem;
+  background-color: var(--input-bg, #0f1419);
+  color: var(--text, #e2e8f0);
+  border: 1px solid var(--input-border, #2d3a52);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.new-video-panel .form-select:hover,
+.new-video-panel .form-input:hover {
+  border-color: var(--brand, #3b82f6);
+}
+
+.new-video-panel .form-select:focus,
+.new-video-panel .form-input:focus {
+  outline: none;
+  border-color: var(--brand, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.new-video-panel .form-select option {
+  background-color: var(--surface, #1a1f35);
+  color: var(--text, #e2e8f0);
+}
+
+/* Parameters Grid */
+.new-video-panel .params-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.new-video-panel .param-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.new-video-panel .param-input label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text, #e2e8f0);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.new-video-panel .param-input input {
+  padding: 0.5rem;
+  font-size: 0.8rem;
+}
+
+/* Clip Section */
+.new-video-panel .clip-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+/* Full Width Button */
+.new-video-panel .full-width {
+  width: 100%;
+  padding: 0.875rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.new-video-panel .full-width:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Hint Text */
+.new-video-panel .hint-text {
+  font-size: 0.8rem;
+  color: var(--muted, #94a3b8);
+  padding: 0.5rem;
+  background-color: rgba(148, 163, 184, 0.05);
+  border-radius: 0.375rem;
+  border-left: 2px solid var(--muted, #94a3b8);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .new-video-panel {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .new-video-panel .file-dropzone {
+    padding: 1.5rem;
+    min-height: 100px;
+  }
+
+  .new-video-panel .params-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .new-video-panel .param-input:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+}

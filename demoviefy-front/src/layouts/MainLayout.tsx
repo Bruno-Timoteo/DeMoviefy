@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 
 import Footer from "../components/Footer";
 import Header from "../components/Header";
@@ -8,6 +9,9 @@ type MainLayoutProps = {
 };
 
 export default function MainLayout({ children }: MainLayoutProps) {
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
+
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     try {
       const stored = window.localStorage.getItem("demoviefy-theme");
@@ -46,8 +50,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
         themeLabel={themeLabel}
         onToggleTheme={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
       />
-      <main className="app-main">{children}</main>
-      <Footer />
+      <div className="app-content-shell">
+        <main className="app-main">{children}</main>
+        <Footer />
+      </div>
     </div>
   );
 }
