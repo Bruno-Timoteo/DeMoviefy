@@ -1,171 +1,203 @@
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { VideoService } from "../../services/videoService";
+import "./Home.css";
 
-import { useAuth } from "../../features/auth/AuthContext";
-
-function InfoCard({ title, text }: { title: string; text: string }) {
-  return (
-    <article className="surface rounded-[28px] px-5 py-5">
-      <h3 className="text-xl font-semibold tracking-tight text-[var(--text)]">{title}</h3>
-      <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{text}</p>
-    </article>
-  );
+interface Stats {
+  total: number;
+  processing: number;
+  processed: number;
+  errors: number;
 }
 
-function FeatureItem({ title, text }: { title: string; text: string }) {
-  return (
-    <article className="rounded-[24px] border border-[var(--border)] bg-[var(--surface-strong)] px-4 py-4">
-      <strong className="text-base text-[var(--text)]">{title}</strong>
-      <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{text}</p>
-    </article>
-  );
-}
+export default function Home() {
+  const [stats, setStats] = useState<Stats>({
+    total: 0,
+    processing: 0,
+    processed: 0,
+    errors: 0,
+  });
+  const [loading, setLoading] = useState(true);
 
-export default function HomePage() {
-  const { isAdmin } = useAuth();
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const videoStats = await VideoService.getVideoStats();
+        setStats(videoStats);
+      } catch (error) {
+        console.error("Erro ao carregar estatísticas:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStats();
+    const interval = setInterval(loadStats, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="workspace">
-      <section className="surface relative overflow-hidden rounded-[36px] px-7 py-8">
-        <span className="eyebrow">DeMoviefy Platform</span>
-        <h1 className="mt-3 max-w-4xl text-5xl font-semibold tracking-tight text-[var(--text)]">
-          Analise de videos com IA, configuracao orientada a produto e governanca administrativa.
-        </h1>
-        <p className="mt-4 max-w-4xl text-base leading-7 text-[var(--muted)]">
-          O projeto combina upload de videos, analise com modelos de IA, transcricao, navegacao por timestamps e
-          controle de configuracoes. Usuarios personalizam a experiencia dentro de limites seguros; administradores
-          governam modelos, custo, seguranca e disponibilidade.
+    <section className="home-page">
+      {/* Hero Section */}
+      <section className="home-hero">
+        <span className="eyebrow">DeMoviefy</span>
+        <h1>Analise vídeos com IA. Em um só lugar.</h1>
+        <p>
+          Upload, processamento, análise e revisão. Tudo integrado em uma plataforma
+          intuitiva que trabalha para você, não contra você.
         </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link to="/guest" className="primary-button no-underline">
-            Comece a usar
+
+        <div className="home-actions">
+          <Link className="primary-button" to="/upload">
+            Começar agora
           </Link>
-          <Link to="/login" className="ghost-button no-underline">
-            Entrar
-          </Link>
-          {isAdmin && (
-            <Link to="/admin/lab" className="ghost-button no-underline">
-              Ir para laboratorio admin
-            </Link>
-          )}
+          <button type="button" className="ghost-button" disabled>
+            Ver demonstração
+          </button>
+        </div>
+        
+        <p className="home-hero-footnote">Nenhum cartão de crédito necessário. Cancele quando quiser.</p>
+      </section>
+
+      {/* Stats Section */}
+      <section className="home-stats">
+        <div className="stat-item">
+          <strong>{loading ? "-" : stats.total}</strong>
+          <p>Vídeos totais</p>
+        </div>
+        <div className="stat-item">
+          <strong>{loading ? "-" : stats.processing}</strong>
+          <p>Em processamento</p>
+        </div>
+        <div className="stat-item">
+          <strong>{loading ? "-" : stats.processed}</strong>
+          <p>Processados</p>
+        </div>
+        <div className="stat-item">
+          <strong>{loading ? "-" : stats.errors}</strong>
+          <p>Erros</p>
         </div>
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-3">
-        <InfoCard
-          title="Do que o site trata"
-          text="Uma plataforma para processamento e moderacao de videos com IA, combinando transcricao, classificacao, deteccao e analise de conteudo em uma experiencia unica."
-        />
-        <InfoCard
-          title="Tecnologias usadas"
-          text="Frontend em React + TypeScript + Tailwind/Vite, backend Flask em arquitetura MVC, SQLite para persistencia local e pipeline de modelos de IA com YOLO e Whisper."
-        />
-        <InfoCard
-          title="Saiba mais"
-          text="A proposta do sistema e separar o poder de configuracao do usuario da governanca do administrador, criando um produto flexivel, seguro e mais facil de escalar."
-        />
-      </section>
-
-      <section className="surface rounded-[32px] px-6 py-6">
-        <div className="max-w-4xl">
-          <span className="eyebrow">Comece a Usar</span>
-          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--text)]">
-            Escolha o tipo de acesso ideal para sua necessidade
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-            O fluxo publico permite explorar a experiencia sem login. A area autenticada libera os controles
-            administrativos e o laboratorio tecnico. A arquitetura agora esta preparada para evoluir para usuarios
-            autenticados com historico e configuracoes persistidas.
+      {/* Feature: Upload */}
+      <section className="home-feature home-feature--alt">
+        <div className="home-feature-content">
+          <span className="eyebrow">Upload & Configuração</span>
+          <h2>Envie vídeos e deixe a IA trabalhar</h2>
+          <p>
+            Selecione seus arquivos, escolha a tarefa desejada (detecção de objetos, 
+            segmentação ou transcrição) e configure os parâmetros em segundos. 
+            Sem complicações, sem espera.
           </p>
-        </div>
-
-        <div className="mt-6 grid gap-5 lg:grid-cols-2">
-          <article className="rounded-[28px] border border-[var(--border)] bg-[var(--surface-strong)] px-5 py-5">
-            <h3 className="text-2xl font-semibold tracking-tight text-[var(--text)]">Uso sem login</h3>
-            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-              Ideal para exploracao inicial da plataforma. O objetivo e conhecer a interface, o player, a fila e a
-              navegacao geral sem depender de credenciais.
-            </p>
-            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-              Nesta etapa, o modo convidado nao possui persistencia de conta ou historico pessoal entre acessos.
-            </p>
-            <div className="mt-5">
-              <Link to="/guest" className="primary-button no-underline">
-                Abrir modo convidado
-              </Link>
-            </div>
-          </article>
-
-          <article className="rounded-[28px] border border-[var(--border)] bg-[var(--surface-strong)] px-5 py-5">
-            <h3 className="text-2xl font-semibold tracking-tight text-[var(--text)]">Login e administracao</h3>
-            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-              Acesso ao laboratorio de testes, configuracoes sensiveis, governanca de modelos, seguranca operacional e
-              funcoes administrativas do sistema.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link to="/login" className="primary-button no-underline">
-                Fazer login
-              </Link>
-              {isAdmin && (
-                <Link to="/admin/lab" className="ghost-button no-underline">
-                  Abrir laboratorio
-                </Link>
-              )}
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-2">
-        <section className="surface rounded-[32px] px-6 py-6">
-          <span className="eyebrow">Funcionalidades de Usuario</span>
-          <div className="mt-5 grid gap-4">
-            <FeatureItem
-              title="Upload, processamento e configuracao"
-              text="Enviar videos, escolher modelos disponibilizados pelo sistema, configurar parametros como idioma, sensibilidade, categorias e nivel de deteccao."
-            />
-            <FeatureItem
-              title="Configuracao avancada"
-              text="Selecionar precisao vs desempenho, tipo de analise, ativar ou desativar recursos especificos como violencia, linguagem ofensiva ou classificacoes customizadas."
-            />
-            <FeatureItem
-              title="Resultados e interacao"
-              text="Visualizar transcricao, analise de conteudo, timestamps relevantes, trechos destacados, baixar resultados e reprocessar com novos parametros."
-            />
+          <div className="home-feature-actions">
+            <Link to="/upload" className="home-secondary-button">
+              Experimentar upload
+            </Link>
           </div>
-        </section>
-
-        <section className="surface rounded-[32px] px-6 py-6">
-          <span className="eyebrow">Funcionalidades de Admin</span>
-          <div className="mt-5 grid gap-4">
-            <FeatureItem
-              title="Controle de modelos"
-              text="Definir quais modelos estao disponiveis aos usuarios, restringir por custo, desempenho e limites de uso, e manter governanca sobre o catalogo."
-            />
-            <FeatureItem
-              title="Seguranca, limites e monitoramento"
-              text="Controlar tempo, tamanho e volume de processamento, impedir configuracoes invalidas, acompanhar logs, custos e comportamento do sistema."
-            />
-            <FeatureItem
-              title="Gerenciamento geral"
-              text="Gerenciar usuarios e permissoes, remover conteudos, manter integracoes e garantir que configuracoes avancadas nao comprometam a estabilidade."
-            />
+        </div>
+        <div className="home-feature-placeholder">
+          <div className="placeholder-box">
+            <span>Área de upload</span>
+            <p>Arraste arquivos ou clique para selecionar</p>
           </div>
-        </section>
-      </section>
-
-      <section className="surface rounded-[32px] px-6 py-6">
-        <span className="eyebrow">Regra de Negocio</span>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <FeatureItem
-            title="Personalizacao com governanca"
-            text="O usuario escolhe apenas entre modelos e parametros liberados pelo sistema. O admin define disponibilidade, limites e seguranca operacional."
-          />
-          <FeatureItem
-            title="Defesa profissional da proposta"
-            text="A personalizacao foi pensada como diferencial do produto, mas sempre mediada pelo administrador para preservar estabilidade, custo e escalabilidade."
-          />
         </div>
       </section>
-    </div>
+
+      {/* Feature: Processing */}
+      <section className="home-feature">
+        <div className="home-feature-placeholder">
+          <div className="placeholder-box">
+            <span>Processamento em tempo real</span>
+            <p>Acompanhe o progresso de cada vídeo</p>
+          </div>
+        </div>
+        <div className="home-feature-content">
+          <span className="eyebrow">Acompanhamento</span>
+          <h2>Monitore tudo em tempo real</h2>
+          <p>
+            Barra de progresso visual, estimativas de tempo, mensagens detalhadas. 
+            Você sempre sabe exatamente o que está acontecendo com seus vídeos.
+          </p>
+          <div className="home-feature-actions">
+            <Link to="/upload" className="home-secondary-button">
+              Ver dashboard
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature: Results */}
+      <section className="home-feature home-feature--alt">
+        <div className="home-feature-content">
+          <span className="eyebrow">Análise & Exportação</span>
+          <h2>Extraia insights em segundos</h2>
+          <p>
+            Objetos detectados, confiança de cada detection, frames processados. 
+            Exporte JSON, anotações visuais ou revisar diretamente no painel.
+          </p>
+          <div className="home-feature-actions">
+            <Link to="/upload" className="home-secondary-button">
+              Explorar resultados
+            </Link>
+          </div>
+        </div>
+        <div className="home-feature-placeholder">
+          <div className="placeholder-box">
+            <span>Visualização de análise</span>
+            <p>Dados estruturados e exportáveis</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Use Cases Grid */}
+      <section className="home-capabilities">
+        <span className="eyebrow">O que você pode fazer</span>
+        <h2>Casos de uso</h2>
+        
+        <div className="home-capabilities-grid">
+          <div className="capability-card">
+            <div className="capability-icon">🎬</div>
+            <h3>Detecção de objetos</h3>
+            <p>Identifique e localize objetos em cada frame de forma automática.</p>
+          </div>
+          <div className="capability-card">
+            <div className="capability-icon">🎭</div>
+            <h3>Segmentação de instâncias</h3>
+            <p>Separe elementos visuais distintos para análise detalhada.</p>
+          </div>
+          <div className="capability-card">
+            <div className="capability-icon">🎯</div>
+            <h3>Pose estimation</h3>
+            <p>Reconheça e analise silhuetas e movimentos corporais.</p>
+          </div>
+          <div className="capability-card">
+            <div className="capability-icon">🎤</div>
+            <h3>Transcrição de áudio</h3>
+            <p>Converta falas em texto com alta precisão e sem necessidade de edição manual.</p>
+          </div>
+          <div className="capability-card">
+            <div className="capability-icon">📊</div>
+            <h3>Relatórios estruturados</h3>
+            <p>Resuma os resultados em formatos prontos para análise e compartilhamento.</p>
+          </div>
+          <div className="capability-card">
+            <div className="capability-icon">⚡</div>
+            <h3>Processamento em lote</h3>
+            <p>Envie múltiplos vídeos e deixe o sistema processar enquanto você trabalha.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="home-cta-section">
+        <h2>Pronto para começar?</h2>
+        <p>Experimente grátis. Sem cartão de crédito. Comece em segundos.</p>
+        <Link className="primary-button" to="/upload">
+          Ir para dashboard
+        </Link>
+      </section>
+    </section>
   );
 }
+
+
