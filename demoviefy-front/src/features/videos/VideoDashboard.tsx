@@ -686,18 +686,20 @@ export default function VideoDashboard() {
     }
 
     try {
-      await api.delete(`/videos/${selectedVideo.id}/analysis`);
+      await api.delete(`/videos/${selectedVideo.id}/analysis`, {
+        params: selectedAnalysisVariantId ? { variant: selectedAnalysisVariantId } : undefined,
+      });
       setAnalysis(null);
       setSelectedAnalysisVariantId(null);
       setAnalysisDraft("{}");
       setAnalysisState("error");
-      setMessage("Analise excluida.");
+      setMessage(selectedAnalysisVariantId ? "Versao da analise excluida." : "Analise excluida.");
       await fetchVideos();
     } catch (error) {
       console.error(error);
       setMessage(getApiErrorMessage(error, "Nao foi possivel excluir a analise."));
     }
-  }, [selectedVideo, fetchVideos]);
+  }, [selectedVideo, selectedAnalysisVariantId, fetchVideos]);
 
   const handleDeleteVideo = useCallback(async () => {
     if (!selectedVideo) {
