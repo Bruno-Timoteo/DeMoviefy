@@ -79,12 +79,25 @@ export type VideoAnalysisSummary = {
   top_labels: string[];
 };
 
+export type VideoAnalysisVariant = {
+  variant_id: string;
+  created_at: string | null;
+  task_type: string;
+  task_label: string;
+  model_name: string;
+  frame_stride: number;
+  clip_start_sec: number;
+  clip_end_sec: number | null;
+};
+
 export type VideoAnalysisResponse = {
   video_id: number;
   filename: string;
   status: string;
   available?: boolean;
   message?: string;
+  selected_variant_id?: string | null;
+  available_variants?: VideoAnalysisVariant[];
   ai_config: AIConfig;
   storage: VideoStorage;
   analysis: VideoAnalysisSummary;
