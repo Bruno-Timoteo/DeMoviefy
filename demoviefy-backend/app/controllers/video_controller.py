@@ -26,6 +26,7 @@ from app.repositories.video_repository import (
 from app.services.ai_catalog_service import get_model_by_relative_path, list_available_models
 from app.services.frame_ai_service import (
     delete_analysis_artifacts,
+    delete_analysis_variant,
     has_analysis,
     has_annotated_video,
     list_analysis_variants,
@@ -395,6 +396,21 @@ def delete_video_analysis_by_id(video_id: int):
     video = get_video(video_id)
     if not video:
         return jsonify({"error": "Video nao encontrado"}), 404
+
+    requested_variant = _requested_analysis_variant()
+    if requested_variant:
+        deleted = delete_analysis_variant(video_id, requested_variant)
+        if not deleted:
+            return jsonify({"error": "Versao de analise nao encontrada"}), 404
+        if not has_analysis(video_id):
+            update_status(video, "SEM_ANALISE")
+        return jsonify(
+            {
+                "message": "Versao selecionada removida com sucesso",
+                "video": _serialize_video(video),
+                "available_variants": list_analysis_variants(video.id),
+            }
+        )
 
     delete_analysis(video_id)
     delete_analysis_artifacts(video_id)

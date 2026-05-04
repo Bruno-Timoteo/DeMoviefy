@@ -370,6 +370,14 @@ def _variant_file_candidates(video_id: int) -> list[Path]:
     )
 
 
+def _variant_file_path(video_id: int, variant_id: str) -> Path:
+    return build_analysis_variant_file_path(video_id, _sanitize_variant_id(variant_id))
+
+
+def _variant_annotated_path(video_id: int, variant_id: str) -> Path:
+    return build_annotated_video_variant_path(video_id, _sanitize_variant_id(variant_id))
+
+
 def list_analysis_variants(video_id: int) -> list[dict[str, Any]]:
     variants: list[dict[str, Any]] = []
     for path in _variant_file_candidates(video_id):
@@ -820,6 +828,40 @@ def annotated_file_path(video_id: int) -> str:
     return str(build_annotated_video_path(video_id))
 
 
+def _write_analysis_payload(path: Path, payload: dict[str, Any]) -> None:
+    with open(path, "w", encoding="utf-8") as handle:
+        json.dump(payload, handle, ensure_ascii=True, indent=2)
+
+
+def _promote_variant_to_canonical(video_id: int, variant_id: str) -> bool:
+    variant_path = _variant_file_path(video_id, variant_id)
+    if not variant_path.exists():
+        return False
+
+    payload = load_analysis(video_id, variant_id)
+    if payload is None:
+        return False
+
+    canonical_analysis_path = build_analysis_file_path(video_id)
+    _write_analysis_payload(canonical_analysis_path, payload)
+
+    variant_annotated_path = _variant_annotated_path(video_id, variant_id)
+    canonical_annotated_path = build_annotated_video_path(video_id)
+    if variant_annotated_path.exists():
+        shutil.copy2(variant_annotated_path, canonical_annotated_path)
+    elif canonical_annotated_path.exists():
+        _unlink_with_retries(canonical_annotated_path)
+
+    variant_browser_path = _variant_browser_path(variant_annotated_path)
+    canonical_browser_path = _variant_browser_path(canonical_annotated_path)
+    if variant_browser_path.exists():
+        shutil.copy2(variant_browser_path, canonical_browser_path)
+    elif canonical_browser_path.exists():
+        _unlink_with_retries(canonical_browser_path)
+
+    return True
+
+
 def _copy_variant_artifacts(video_id: int, variant_id: str, summary: dict[str, Any]) -> None:
     canonical_annotated = build_annotated_video_path(video_id)
     variant_annotated = build_annotated_video_variant_path(video_id, variant_id)
@@ -873,6 +915,55 @@ def has_analysis(video_id: int) -> bool:
 
 def has_annotated_video(video_id: int) -> bool:
     return build_annotated_video_path(video_id).exists()
+
+
+def delete_analysis_variant(video_id: int, variant_id: str) -> bool:
+    sanitized_variant_id = _sanitize_variant_id(variant_id)
+    variant_analysis_path = _variant_file_path(video_id, sanitized_variant_id)
+    if not variant_analysis_path.exists():
+        return False
+
+    canonical_payload = load_analysis(video_id)
+    canonical_variant_id = (
+        _sanitize_variant_id(str(canonical_payload.get("analysis_variant_id")))
+        if canonical_payload and canonical_payload.get("analysis_variant_id")
+        else None
+    )
+
+    paths_to_delete = {
+        variant_analysis_path,
+        _variant_annotated_path(video_id, sanitized_variant_id),
+        _variant_browser_path(_variant_annotated_path(video_id, sanitized_variant_id)),
+    }
+
+    for path in paths_to_delete:
+        if path.exists():
+            try:
+                _unlink_with_retries(path)
+            except Exception:
+                pass
+
+    if canonical_variant_id == sanitized_variant_id:
+        remaining_variants = list_analysis_variants(video_id)
+        next_variant = next(
+            (variant for variant in remaining_variants if variant["variant_id"] != sanitized_variant_id),
+            None,
+        )
+        if next_variant is not None:
+            _promote_variant_to_canonical(video_id, next_variant["variant_id"])
+        else:
+            for path in (
+                build_analysis_file_path(video_id),
+                build_annotated_video_path(video_id),
+                _variant_browser_path(build_annotated_video_path(video_id)),
+            ):
+                if path.exists():
+                    try:
+                        _unlink_with_retries(path)
+                    except Exception:
+                        pass
+
+    return True
 
 
 def delete_analysis_artifacts(video_id: int) -> None:
