@@ -127,6 +127,7 @@ export const VideoWorkbench = memo(function VideoWorkbench({
 
   const summary = analysis?.analysis ?? null;
   const analysisVariants = analysis?.available_variants ?? [];
+  const hasMultipleAnalysisVariants = analysisVariants.length > 1;
   const filteredModels = modelOptions.filter((model) => model.task_type === selectedTask);
   const transcriptionSegments = transcription?.transcription.segments ?? [];
   const annotatedVideoSrc = video
@@ -491,7 +492,7 @@ export const VideoWorkbench = memo(function VideoWorkbench({
               />
               <div className="action-row">
                 <button type="button" className="ghost-button danger-button" onClick={onDeleteAnalysis}>
-                  Excluir analise
+                  {hasMultipleAnalysisVariants ? "Excluir versao selecionada" : "Excluir analise"}
                 </button>
                 <button type="button" className="primary-button" onClick={onSaveAnalysis} disabled={isBusy}>
                   Salvar analise
