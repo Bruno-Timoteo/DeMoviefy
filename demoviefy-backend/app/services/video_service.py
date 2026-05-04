@@ -1,5 +1,5 @@
 from app import db
-from app.config.paths import annotated_video_path, annotated_video_temp_path, video_file_path
+from app.config.paths import annotated_video_path, annotated_video_temp_path, video_file_path, ensure_storage_dirs
 from app.repositories.video_repository import get_video, update_status
 from app.services.frame_ai_service import analyze_video_frames, save_analysis
 from app.services.transcription_service import save_transcription, transcribe_video_with_timestamps
@@ -23,6 +23,8 @@ def process_video(flask_app, video_id):
 
         try:
             update_status(video, "PROCESSANDO_IA")
+            # Ensure all storage directories exist before processing
+            ensure_storage_dirs()
             save_processing_state(
                 video_id,
                 progress=5,
