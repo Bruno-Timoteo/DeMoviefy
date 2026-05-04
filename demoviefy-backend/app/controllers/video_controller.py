@@ -25,8 +25,10 @@ from app.repositories.video_repository import (
 )
 from app.services.ai_catalog_service import get_model_by_relative_path, list_available_models
 from app.services.frame_ai_service import (
+    delete_analysis_artifacts,
     has_analysis,
     has_annotated_video,
+    list_analysis_variants,
     load_analysis,
     resolve_annotated_video_for_web,
 )
@@ -78,6 +80,13 @@ def _storage_payload(video_id: int, filename: str) -> dict:
         "transcription_absolute_path": str(transcription_path),
         "transcription_exists": has_transcription(video_id),
     }
+
+
+def _requested_analysis_variant() -> str | None:
+    raw_variant = request.args.get("variant")
+    if raw_variant is None:
+        return None
+    return str(raw_variant).strip() or None
 
 
 def _resolve_ai_config(task_type: str | None, model_reference: str | None) -> dict:
@@ -327,11 +336,15 @@ def get_video_analysis(video_id: int):
     if not video:
         return jsonify({"error": "Video nao encontrado"}), 404
 
+    selected_variant = _requested_analysis_variant()
     ai_config = load_ai_config(video.id)
     storage = _storage_payload(video.id, video.filename)
-    analysis = load_analysis(video_id)
+    analysis = load_analysis(video_id, selected_variant)
+    variants = list_analysis_variants(video.id)
     if analysis is None:
         payload = _empty_analysis_payload(video, ai_config, storage)
+        payload["available_variants"] = variants
+        payload["selected_variant_id"] = selected_variant
         if video.status in {"PROCESSANDO", "PROCESSANDO_IA"}:
             payload["message"] = "Analise ainda em processamento."
             return jsonify(payload), 202
@@ -346,6 +359,8 @@ def get_video_analysis(video_id: int):
             "available": True,
             "message": "Analise carregada com sucesso.",
             "analysis": analysis,
+            "available_variants": variants,
+            "selected_variant_id": analysis.get("analysis_variant_id"),
             "ai_config": ai_config,
             "storage": storage,
         }
@@ -362,6 +377,9 @@ def update_video_analysis_by_id(video_id: int):
     if not isinstance(analysis, dict):
         return jsonify({"error": "Payload de analise invalido"}), 400
 
+    requested_variant = _requested_analysis_variant()
+    if requested_variant:
+        analysis["analysis_variant_id"] = requested_variant
     update_analysis(video_id, analysis)
     update_status(video, "PROCESSADO")
     return jsonify(
@@ -379,6 +397,7 @@ def delete_video_analysis_by_id(video_id: int):
         return jsonify({"error": "Video nao encontrado"}), 404
 
     delete_analysis(video_id)
+    delete_analysis_artifacts(video_id)
     update_status(video, "SEM_ANALISE")
     return jsonify({"message": "Analise removida com sucesso", "video": _serialize_video(video)})
 
@@ -525,7 +544,7 @@ def get_annotated_video_file(video_id: int):
     if not video:
         return jsonify({"error": "Video nao encontrado"}), 404
 
-    filepath = resolve_annotated_video_for_web(video.id, current_app.logger)
+    filepath = resolve_annotated_video_for_web(video.id, current_app.logger, _requested_analysis_variant())
     if filepath is None:
         filepath = annotated_video_path(video.id)
     if not filepath.exists():
@@ -619,13 +638,11 @@ def delete_video_by_id(video_id: int):
         return jsonify({"error": "Video nao encontrado"}), 404
 
     filepath = video_file_path(video.filename)
-    analysis_path = analysis_file_path(video.id)
-    annotated_path = annotated_video_path(video.id)
-    annotated_temp_path = annotated_video_temp_path(video.id)
     delete_video(video)
-    for path in (filepath, analysis_path, annotated_path, annotated_temp_path):
+    for path in (filepath,):
         if path.exists():
             path.unlink()
+    delete_analysis_artifacts(video.id)
     delete_transcription(video_id)
     delete_metadata(video_id)
     return jsonify({"message": "Video removido com sucesso"})
