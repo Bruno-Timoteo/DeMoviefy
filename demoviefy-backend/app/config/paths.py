@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 
 
@@ -12,6 +13,7 @@ MODEL_DIR = REPO_ROOT / "ai_model" / "model"
 TRANSCRIPTION_ENV_DIR = REPO_ROOT / ".venv-transcription"
 SCRIPTS_DIR = BACKEND_ROOT / "scripts"
 TRANSCRIPTION_SCRIPT_PATH = SCRIPTS_DIR / "transcribe_with_whisper.py"
+LOCAL_FFMPEG_BIN_DIR = REPO_ROOT / ".ffmpeg" / "bin"
 
 
 def ensure_storage_dirs() -> None:
@@ -51,3 +53,25 @@ def to_repo_relative(path: Path) -> str:
         return path.relative_to(REPO_ROOT).as_posix()
     except ValueError:
         return path.as_posix()
+
+
+def _tool_path_from_candidates(*names: str) -> Path | None:
+    for name in names:
+        local_path = LOCAL_FFMPEG_BIN_DIR / name
+        if local_path.exists():
+            return local_path
+
+    for name in names:
+        resolved = shutil.which(name)
+        if resolved:
+            return Path(resolved)
+
+    return None
+
+
+def ffmpeg_path() -> Path | None:
+    return _tool_path_from_candidates("ffmpeg", "ffmpeg.exe")
+
+
+def ffprobe_path() -> Path | None:
+    return _tool_path_from_candidates("ffprobe", "ffprobe.exe")

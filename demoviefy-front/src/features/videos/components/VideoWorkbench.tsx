@@ -232,10 +232,10 @@ export const VideoWorkbench = memo(function VideoWorkbench({
                   <strong>{annotatedPlaybackError ? "Nao foi possivel reproduzir o video anotado." : "Video anotado ainda nao disponivel."}</strong>
                   <p>
                     {annotatedPlaybackError
-                      ? "O arquivo foi gerado, mas o navegador nao conseguiu abrir esse preview. Tente reprocessar o video ou baixar o arquivo salvo."
+                      ? "O preview anotado foi gerado, mas falhou ao abrir no navegador. Reprocesse o video para regenerar um MP4 compativel ou abra o arquivo salvo em uma nova guia."
                       : analysisState === "pending"
                         ? "A IA ainda esta processando o arquivo. Quando terminar, o preview anotado aparece aqui."
-                        : "Reprocesse o video para gerar um preview com marcacoes da IA."}
+                        : "Ainda nao existe um preview anotado finalizado para este video. Reprocesse para gerar um MP4 anotado pronto para o navegador."}
                   </p>
                   {video.storage.annotated_exists && (
                     <a className="ghost-button inline-link-button" href={annotatedVideoSrc} target="_blank" rel="noreferrer">
