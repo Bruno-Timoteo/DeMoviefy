@@ -43,6 +43,9 @@ def process_video(flask_app, video_id):
             delete_analysis(video_id)
             if annotated_path.exists():
                 annotated_path.unlink()
+            annotated_browser_path = annotated_path.parent / f"{annotated_path.stem}.browser{annotated_path.suffix}"
+            if annotated_browser_path.exists():
+                annotated_browser_path.unlink()
             if annotated_temp_path.exists():
                 annotated_temp_path.unlink()
             last_reported_progress = {"value": 5}

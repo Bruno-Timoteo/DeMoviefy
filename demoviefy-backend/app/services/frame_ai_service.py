@@ -22,11 +22,14 @@ from collections import Counter, defaultdict
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
+from datetime import datetime, timezone
 
 import numpy as np
 
 from app.config.paths import analysis_file_path as build_analysis_file_path
+from app.config.paths import analysis_variant_file_path as build_analysis_variant_file_path
 from app.config.paths import annotated_video_path as build_annotated_video_path
+from app.config.paths import annotated_video_variant_path as build_annotated_video_variant_path
 from app.config.paths import ensure_storage_dirs
 from app.config.paths import ffmpeg_path as resolve_ffmpeg_path
 from app.config.paths import ffprobe_path as resolve_ffprobe_path
@@ -341,15 +344,75 @@ def _is_browser_playable_mp4(file_path: Path, logger: Any | None = None) -> bool
     return codec_name == "h264" and codec_tag == "avc1" and pixel_format == "yuv420p"
 
 
-def resolve_annotated_video_for_web(video_id: int, logger: Any | None = None) -> Path | None:
-    source_path = build_annotated_video_path(video_id)
+def _variant_browser_path(source_path: Path) -> Path:
+    return source_path.parent / f"{source_path.stem}.browser{source_path.suffix}"
+
+
+def _resolve_annotated_source_path(video_id: int, variant_id: str | None = None) -> Path:
+    if variant_id:
+        return build_annotated_video_variant_path(video_id, variant_id)
+    return build_annotated_video_path(video_id)
+
+
+def build_analysis_variant_id() -> str:
+    return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+
+
+def _sanitize_variant_id(variant_id: str) -> str:
+    return "".join(character for character in str(variant_id) if character.isalnum() or character in {"-", "_"})
+
+
+def _variant_file_candidates(video_id: int) -> list[Path]:
+    return sorted(
+        build_analysis_file_path(video_id).parent.glob(f"video_{video_id}__*.json"),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    )
+
+
+def _variant_file_path(video_id: int, variant_id: str) -> Path:
+    return build_analysis_variant_file_path(video_id, _sanitize_variant_id(variant_id))
+
+
+def _variant_annotated_path(video_id: int, variant_id: str) -> Path:
+    return build_annotated_video_variant_path(video_id, _sanitize_variant_id(variant_id))
+
+
+def list_analysis_variants(video_id: int) -> list[dict[str, Any]]:
+    variants: list[dict[str, Any]] = []
+    for path in _variant_file_candidates(video_id):
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                payload = json.load(handle)
+        except Exception:
+            continue
+
+        variant_id = _sanitize_variant_id(str(payload.get("analysis_variant_id") or path.stem.split("__", 1)[-1]))
+        selected_model = payload.get("selected_model") or {}
+        variants.append(
+            {
+                "variant_id": variant_id,
+                "created_at": payload.get("analysis_created_at"),
+                "task_type": payload.get("task_type"),
+                "task_label": selected_model.get("task_label") or payload.get("task_type") or "Analise",
+                "model_name": selected_model.get("model_name") or Path(str(payload.get("model_path") or "")).name,
+                "frame_stride": payload.get("frame_stride"),
+                "clip_start_sec": payload.get("clip_start_sec"),
+                "clip_end_sec": payload.get("clip_end_sec"),
+            }
+        )
+    return variants
+
+
+def resolve_annotated_video_for_web(video_id: int, logger: Any | None = None, variant_id: str | None = None) -> Path | None:
+    source_path = _resolve_annotated_source_path(video_id, variant_id)
     if not source_path.exists():
         return None
 
     if _is_browser_playable_mp4(source_path, logger):
         return source_path
 
-    browser_ready_path = source_path.parent / f"{source_path.stem}.browser{source_path.suffix}"
+    browser_ready_path = _variant_browser_path(source_path)
     if (
         browser_ready_path.exists()
         and browser_ready_path.stat().st_mtime >= source_path.stat().st_mtime
@@ -373,9 +436,8 @@ def _annotate_frame_by_task(frame: np.ndarray, result: Any, task_type: str) -> n
         task_type: Type of task ('object_detection', 'instance_segmentation', 'pose_estimation', etc)
         
     Returns:
-        Annotated frame in BGR format
+        Annotated frame in OpenCV-compatible channel order
     """
-    import cv2
     
     # Default to frame plot (works for detection, OBB, classification)
     if task_type == "instance_segmentation" and hasattr(result, "masks") and result.masks is not None:
@@ -388,10 +450,9 @@ def _annotate_frame_by_task(frame: np.ndarray, result: Any, task_type: str) -> n
         # Default: detection, classification, OBB, etc.
         annotated = result.plot(conf=True)
     
-    # result.plot() returns RGB, but OpenCV expects BGR for VideoWriter
-    # Convert RGB to BGR to ensure correct color channels
-    annotated_bgr = cv2.cvtColor(annotated, cv2.COLOR_RGB2BGR)
-    return annotated_bgr
+    # Ultralytics draws directly onto the OpenCV-originated frame data here,
+    # so an extra RGB<->BGR conversion would swap channels and tint people blue.
+    return np.ascontiguousarray(annotated)
 
 
 # ============================================================================
@@ -767,17 +828,82 @@ def annotated_file_path(video_id: int) -> str:
     return str(build_annotated_video_path(video_id))
 
 
+def _write_analysis_payload(path: Path, payload: dict[str, Any]) -> None:
+    with open(path, "w", encoding="utf-8") as handle:
+        json.dump(payload, handle, ensure_ascii=True, indent=2)
+
+
+def _promote_variant_to_canonical(video_id: int, variant_id: str) -> bool:
+    variant_path = _variant_file_path(video_id, variant_id)
+    if not variant_path.exists():
+        return False
+
+    payload = load_analysis(video_id, variant_id)
+    if payload is None:
+        return False
+
+    canonical_analysis_path = build_analysis_file_path(video_id)
+    _write_analysis_payload(canonical_analysis_path, payload)
+
+    variant_annotated_path = _variant_annotated_path(video_id, variant_id)
+    canonical_annotated_path = build_annotated_video_path(video_id)
+    if variant_annotated_path.exists():
+        shutil.copy2(variant_annotated_path, canonical_annotated_path)
+    elif canonical_annotated_path.exists():
+        _unlink_with_retries(canonical_annotated_path)
+
+    variant_browser_path = _variant_browser_path(variant_annotated_path)
+    canonical_browser_path = _variant_browser_path(canonical_annotated_path)
+    if variant_browser_path.exists():
+        shutil.copy2(variant_browser_path, canonical_browser_path)
+    elif canonical_browser_path.exists():
+        _unlink_with_retries(canonical_browser_path)
+
+    return True
+
+
+def _copy_variant_artifacts(video_id: int, variant_id: str, summary: dict[str, Any]) -> None:
+    canonical_annotated = build_annotated_video_path(video_id)
+    variant_annotated = build_annotated_video_variant_path(video_id, variant_id)
+    if canonical_annotated.exists():
+        shutil.copy2(canonical_annotated, variant_annotated)
+        browser_ready = _variant_browser_path(canonical_annotated)
+        variant_browser_ready = _variant_browser_path(variant_annotated)
+        if browser_ready.exists():
+            shutil.copy2(browser_ready, variant_browser_ready)
+        summary["annotated_video_path"] = str(variant_annotated)
+
+
 def save_analysis(video_id: int, summary: dict[str, Any]) -> str:
     ensure_storage_dirs()
-    path = analysis_file_path(video_id)
-    with open(path, "w", encoding="utf-8") as f:
+    variant_id = _sanitize_variant_id(str(summary.get("analysis_variant_id") or build_analysis_variant_id()))
+    summary["analysis_variant_id"] = variant_id
+    summary["analysis_created_at"] = summary.get("analysis_created_at") or datetime.now(timezone.utc).isoformat()
+
+    canonical_path = build_analysis_file_path(video_id)
+    variant_path = build_analysis_variant_file_path(video_id, variant_id)
+
+    with open(canonical_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=True, indent=2)
-    return path
+    with open(variant_path, "w", encoding="utf-8") as f:
+        json.dump(summary, f, ensure_ascii=True, indent=2)
+
+    _copy_variant_artifacts(video_id, variant_id, summary)
+    if summary.get("annotated_video_path"):
+        with open(canonical_path, "w", encoding="utf-8") as f:
+            json.dump(summary, f, ensure_ascii=True, indent=2)
+        with open(variant_path, "w", encoding="utf-8") as f:
+            json.dump(summary, f, ensure_ascii=True, indent=2)
+    return str(canonical_path)
 
 
-def load_analysis(video_id: int) -> dict[str, Any] | None:
-    path = analysis_file_path(video_id)
-    if not build_analysis_file_path(video_id).exists():
+def load_analysis(video_id: int, variant_id: str | None = None) -> dict[str, Any] | None:
+    path = (
+        build_analysis_variant_file_path(video_id, _sanitize_variant_id(variant_id))
+        if variant_id
+        else build_analysis_file_path(video_id)
+    )
+    if not path.exists():
         return None
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -789,3 +915,80 @@ def has_analysis(video_id: int) -> bool:
 
 def has_annotated_video(video_id: int) -> bool:
     return build_annotated_video_path(video_id).exists()
+
+
+def delete_analysis_variant(video_id: int, variant_id: str) -> bool:
+    sanitized_variant_id = _sanitize_variant_id(variant_id)
+    variant_analysis_path = _variant_file_path(video_id, sanitized_variant_id)
+    if not variant_analysis_path.exists():
+        return False
+
+    canonical_payload = load_analysis(video_id)
+    canonical_variant_id = (
+        _sanitize_variant_id(str(canonical_payload.get("analysis_variant_id")))
+        if canonical_payload and canonical_payload.get("analysis_variant_id")
+        else None
+    )
+
+    paths_to_delete = {
+        variant_analysis_path,
+        _variant_annotated_path(video_id, sanitized_variant_id),
+        _variant_browser_path(_variant_annotated_path(video_id, sanitized_variant_id)),
+    }
+
+    for path in paths_to_delete:
+        if path.exists():
+            try:
+                _unlink_with_retries(path)
+            except Exception:
+                pass
+
+    if canonical_variant_id == sanitized_variant_id:
+        remaining_variants = list_analysis_variants(video_id)
+        next_variant = next(
+            (variant for variant in remaining_variants if variant["variant_id"] != sanitized_variant_id),
+            None,
+        )
+        if next_variant is not None:
+            _promote_variant_to_canonical(video_id, next_variant["variant_id"])
+        else:
+            for path in (
+                build_analysis_file_path(video_id),
+                build_annotated_video_path(video_id),
+                _variant_browser_path(build_annotated_video_path(video_id)),
+            ):
+                if path.exists():
+                    try:
+                        _unlink_with_retries(path)
+                    except Exception:
+                        pass
+
+    return True
+
+
+def delete_analysis_artifacts(video_id: int) -> None:
+    paths_to_delete = {
+        build_analysis_file_path(video_id),
+        build_annotated_video_path(video_id),
+        _variant_browser_path(build_annotated_video_path(video_id)),
+    }
+
+    for variant_analysis_path in _variant_file_candidates(video_id):
+        paths_to_delete.add(variant_analysis_path)
+        variant_id = variant_analysis_path.stem.split("__", 1)[-1]
+        variant_annotated_path = build_annotated_video_variant_path(video_id, variant_id)
+        paths_to_delete.add(variant_annotated_path)
+        paths_to_delete.add(_variant_browser_path(variant_annotated_path))
+
+    annotated_dir = build_annotated_video_path(video_id).parent
+    for temp_path in annotated_dir.glob(f"video_{video_id}*.processing.mp4"):
+        paths_to_delete.add(temp_path)
+    for leftover_path in annotated_dir.glob(f"video_{video_id}*.normalized-*.mp4"):
+        paths_to_delete.add(leftover_path)
+
+    for path in paths_to_delete:
+        if path.exists():
+            try:
+                _unlink_with_retries(path)
+            except Exception:
+                pass

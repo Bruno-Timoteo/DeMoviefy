@@ -32,8 +32,16 @@ def analysis_file_path(video_id: int) -> Path:
     return ANALYSIS_DIR / f"video_{video_id}.json"
 
 
+def analysis_variant_file_path(video_id: int, variant_id: str) -> Path:
+    return ANALYSIS_DIR / f"video_{video_id}__{variant_id}.json"
+
+
 def annotated_video_path(video_id: int) -> Path:
     return ANNOTATED_DIR / f"video_{video_id}.mp4"
+
+
+def annotated_video_variant_path(video_id: int, variant_id: str) -> Path:
+    return ANNOTATED_DIR / f"video_{video_id}__{variant_id}.mp4"
 
 
 def annotated_video_temp_path(video_id: int) -> Path:

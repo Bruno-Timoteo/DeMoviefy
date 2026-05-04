@@ -6,6 +6,7 @@ import type {
   AIModelOption,
   AITaskOption,
   VideoAnalysisResponse,
+  VideoAnalysisVariant,
   VideoRecord,
   VideoTranscriptionResponse,
 } from "../types";
@@ -16,6 +17,7 @@ type VideoWorkbenchProps = {
   analysis: VideoAnalysisResponse | null;
   analysisState: "idle" | "loading" | "ready" | "pending" | "error";
   analysisMessage: string;
+  selectedAnalysisVariantId: string | null;
   selectedTask: string;
   selectedModelPath: string;
   selectedFrameStride: string;
@@ -30,6 +32,7 @@ type VideoWorkbenchProps = {
   transcriptionDraft: string;
   transcriptionMessage: string;
   isBusy: boolean;
+  onAnalysisVariantChange: (variantId: string | null) => void;
   onTaskChange: (taskType: string) => void;
   onModelChange: (modelPath: string) => void;
   onFrameStrideChange: (value: string) => void;
@@ -75,11 +78,17 @@ function formatDurationText(value: number | null | undefined) {
   return `Duracao aproximada: ${value.toFixed(1)}s`;
 }
 
+function formatVariantLabel(variant: VideoAnalysisVariant) {
+  const createdAt = variant.created_at ? new Date(variant.created_at).toLocaleString() : "Sem data";
+  return `${variant.task_label} - ${variant.model_name} - ${createdAt}`;
+}
+
 export const VideoWorkbench = memo(function VideoWorkbench({
   video,
   analysis,
   analysisState,
   analysisMessage,
+  selectedAnalysisVariantId,
   selectedTask,
   selectedModelPath,
   selectedFrameStride,
@@ -94,6 +103,7 @@ export const VideoWorkbench = memo(function VideoWorkbench({
   transcriptionDraft,
   transcriptionMessage,
   isBusy,
+  onAnalysisVariantChange,
   onTaskChange,
   onModelChange,
   onFrameStrideChange,
@@ -116,6 +126,8 @@ export const VideoWorkbench = memo(function VideoWorkbench({
   const [annotatedPlaybackError, setAnnotatedPlaybackError] = useState(false);
 
   const summary = analysis?.analysis ?? null;
+  const analysisVariants = analysis?.available_variants ?? [];
+  const hasMultipleAnalysisVariants = analysisVariants.length > 1;
   const filteredModels = modelOptions.filter((model) => model.task_type === selectedTask);
   const transcriptionSegments = transcription?.transcription.segments ?? [];
   const annotatedVideoSrc = video
@@ -125,6 +137,7 @@ export const VideoWorkbench = memo(function VideoWorkbench({
         stride: video.ai_config.frame_stride,
         clip_start: video.ai_config.clip_start_sec,
         clip_end: video.ai_config.clip_end_sec ?? "end",
+        variant: selectedAnalysisVariantId,
       })
     : "";
   const originalVideoSrc = video
@@ -275,6 +288,21 @@ export const VideoWorkbench = memo(function VideoWorkbench({
           <div className="analysis-state">
             <span className="eyebrow">Resumo</span>
             <p>{analysisMessage}</p>
+            {analysisVariants.length > 0 && (
+              <label className="field-block">
+                <span>Versao da analise</span>
+                <select
+                  value={selectedAnalysisVariantId ?? ""}
+                  onChange={(event) => onAnalysisVariantChange(event.target.value || null)}
+                >
+                  {analysisVariants.map((variant) => (
+                    <option key={variant.variant_id} value={variant.variant_id}>
+                      {formatVariantLabel(variant)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
           </div>
 
           {analysisState === "loading" && <div className="skeleton-block" />}
@@ -464,7 +492,7 @@ export const VideoWorkbench = memo(function VideoWorkbench({
               />
               <div className="action-row">
                 <button type="button" className="ghost-button danger-button" onClick={onDeleteAnalysis}>
-                  Excluir analise
+                  {hasMultipleAnalysisVariants ? "Excluir versao selecionada" : "Excluir analise"}
                 </button>
                 <button type="button" className="primary-button" onClick={onSaveAnalysis} disabled={isBusy}>
                   Salvar analise

@@ -17,6 +17,7 @@ import type {
   ModelCatalogResponse,
   UploadResponse,
   VideoAnalysisResponse,
+  VideoAnalysisVariant,
   VideoRecord,
   VideoTranscriptionResponse,
 } from "./types";
@@ -98,6 +99,17 @@ function normalizeAnalysisResponse(response: VideoAnalysisResponse | null): Vide
 
   return {
     ...response,
+    selected_variant_id: response.selected_variant_id ?? null,
+    available_variants: (response.available_variants ?? []).map((variant): VideoAnalysisVariant => ({
+      variant_id: variant.variant_id,
+      created_at: variant.created_at ?? null,
+      task_type: variant.task_type ?? "object_detection",
+      task_label: variant.task_label ?? variant.task_type ?? "Analise",
+      model_name: variant.model_name ?? "Modelo nao informado",
+      frame_stride: variant.frame_stride ?? 0,
+      clip_start_sec: variant.clip_start_sec ?? 0,
+      clip_end_sec: variant.clip_end_sec ?? null,
+    })),
     ai_config: {
       ...DEFAULT_AI_CONFIG,
       ...(response.ai_config ?? {}),
@@ -179,7 +191,7 @@ function choosePreferredTask(tasks: AITaskOption[]) {
   return tasks.find((task) => task.task_type === "object_detection")?.task_type ?? tasks[0]?.task_type ?? "object_detection";
 }
 
-function buildArtifactSignature(video: VideoRecord | null) {
+function buildArtifactSignature(video: VideoRecord | null, variantId: string | null) {
   if (!video) {
     return "empty";
   }
@@ -197,6 +209,7 @@ function buildArtifactSignature(video: VideoRecord | null) {
     video.ai_config.max_frames,
     video.ai_config.clip_start_sec,
     video.ai_config.clip_end_sec ?? "end",
+    variantId ?? "latest",
   ].join("|");
 }
 
@@ -212,6 +225,7 @@ export default function VideoDashboard() {
   const [models, setModels] = useState<AIModelOption[]>([]);
   const [selectedVideoId, setSelectedVideoId] = useState<number | null>(null);
   const [analysis, setAnalysis] = useState<VideoAnalysisResponse | null>(null);
+  const [selectedAnalysisVariantId, setSelectedAnalysisVariantId] = useState<string | null>(null);
   const [analysisState, setAnalysisState] = useState<AnalysisState>("idle");
   const [analysisDraft, setAnalysisDraft] = useState("{}");
   const [transcription, setTranscription] = useState<VideoTranscriptionResponse | null>(null);
@@ -250,6 +264,10 @@ export default function VideoDashboard() {
     () => videos.find((video) => video.id === selectedVideoId) ?? null,
     [videos, selectedVideoId],
   );
+  useEffect(() => {
+    setSelectedAnalysisVariantId(null);
+  }, [selectedVideo?.id]);
+
   const selectedVideoIsBusy = selectedVideo?.status.startsWith("PROCESSANDO") ?? false;
 
   const stats = useMemo(() => {
@@ -425,6 +443,7 @@ export default function VideoDashboard() {
   useEffect(() => {
     if (!selectedVideo) {
       setAnalysis(null);
+      setSelectedAnalysisVariantId(null);
       setAnalysisState("idle");
       setAnalysisDraft("{}");
       setTranscription(null);
@@ -443,7 +462,7 @@ export default function VideoDashboard() {
       selectedVideo.ai_config.clip_end_sec === null ? "" : String(selectedVideo.ai_config.clip_end_sec),
     );
 
-    const currentSignature = buildArtifactSignature(selectedVideo);
+    const currentSignature = buildArtifactSignature(selectedVideo, selectedAnalysisVariantId);
     if (lastArtifactSignatureRef.current === currentSignature) {
       return;
     }
@@ -458,6 +477,7 @@ export default function VideoDashboard() {
         // Analysis and transcription are loaded independently so a missing
         // transcription never blocks the video preview or the JSON editor.
         const response = await api.get<VideoAnalysisResponse>(selectedVideo.analysis_url, {
+          params: selectedAnalysisVariantId ? { variant: selectedAnalysisVariantId } : undefined,
           validateStatus: (status) => status === 200 || status === 202 || status === 404,
         });
 
@@ -467,6 +487,9 @@ export default function VideoDashboard() {
 
         const normalizedAnalysis = normalizeAnalysisResponse(response.data);
         setAnalysis(normalizedAnalysis);
+        if (normalizedAnalysis?.selected_variant_id && normalizedAnalysis.selected_variant_id !== selectedAnalysisVariantId) {
+          setSelectedAnalysisVariantId(normalizedAnalysis.selected_variant_id);
+        }
         setAnalysisDraft(prettifyJson(normalizedAnalysis?.analysis ?? {}));
         setAnalysisState(response.status === 200 ? "ready" : response.status === 202 ? "pending" : "error");
       } catch (error) {
@@ -488,7 +511,7 @@ export default function VideoDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [selectedVideo]);
+  }, [selectedVideo, selectedAnalysisVariantId]);
 
   const handleUploadTaskChange = useCallback((taskType: string) => {
     setUploadTask(taskType);
@@ -634,11 +657,15 @@ export default function VideoDashboard() {
       const parsed = JSON.parse(analysisDraft);
       await api.put(`/videos/${selectedVideo.id}/analysis`, {
         analysis: parsed,
+      }, {
+        params: selectedAnalysisVariantId ? { variant: selectedAnalysisVariantId } : undefined,
       });
       setAnalysis({
         video_id: selectedVideo.id,
         filename: selectedVideo.filename,
         status: selectedVideo.status,
+        selected_variant_id: selectedAnalysisVariantId,
+        available_variants: analysis?.available_variants ?? [],
         ai_config: selectedVideo.ai_config,
         storage: selectedVideo.storage,
         analysis: parsed,
@@ -659,17 +686,20 @@ export default function VideoDashboard() {
     }
 
     try {
-      await api.delete(`/videos/${selectedVideo.id}/analysis`);
+      await api.delete(`/videos/${selectedVideo.id}/analysis`, {
+        params: selectedAnalysisVariantId ? { variant: selectedAnalysisVariantId } : undefined,
+      });
       setAnalysis(null);
+      setSelectedAnalysisVariantId(null);
       setAnalysisDraft("{}");
       setAnalysisState("error");
-      setMessage("Analise excluida.");
+      setMessage(selectedAnalysisVariantId ? "Versao da analise excluida." : "Analise excluida.");
       await fetchVideos();
     } catch (error) {
       console.error(error);
       setMessage(getApiErrorMessage(error, "Nao foi possivel excluir a analise."));
     }
-  }, [selectedVideo, fetchVideos]);
+  }, [selectedVideo, selectedAnalysisVariantId, fetchVideos]);
 
   const handleDeleteVideo = useCallback(async () => {
     if (!selectedVideo) {
@@ -885,6 +915,7 @@ export default function VideoDashboard() {
                 analysis={analysis}
                 analysisState={analysisState}
                 analysisMessage={buildAnalysisMessage(analysisState, selectedVideo, analysis)}
+                selectedAnalysisVariantId={selectedAnalysisVariantId}
                 selectedTask={videoTask}
                 selectedModelPath={videoModelPath}
                 selectedFrameStride={videoFrameStride}
@@ -899,6 +930,7 @@ export default function VideoDashboard() {
                 transcriptionDraft={transcriptionDraft}
                 transcriptionMessage={transcriptionMessage}
                 isBusy={selectedVideoIsBusy}
+                onAnalysisVariantChange={setSelectedAnalysisVariantId}
                 onTaskChange={handleVideoTaskChange}
                 onModelChange={setVideoModelPath}
                 onFrameStrideChange={setVideoFrameStride}
