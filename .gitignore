@@ -1,22 +1,107 @@
-# Python cache
+# =========================
+# PYTHON
+# =========================
 __pycache__/
 *.pyc
-
-# Log files
-app.log
-
-# Runtime data
-uploads/
-ai_model/results/
+*.pyo
+*.pyd
+*.py,cover
+.python-version
 
 # Virtual environments
 .venv/
+venv/
+env/
+ENV/
 
+# =========================
+# LOGS
+# =========================
+*.log
+app.log
+
+# =========================
+# ENV VARIABLES
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# UPLOADS / DADOS GERADOS
+# =========================
+uploads/
+ai_model/results/
+analysis/
+annotated/
+metadata/
+transcriptions/
+
+# =========================
+# MODELOS / PESOS DE IA
+# =========================
+*.pt
+*.pth
+*.onnx
+*.engine
+
+# =========================
+# FFMPEG (BINÁRIOS LOCAIS)
+# =========================
 .ffmpeg/
 
-# Frontend dependencies and build
+# =========================
+# BANCO DE DADOS LOCAL
+# =========================
+*.db
+*.sqlite3
+demoviefy-backend/instance/
+demoviefy-backend/instance/demoviefy.db
+
+# =========================
+# BACKEND CACHE / TEMP
+# =========================
+*.cache
+tmp/
+temp/
+
+# =========================
+# FRONTEND (NODE / VITE)
+# =========================
 demoviefy-front/node_modules/
 demoviefy-front/dist/
+demoviefy-front/.vite/
 
-# Backend database instance
-demoviefy-backend/instance/
+# Logs do Node
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# EDITORES / IDEs
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# SISTEMA OPERACIONAL
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# BUILD / DISTRIBUIÇÃO
+# =========================
+build/
+dist/
+*.egg-info/
+
+# =========================
+# OUTROS
+# =========================
+*.bak
+*.tmp
+*.temp
+
