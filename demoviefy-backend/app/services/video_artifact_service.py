@@ -5,6 +5,7 @@ from typing import Any
 from app.config.ai_settings import load_frame_ai_settings
 from app.config.paths import (
     analysis_file_path,
+    analysis_variant_file_path,
     ensure_storage_dirs,
     metadata_file_path,
     to_repo_relative,
@@ -293,6 +294,9 @@ def has_transcription(video_id: int) -> bool:
 
 def update_analysis(video_id: int, payload: dict[str, Any]) -> dict[str, Any]:
     _write_json(analysis_file_path(video_id), payload)
+    variant_id = payload.get("analysis_variant_id")
+    if variant_id:
+        _write_json(analysis_variant_file_path(video_id, str(variant_id)), payload)
     return payload
 
 
