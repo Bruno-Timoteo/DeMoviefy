@@ -16,6 +16,7 @@ Key Responsibilities:
 """
 
 import json
+import shutil
 import time
 from collections import Counter, defaultdict
 from functools import lru_cache
@@ -27,6 +28,8 @@ import numpy as np
 from app.config.paths import analysis_file_path as build_analysis_file_path
 from app.config.paths import annotated_video_path as build_annotated_video_path
 from app.config.paths import ensure_storage_dirs
+from app.config.paths import ffmpeg_path as resolve_ffmpeg_path
+from app.config.paths import ffprobe_path as resolve_ffprobe_path
 
 
 # ============================================================================
@@ -153,6 +156,213 @@ def _get_model(model_path: str):
         raise RuntimeError(f"Failed to load model '{model_path}'.") from exc
 
 
+
+def _normalize_annotated_mp4(
+    source_path: Path,
+    output_path: Path,
+    logger: Any | None = None,
+) -> bool:
+    """
+    Normalize an annotated MP4 into a browser-playable H.264 artifact.
+
+    Args:
+        source_path: Temporary video written by OpenCV
+        output_path: Final annotated video path
+        logger: Optional logger for debug messages
+
+    Returns:
+        True when the normalized file is ready at output_path
+    """
+    import subprocess
+
+    if not source_path.exists():
+        return False
+
+    ffmpeg_binary = resolve_ffmpeg_path()
+    if ffmpeg_binary is None:
+        if logger:
+            logger.warning("frame_ai:ffmpeg_missing source=%s output=%s", source_path, output_path)
+        return False
+
+    normalized_temp = output_path.parent / f"{output_path.stem}.normalized-{time.time_ns()}{output_path.suffix}"
+
+    try:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if logger:
+            logger.info("frame_ai:mp4_normalize_start source=%s output=%s", source_path, output_path)
+
+        cmd = [
+            str(ffmpeg_binary),
+            "-i", str(source_path),
+            "-c:v", "libx264",
+            "-pix_fmt", "yuv420p",
+            "-crf", "23",
+            "-preset", "ultrafast",
+            "-movflags", "+faststart",
+            "-an",
+            "-y",
+            str(normalized_temp),
+        ]
+
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            timeout=300,
+            text=True
+        )
+
+        if result.returncode == 0 and normalized_temp.exists():
+            if output_path.exists():
+                _unlink_with_retries(output_path, logger=logger)
+            _copy_with_retries(normalized_temp, output_path, logger=logger)
+            if logger:
+                logger.info("frame_ai:mp4_normalize_success path=%s", output_path)
+            return True
+
+        if logger:
+            logger.warning(
+                "frame_ai:mp4_normalize_failed returncode=%s stderr=%s",
+                result.returncode,
+                result.stderr[:400],
+            )
+        return False
+
+    except subprocess.TimeoutExpired:
+        if logger:
+            logger.warning("frame_ai:mp4_normalize_timeout source=%s output=%s", source_path, output_path)
+        return False
+    except Exception as exc:
+        if logger:
+            logger.warning("frame_ai:mp4_normalize_error error=%s", str(exc))
+        return False
+    finally:
+        if normalized_temp.exists():
+            try:
+                normalized_temp.unlink()
+            except PermissionError:
+                if logger:
+                    logger.debug("frame_ai:normalized_temp_cleanup_deferred path=%s", normalized_temp)
+            except Exception as exc:
+                if logger:
+                    logger.warning("frame_ai:normalized_temp_cleanup_failed path=%s error=%s", normalized_temp, str(exc))
+
+
+def _unlink_with_retries(path: Path, *, logger: Any | None = None, attempts: int = 20, delay_seconds: float = 0.5) -> None:
+    last_error: Exception | None = None
+    for attempt in range(attempts):
+        if not path.exists():
+            return
+        try:
+            path.unlink()
+            return
+        except PermissionError as exc:
+            last_error = exc
+            time.sleep(delay_seconds)
+        except FileNotFoundError:
+            return
+    if last_error is not None:
+        raise last_error
+    if logger:
+        logger.warning("frame_ai:unlink_retry_exhausted path=%s", path)
+
+
+def _copy_with_retries(source_path: Path, destination_path: Path, *, logger: Any | None = None, attempts: int = 20, delay_seconds: float = 0.5) -> None:
+    last_error: Exception | None = None
+    for attempt in range(attempts):
+        try:
+            shutil.copy2(source_path, destination_path)
+            return
+        except PermissionError as exc:
+            last_error = exc
+            time.sleep(delay_seconds)
+    if last_error is not None:
+        raise last_error
+    if logger:
+        logger.warning(
+            "frame_ai:copy_retry_exhausted source=%s destination=%s",
+            source_path,
+            destination_path,
+        )
+
+
+def _probe_video_stream(file_path: Path, logger: Any | None = None) -> dict[str, str] | None:
+    import subprocess
+
+    ffprobe_binary = resolve_ffprobe_path()
+    if ffprobe_binary is None or not file_path.exists():
+        return None
+
+    cmd = [
+        str(ffprobe_binary),
+        "-v", "error",
+        "-select_streams", "v:0",
+        "-show_entries", "stream=codec_name,codec_tag_string,pix_fmt",
+        "-of", "json",
+        str(file_path),
+    ]
+
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            timeout=30,
+            text=True,
+        )
+        if result.returncode != 0:
+            if logger:
+                logger.warning("frame_ai:ffprobe_failed path=%s stderr=%s", file_path, result.stderr[:300])
+            return None
+
+        payload = json.loads(result.stdout or "{}")
+        streams = payload.get("streams") or []
+        if not streams:
+            return None
+        stream = streams[0]
+        return {
+            "codec_name": str(stream.get("codec_name") or ""),
+            "codec_tag_string": str(stream.get("codec_tag_string") or ""),
+            "pix_fmt": str(stream.get("pix_fmt") or ""),
+        }
+    except Exception as exc:
+        if logger:
+            logger.warning("frame_ai:ffprobe_error path=%s error=%s", file_path, str(exc))
+        return None
+
+
+def _is_browser_playable_mp4(file_path: Path, logger: Any | None = None) -> bool:
+    stream_info = _probe_video_stream(file_path, logger)
+    if stream_info is None:
+        return False
+
+    codec_name = stream_info.get("codec_name", "").lower()
+    codec_tag = stream_info.get("codec_tag_string", "").lower()
+    pixel_format = stream_info.get("pix_fmt", "").lower()
+    return codec_name == "h264" and codec_tag == "avc1" and pixel_format == "yuv420p"
+
+
+def resolve_annotated_video_for_web(video_id: int, logger: Any | None = None) -> Path | None:
+    source_path = build_annotated_video_path(video_id)
+    if not source_path.exists():
+        return None
+
+    if _is_browser_playable_mp4(source_path, logger):
+        return source_path
+
+    browser_ready_path = source_path.parent / f"{source_path.stem}.browser{source_path.suffix}"
+    if (
+        browser_ready_path.exists()
+        and browser_ready_path.stat().st_mtime >= source_path.stat().st_mtime
+        and _is_browser_playable_mp4(browser_ready_path, logger)
+    ):
+        return browser_ready_path
+
+    if _normalize_annotated_mp4(source_path, browser_ready_path, logger) and _is_browser_playable_mp4(browser_ready_path, logger):
+        return browser_ready_path
+
+    return source_path
+
+
 def _annotate_frame_by_task(frame: np.ndarray, result: Any, task_type: str) -> np.ndarray:
     """
     Annotate a frame based on the task type.
@@ -163,7 +373,7 @@ def _annotate_frame_by_task(frame: np.ndarray, result: Any, task_type: str) -> n
         task_type: Type of task ('object_detection', 'instance_segmentation', 'pose_estimation', etc)
         
     Returns:
-        Annotated frame
+        Annotated frame in BGR format
     """
     import cv2
     
@@ -171,16 +381,17 @@ def _annotate_frame_by_task(frame: np.ndarray, result: Any, task_type: str) -> n
     if task_type == "instance_segmentation" and hasattr(result, "masks") and result.masks is not None:
         # Draw segmentation masks
         annotated = result.plot(conf=True)
-        return annotated
-    
     elif task_type == "pose_estimation" and hasattr(result, "keypoints") and result.keypoints is not None:
         # Draw pose keypoints and skeleton
         annotated = result.plot(conf=True)
-        return annotated
-    
     else:
         # Default: detection, classification, OBB, etc.
-        return result.plot(conf=True)
+        annotated = result.plot(conf=True)
+    
+    # result.plot() returns RGB, but OpenCV expects BGR for VideoWriter
+    # Convert RGB to BGR to ensure correct color channels
+    annotated_bgr = cv2.cvtColor(annotated, cv2.COLOR_RGB2BGR)
+    return annotated_bgr
 
 
 # ============================================================================
@@ -277,6 +488,7 @@ def analyze_video_frames(
         if annotated_path is not None
         else None
     )
+    finalized_annotated_path: Path | None = None
     fps = capture.get(cv2.CAP_PROP_FPS) or 0.0
     fps = fps if fps > 0 else 24.0
     frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
@@ -338,76 +550,129 @@ def analyze_video_frames(
         if not ok:
             break
 
+        # Initialize VideoWriter on first frame with video dimensions
         if annotated_path and writer is None:
             height, width = frame.shape[:2]
-            writer = cv2.VideoWriter(
-                str(temp_annotated_path),
-                cv2.VideoWriter_fourcc(*"mp4v"),
-                fps,
-                (width, height),
-            )
-            if not writer.isOpened():
-                writer.release()
-                writer = None
+            # Use H.264 with libx264 for maximum compatibility
+            # Try multiple approaches for VideoWriter initialization
+            writer_initialized = False
+            
+            # Approach 1: Use mp4v codec with explicit format
+            try:
+                fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+                writer = cv2.VideoWriter(
+                    str(temp_annotated_path),
+                    fourcc,
+                    fps,
+                    (width, height),
+                )
+                if writer and writer.isOpened():
+                    writer_initialized = True
+                    if logger:
+                        logger.info("frame_ai:video_writer_initialized codec=mp4v path=%s", temp_annotated_path)
+                else:
+                    if writer:
+                        writer.release()
+                    writer = None
+            except Exception as e:
+                if logger:
+                    logger.debug("frame_ai:mp4v_failed error=%s", str(e))
+            
+            # Approach 2: Try MJPEG as fallback
+            if not writer_initialized:
+                try:
+                    fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+                    writer = cv2.VideoWriter(
+                        str(temp_annotated_path),
+                        fourcc,
+                        fps,
+                        (width, height),
+                    )
+                    if writer and writer.isOpened():
+                        writer_initialized = True
+                        if logger:
+                            logger.info("frame_ai:video_writer_initialized codec=MJPG path=%s", temp_annotated_path)
+                    else:
+                        if writer:
+                            writer.release()
+                        writer = None
+                except Exception as e:
+                    if logger:
+                        logger.debug("frame_ai:MJPG_failed error=%s", str(e))
+            
+            if not writer_initialized:
                 annotated_path = None
                 if logger:
-                    logger.warning("frame_ai:annotated_video_disabled path=%s", annotated_output_path)
+                    logger.warning("frame_ai:annotated_video_disabled path=%s reason=no_suitable_codec", annotated_output_path)
 
-        if frame_index % frame_stride != 0 or processed_frames >= max_frames:
-            if writer is not None:
-                writer.write(frame)
-                annotated_frames_written += 1
-            frame_index += 1
-            continue
+        # Determine if this frame should be sampled/processed for inference
+        should_sample = (frame_index % frame_stride == 0) and (processed_frames < max_frames)
+        
+        # Process frame inference if it's a sampled frame
+        annotated_frame = frame.copy()
+        if should_sample:
+            sampled_frames += 1
+            result = model(frame, verbose=False, conf=conf_threshold)[0]
+            names = result.names or {}
 
-        sampled_frames += 1
-        result = model(frame, verbose=False, conf=conf_threshold)[0]
-        names = result.names or {}
-
-        if task_type == "image_classification" and getattr(result, "probs", None) is not None:
-            top_index = int(result.probs.top1)
-            label = names.get(top_index, str(top_index))
-            confidence = float(result.probs.top1conf)
-            labels_counter[label] += 1
-            confidence_sum[label] += confidence
-            confidence_count[label] += 1
-        elif task_type == "instance_segmentation" and hasattr(result, "masks") and result.masks is not None:
-            # Process segmentation masks
-            if result.boxes is not None and len(result.boxes) > 0:
-                classes = result.boxes.cls.tolist()
-                confidences = result.boxes.conf.tolist()
-                for cls_idx, conf in zip(classes, confidences):
-                    label = names.get(int(cls_idx), str(int(cls_idx)))
-                    labels_counter[label] += 1
-                    confidence_sum[label] += float(conf)
-                    confidence_count[label] += 1
-        elif task_type == "pose_estimation" and hasattr(result, "keypoints") and result.keypoints is not None:
-            # Process pose keypoints
-            if result.boxes is not None and len(result.boxes) > 0:
-                classes = result.boxes.cls.tolist()
-                confidences = result.boxes.conf.tolist()
-                for cls_idx, conf in zip(classes, confidences):
-                    label = names.get(int(cls_idx), str(int(cls_idx)))
-                    labels_counter[label] += 1
-                    confidence_sum[label] += float(conf)
-                    confidence_count[label] += 1
-        elif result.boxes is not None and len(result.boxes) > 0:
-            # Default processing for detection, OBB, etc.
-            classes = result.boxes.cls.tolist()
-            confidences = result.boxes.conf.tolist()
-
-            for cls_idx, conf in zip(classes, confidences):
-                label = names.get(int(cls_idx), str(int(cls_idx)))
+            # Aggregate detection results
+            if task_type == "image_classification" and getattr(result, "probs", None) is not None:
+                top_index = int(result.probs.top1)
+                label = names.get(top_index, str(top_index))
+                confidence = float(result.probs.top1conf)
                 labels_counter[label] += 1
-                confidence_sum[label] += float(conf)
+                confidence_sum[label] += confidence
                 confidence_count[label] += 1
+            elif task_type == "instance_segmentation" and hasattr(result, "masks") and result.masks is not None:
+                # Process segmentation masks
+                if result.boxes is not None and len(result.boxes) > 0:
+                    classes = result.boxes.cls.tolist()
+                    confidences = result.boxes.conf.tolist()
+                    for cls_idx, conf in zip(classes, confidences):
+                        label = names.get(int(cls_idx), str(int(cls_idx)))
+                        labels_counter[label] += 1
+                        confidence_sum[label] += float(conf)
+                        confidence_count[label] += 1
+            elif task_type == "pose_estimation" and hasattr(result, "keypoints") and result.keypoints is not None:
+                # Process pose keypoints
+                if result.boxes is not None and len(result.boxes) > 0:
+                    classes = result.boxes.cls.tolist()
+                    confidences = result.boxes.conf.tolist()
+                    for cls_idx, conf in zip(classes, confidences):
+                        label = names.get(int(cls_idx), str(int(cls_idx)))
+                        labels_counter[label] += 1
+                        confidence_sum[label] += float(conf)
+                        confidence_count[label] += 1
+            elif result.boxes is not None and len(result.boxes) > 0:
+                # Default processing for detection, OBB, etc.
+                classes = result.boxes.cls.tolist()
+                confidences = result.boxes.conf.tolist()
 
+                for cls_idx, conf in zip(classes, confidences):
+                    label = names.get(int(cls_idx), str(int(cls_idx)))
+                    labels_counter[label] += 1
+                    confidence_sum[label] += float(conf)
+                    confidence_count[label] += 1
+
+            # Annotate the sampled frame
+            if writer is not None:
+                annotated_frame = _annotate_frame_by_task(frame, result, task_type)
+            
+            processed_frames += 1
+
+        # Ensure frame format is correct for VideoWriter
+        if annotated_frame.dtype != np.uint8:
+            annotated_frame = annotated_frame.astype(np.uint8)
+        
+        # Write frame to annotated video (all frames, but only sampled ones are annotated)
         if writer is not None:
-            annotated_frame = _annotate_frame_by_task(frame, result, task_type)
-            writer.write(annotated_frame)
-            annotated_frames_written += 1
+            try:
+                writer.write(annotated_frame)
+                annotated_frames_written += 1
+            except Exception as e:
+                if logger:
+                    logger.error("frame_ai:frame_write_error frame_index=%s error=%s", frame_index, str(e))
 
-        processed_frames += 1
         frame_index += 1
 
         if progress_callback is not None:
@@ -425,12 +690,35 @@ def analyze_video_frames(
     capture.release()
     if writer is not None:
         writer.release()
+        # Give file a moment to finalize
+        import time as time_module
+        time_module.sleep(0.2)
+        
         if annotated_path is not None and temp_annotated_path is not None and annotated_frames_written > 0:
-            if annotated_path.exists():
-                annotated_path.unlink()
-            temp_annotated_path.replace(annotated_path)
-        elif temp_annotated_path is not None and temp_annotated_path.exists():
-            temp_annotated_path.unlink()
+            if temp_annotated_path.exists() and _normalize_annotated_mp4(temp_annotated_path, annotated_path, logger):
+                finalized_annotated_path = annotated_path
+                if logger:
+                    logger.info(
+                        "frame_ai:annotated_video_finalized path=%s frames=%s",
+                        finalized_annotated_path,
+                        annotated_frames_written,
+                    )
+            else:
+                annotated_frames_written = 0
+                if annotated_path.exists():
+                    annotated_path.unlink()
+                if logger:
+                    logger.warning(
+                        "frame_ai:annotated_video_unavailable output=%s reason=normalization_failed",
+                        annotated_output_path,
+                    )
+
+        if temp_annotated_path is not None and temp_annotated_path.exists():
+            try:
+                temp_annotated_path.unlink()
+            except Exception as e:
+                if logger:
+                    logger.warning("frame_ai:temp_file_cleanup_failed error=%s", str(e))
 
     avg_confidence = {
         label: round(confidence_sum[label] / confidence_count[label], 4)
@@ -455,7 +743,7 @@ def analyze_video_frames(
         "label_counts": label_counts,
         "avg_confidence_by_label": avg_confidence,
         "top_labels": top_labels,
-        "annotated_video_path": str(annotated_path) if annotated_path and annotated_frames_written > 0 else None,
+        "annotated_video_path": str(finalized_annotated_path) if finalized_annotated_path else None,
         "annotated_frames_written": annotated_frames_written,
     }
 
