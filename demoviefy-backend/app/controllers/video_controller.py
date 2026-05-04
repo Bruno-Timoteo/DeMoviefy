@@ -24,7 +24,12 @@ from app.repositories.video_repository import (
     update_status,
 )
 from app.services.ai_catalog_service import get_model_by_relative_path, list_available_models
-from app.services.frame_ai_service import has_analysis, load_analysis
+from app.services.frame_ai_service import (
+    has_analysis,
+    has_annotated_video,
+    load_analysis,
+    resolve_annotated_video_for_web,
+)
 from app.services.transcription_service import transcribe_video_with_timestamps, whisper_available
 from app.services.video_artifact_service import (
     delete_analysis,
@@ -56,6 +61,7 @@ def _storage_payload(video_id: int, filename: str) -> dict:
     annotated_path = annotated_video_path(video_id)
     video_exists = video_path.exists()
     analysis_exists = analysis_path.exists()
+    annotated_exists = has_annotated_video(video_id)
     transcription_path = transcription_file_path(video_id)
 
     return {
@@ -67,7 +73,7 @@ def _storage_payload(video_id: int, filename: str) -> dict:
         "analysis_exists": analysis_exists,
         "annotated_relative_path": to_repo_relative(annotated_path),
         "annotated_absolute_path": str(annotated_path),
-        "annotated_exists": annotated_path.exists(),
+        "annotated_exists": annotated_exists,
         "transcription_relative_path": to_repo_relative(transcription_path),
         "transcription_absolute_path": str(transcription_path),
         "transcription_exists": has_transcription(video_id),
@@ -519,7 +525,9 @@ def get_annotated_video_file(video_id: int):
     if not video:
         return jsonify({"error": "Video nao encontrado"}), 404
 
-    filepath = annotated_video_path(video.id)
+    filepath = resolve_annotated_video_for_web(video.id, current_app.logger)
+    if filepath is None:
+        filepath = annotated_video_path(video.id)
     if not filepath.exists():
         if video.status in {"PROCESSANDO", "PROCESSANDO_IA"}:
             return jsonify({"message": "Video anotado ainda em processamento", "status": video.status}), 202
