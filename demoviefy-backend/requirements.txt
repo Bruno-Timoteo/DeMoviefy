@@ -4,6 +4,9 @@ Flask-SQLAlchemy==3.1.1
 python-dotenv==1.0.1
 Werkzeug==3.0.3
 
+# Ferramenta para baixar arquivos do Drive
+gdown==6.0.0
+
 # Database
 # SQLAlchemy 2.0.30 is not compatible with Python 3.13; require a newer patch.
 SQLAlchemy>=2.0.36,<3
@@ -18,3 +21,5 @@ ultralytics==8.3.50
 # HTTP and utilities
 requests==2.32.3
 numpy==1.26.4
+
+
