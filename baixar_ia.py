@@ -1,6 +1,8 @@
 import zipfile
-import gdown
 import os
+import gdown
+
+from run_form import AI_MODEL_FOLDER
 
 def baixar_zip_google_drive(url, zip_name="ai_model.zip"):
     # Download
@@ -21,3 +23,8 @@ def baixar_zip_google_drive(url, zip_name="ai_model.zip"):
         print("O arquivo não existe.")
 
     print("Concluído!")
+
+if not (AI_MODEL_FOLDER).exists():
+    baixar_zip_google_drive("https://drive.google.com/file/d/1WeTzxbnaqVZwxiJqX6c49vl9U73QPtbX/view?usp=sharing")
+else:
+    print("Modelos de IA já presentes")

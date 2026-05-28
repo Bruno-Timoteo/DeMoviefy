@@ -23,9 +23,6 @@ import urllib.request
 import zipfile
 import tempfile
 
-from baixar_ia import baixar_zip_google_drive
-
-
 # Repository-level paths used by launcher actions.
 ROOT = Path(__file__).resolve().parent
 AI_MODEL_FOLDER = ROOT / "ai_model"
@@ -820,15 +817,7 @@ class LauncherForm(tk.Tk):
                         self._log("[setup] transcription deps installed.")
 
 
-                # Step 5: Baixar modelos de IA
-                if not (AI_MODEL_FOLDER).exists():
-                    self._set_setup_state(True, "Installing AI models...")
 
-                    baixar_zip_google_drive("https://drive.google.com/file/d/1WeTzxbnaqVZwxiJqX6c49vl9U73QPtbX/view?usp=sharing")
-
-                    self._log("[setup] AI models extracted.")
-                else:
-                    self._log("[setup] AI models already present.")
 
                 # Step 6: install frontend dependencies.
                 self._set_setup_state(True, "Installing frontend deps...")
