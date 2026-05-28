@@ -106,3 +106,4 @@ dist/
 *.tmp
 *.temp
 
+git-filter-repo.py
