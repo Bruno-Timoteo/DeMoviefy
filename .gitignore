@@ -44,6 +44,7 @@ transcriptions/
 *.pth
 *.onnx
 *.engine
+ai_model/
 
 # =========================
 # FFMPEG (BINÁRIOS LOCAIS)
