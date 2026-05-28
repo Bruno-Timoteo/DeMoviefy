@@ -10,11 +10,9 @@ REQUIREMENTS = ROOT / "demoviefy-backend" / "requirements.txt"
 TRANSCRIPTION_REQUIREMENTS = ROOT / "demoviefy-backend" / "requirements-transcription.txt"
 
 # Configurações do Launcher
-LAUNCHER_VERSION = "1.2.0"
+LAUNCHER_VERSION = "2.0.0"
 
 # Configurações do FFmpeg
 FFMPEG_DIR = ROOT / ".ffmpeg"
 FFMPEG_BIN_DIR = FFMPEG_DIR / "bin"
 FFMPEG_DOWNLOAD_URL_WIN = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
-
-print(ROOT)
