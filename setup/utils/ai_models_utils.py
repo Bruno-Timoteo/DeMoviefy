@@ -1,31 +1,56 @@
 import zipfile
 from pathlib import Path
 import gdown
-from config import AI_MODEL_FOLDER
+import sys
 
-def baixar_zip_google_drive(url, zip_name="ai_model.zip"):
-    # Download
 
-    zip_path = Path()
-    print("Baixando arquivo...")
-    gdown.download(url, zip_name)
+# Sem isso ele não consegue importar as variáveis de config
 
-    # Extração
-    print("Extraindo arquivo...")
-    with zipfile.ZipFile(zip_name, "r") as zip_ref:
-        zip_ref.extractall()
+SETUP_DIR = Path(__file__).resolve().parent.parent
+if str(SETUP_DIR) not in sys.path:
+    sys.path.insert(0, str(SETUP_DIR))
 
-    # Deletando zip extra
 
-    if os.path.exists("ai_model.zip"):
-        os.remove("ai_model.zip")
-        print("Arquivo zip removido.")
+from config import ROOT, AI_MODEL_FOLDER, AI_MODELS_DOWNLOAD_URL
+
+def baixar_zip_google_drive(url=AI_MODELS_DOWNLOAD_URL):
+
+    if not (AI_MODEL_FOLDER).exists():
+
+        zip_name="ai_model.zip"
+        zip_path = Path(zip_name)
+
+        print("Baixando arquivo...")
+
+        gdown.download(url, zip_name)
+
+        # Extração
+
+        print("Extraindo arquivos...")
+        with zipfile.ZipFile(zip_name, "r") as zip_ref:
+            zip_ref.extractall(ROOT)
+
+        # Verifica se extraiu
+            if not (AI_MODEL_FOLDER).exists():
+
+                print("A pasta com os modelos de IA não foi encontrada.")
+                return False
+
+        # Deletando zip temporário
+
+        if zip_path.exists():
+            zip_path.unlink()
+            print("Arquivo zip temporário removido.")
+        else:
+            print("O arquivo zip temporário não foi encontrado para remoção.")
+            return False
+
+        print("Concluído!")
+        return True
+
     else:
-        print("O arquivo não existe.")
-
-    print("Concluído!")
-
-if not (AI_MODEL_FOLDER).exists():
-    baixar_zip_google_drive("https://drive.google.com/file/d/1WeTzxbnaqVZwxiJqX6c49vl9U73QPtbX/view?usp=sharing")
-else:
-    print("Modelos de IA já presentes")
+        print("Modelos de IA já presentes")
+        return False
+    
+if __name__ == "__main__":
+    baixar_zip_google_drive()

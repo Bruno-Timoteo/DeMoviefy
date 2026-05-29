@@ -60,6 +60,19 @@ class SetupManager:
                 self.set_state(True, "Installing frontend npm packages...")
                 if self.pm.run_sync("setup", ["npm", "install"], FRONTEND_DIR) != 0:
                     raise RuntimeError("Failed npm install")
+                
+                self.set_state(True, "Downloading AI models (Google Drive)...")
+                self.log("[setup] starting AI models download script...")
+                script_path = ROOT / "setup" / "utils" / "ai_models_utils.py"
+
+                rc_models = self.pm.run_sync(
+                    "setup", 
+                    [str(py), str(script_path)], 
+                    ROOT
+                )
+
+                if rc_models != 0:
+                    self.log("[setup] warning: AI models download script returned an error.")
 
                 self.log("[setup] environment setup completed successfully.")
                 self.set_state(False, "Ready")
