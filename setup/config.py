@@ -16,3 +16,9 @@ LAUNCHER_VERSION = "2.0.0"
 FFMPEG_DIR = ROOT / ".ffmpeg"
 FFMPEG_BIN_DIR = FFMPEG_DIR / "bin"
 FFMPEG_DOWNLOAD_URL_WIN = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
+
+# Configurações dos modelos de IA
+
+AI_MODELS_DOWNLOAD_URL = "https://drive.google.com/file/d/1WeTzxbnaqVZwxiJqX6c49vl9U73QPtbX/view?usp=sharing"
+
+print(str(ROOT / "setup" / "utils" / "ai_models_utils.py"))
