@@ -1,11 +1,12 @@
 import zipfile
-import os
+from pathlib import Path
 import gdown
-
-from run_form import AI_MODEL_FOLDER
+from config import AI_MODEL_FOLDER
 
 def baixar_zip_google_drive(url, zip_name="ai_model.zip"):
     # Download
+
+    zip_path = Path()
     print("Baixando arquivo...")
     gdown.download(url, zip_name)
 
