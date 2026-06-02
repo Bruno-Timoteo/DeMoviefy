@@ -20,13 +20,13 @@ def baixar_zip_google_drive(url=AI_MODELS_DOWNLOAD_URL):
         zip_name="ai_model.zip"
         zip_path = Path(zip_name)
 
-        print("Baixando arquivo...")
+        print("Baixando arquivo com os modelos de IA...")
 
         gdown.download(url, zip_name)
 
         # Extração
 
-        print("Extraindo arquivos...")
+        print("Extraindo os modelos de IA...")
         with zipfile.ZipFile(zip_name, "r") as zip_ref:
             zip_ref.extractall(ROOT)
 
@@ -45,7 +45,7 @@ def baixar_zip_google_drive(url=AI_MODELS_DOWNLOAD_URL):
             print("O arquivo zip temporário não foi encontrado para remoção.")
             return False
 
-        print("Concluído!")
+        print("Modelos de IA extraídos com sucesso.")
         return True
 
     else:

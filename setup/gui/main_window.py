@@ -34,6 +34,7 @@ class LauncherForm(tk.Tk):
         self.setup_status_var = tk.StringVar(value="Idle")
         self.ffmpeg_status_var = tk.StringVar(value="Unknown")
         self.setup_detail_var = tk.StringVar(value="")
+        self.install_ai_deps_var = tk.BooleanVar(value=False) # Variável que controla a instalação das dependências de IA.
 
         self._build_ui()
         self._update_ffmpeg_status()
@@ -54,8 +55,11 @@ class LauncherForm(tk.Tk):
         row1 = ttk.Frame(controls)
         row1.pack(fill=tk.X, pady=(0, 8))
 
-        self.setup_button = ttk.Button(row1, text="Setup Environment", command=self.setup_manager.run_setup)
+        self.setup_button = ttk.Button(row1, text="Setup Environment", command=self.trigger_setup)
         self.setup_button.pack(side=tk.LEFT, padx=(0, 8))
+        self.ai_check = ttk.Checkbutton(row1, text="Instalar Pacotes de IA", variable=self.install_ai_deps_var)
+        self.ai_check.pack(side=tk.LEFT, padx=(0, 8))
+
         ttk.Button(row1, text="Install FFmpeg", command=self.install_ffmpeg).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(row1, text="Start Backend", command=self.start_backend).pack(side=tk.LEFT, padx=(0, 8))
         ttk.Button(row1, text="Start Frontend", command=self.start_frontend).pack(side=tk.LEFT, padx=(0, 8))
@@ -176,6 +180,14 @@ class LauncherForm(tk.Tk):
             self._update_ffmpeg_status()
             self._set_setup_state(False, "FFmpeg ready" if success else "FFmpeg install failed")
         threading.Thread(target=worker, daemon=True).start()
+    
+    def trigger_setup(self) -> None:
+        # Função intermediária que lê a interface antes de disparar o setup.
+        # .get() vai retornar True (se marcado) ou False (se desmarcado)
+        quer_instalar_ia = self.install_ai_deps_var.get()
+        
+        # Agora disparas o setup avisando o gerenciador sobre a escolha do usuário
+        self.setup_manager.run_setup(install_ai=quer_instalar_ia)
 
     def start_backend(self) -> None:
         self.process_manager.start_service("backend", [str(venv_python()), "run.py"], BACKEND_DIR)
