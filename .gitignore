@@ -91,6 +91,7 @@ yarn-error.log*
 # =========================
 .DS_Store
 Thumbs.db
+*.db
 
 # =========================
 # BUILD / DISTRIBUIÇÃO
@@ -107,3 +108,4 @@ dist/
 *.temp
 
 git-filter-repo.py
+*.db
