@@ -108,4 +108,3 @@ dist/
 *.temp
 
 git-filter-repo.py
-*.db
