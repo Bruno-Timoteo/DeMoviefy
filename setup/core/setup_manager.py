@@ -3,7 +3,7 @@ import shutil
 import threading
 from typing import Callable
 
-from config import ROOT, REQUIREMENTS, FRONTEND_DIR
+from config import ROOT, REQUIREMENTS, FRONTEND_DIR, AI_REQUIREMENTS, AI_UTILS_PATH
 from utils.env_utils import find_venv_python, venv_python, get_installed_package_version, torch_torchvision_compatible
 from core.process_manager import ProcessManager
 
@@ -56,11 +56,22 @@ class SetupManager:
                     self.set_state(True, "Installing AI packages (this may take a while)...")
                     self.log("[setup] installing heavier AI dependencies from ai-requirements.txt...")
                     
-                    # Defina o caminho do seu ai-requirements.txt (ajuste conforme seu config.py)
-                    ai_req_path = ROOT / "demoviefy-backend" / "ai-requirements.txt" 
-                    
-                    if self.pm.run_sync("setup", [str(py), "-m", "pip", "install", "-r", str(ai_req_path)], ROOT) != 0:
+                    if self.pm.run_sync("setup", [str(py), "-m", "pip", "install", "-r", str(AI_REQUIREMENTS)], ROOT) != 0:
                         raise RuntimeError("Failed installing AI dependencies")
+                    
+                    self.set_state(True, "Downloading AI models (Google Drive)...")
+                    self.log("[setup] starting AI models download script...")
+                    
+                    script_path = AI_UTILS_PATH
+                    rc_models = self.pm.run_sync(
+                        "setup", 
+                        [str(py), str(script_path)], 
+                        ROOT
+                    )
+
+                    if rc_models != 0:
+                        self.log("[setup] warning: AI models download script returned an error.")
+
                 else:
                     self.log("[setup] skipping AI packages installation as requested.")
 
@@ -72,19 +83,6 @@ class SetupManager:
                 self.set_state(True, "Installing frontend npm packages...")
                 if self.pm.run_sync("setup", ["npm", "install"], FRONTEND_DIR) != 0:
                     raise RuntimeError("Failed npm install")
-                
-                self.set_state(True, "Downloading AI models (Google Drive)...")
-                self.log("[setup] starting AI models download script...")
-                script_path = ROOT / "setup" / "utils" / "ai_models_utils.py"
-
-                rc_models = self.pm.run_sync(
-                    "setup", 
-                    [str(py), str(script_path)], 
-                    ROOT
-                )
-
-                if rc_models != 0:
-                    self.log("[setup] warning: AI models download script returned an error.")
 
                 self.log("[setup] environment setup completed successfully.")
                 self.set_state(False, "Ready")
