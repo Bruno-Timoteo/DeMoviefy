@@ -8,6 +8,8 @@ FRONTEND_DIR = ROOT / "demoviefy-frontend"
 TEST_APP = ROOT / "ai_model" / "app" / "app.py"
 REQUIREMENTS = ROOT / "demoviefy-backend" / "requirements.txt"
 AI_REQUIREMENTS = ROOT / "demoviefy-backend" / "ai-requirements.txt"
+AI_UTILS_PATH = ROOT / "setup" / "utils" / "ai_models_utils.py"
+
 
 # Configurações do Launcher
 LAUNCHER_VERSION = "2.0.0"
