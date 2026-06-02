@@ -106,5 +106,8 @@ dist/
 *.bak
 *.tmp
 *.temp
+*.git/
+git/
+.git/
 
 git-filter-repo.py
