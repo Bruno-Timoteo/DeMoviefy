@@ -16,7 +16,7 @@ class SetupManager:
         self.set_state = state_callback
         self.is_running = False
 
-    def run_setup(self) -> None:
+    def run_setup(self, install_ai: bool = False) -> None:
         """Inicia o fluxo de setup em uma thread separada."""
         if self.is_running:
             self.log("[setup] setup environment is already running.")
@@ -51,6 +51,18 @@ class SetupManager:
                 self.set_state(True, "Installing backend deps...")
                 if self.pm.run_sync("setup", [str(py), "-m", "pip", "install", "-r", str(REQUIREMENTS)], ROOT) != 0:
                     raise RuntimeError("Failed installing backend deps")
+                
+                if install_ai:
+                    self.set_state(True, "Installing AI packages (this may take a while)...")
+                    self.log("[setup] installing heavier AI dependencies from ai-requirements.txt...")
+                    
+                    # Defina o caminho do seu ai-requirements.txt (ajuste conforme seu config.py)
+                    ai_req_path = ROOT / "demoviefy-backend" / "ai-requirements.txt" 
+                    
+                    if self.pm.run_sync("setup", [str(py), "-m", "pip", "install", "-r", str(ai_req_path)], ROOT) != 0:
+                        raise RuntimeError("Failed installing AI dependencies")
+                else:
+                    self.log("[setup] skipping AI packages installation as requested.")
 
                 torch_ver = get_installed_package_version(py, "torch")
                 torchvision_ver = get_installed_package_version(py, "torchvision")

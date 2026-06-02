@@ -1,3 +1,14 @@
+# Video processing
+ffmpeg-python==0.2.0
+opencv-python==4.10.0.84
+
+# AI detection
+ultralytics==8.3.50
+
+
+
+# Bibliotecas para transcrição. Deu algum erro na escola que deve ser investigado.
+
 # Optional transcription stack.
 # Install only if you need speech-to-text features.
 #
@@ -5,7 +16,8 @@
 # openai-whisper may fail on newer Python versions (for example Python 3.13)
 # because of upstream packaging/build issues. Prefer Python 3.11/3.12 for this.
 
-openai-whisper==20231117
+#openai-whisper==20231117
 # Keep torch aligned with backend ultralytics dependency to avoid incompatible torchvision pins.
 # If you need a different torch version, check run_form.py and this file contents.
-torch==2.11.0
+#torch==2.11.0
+
