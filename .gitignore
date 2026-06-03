@@ -44,6 +44,7 @@ transcriptions/
 *.pth
 *.onnx
 *.engine
+ai_model/
 
 # =========================
 # FFMPEG (BINÁRIOS LOCAIS)
@@ -90,6 +91,7 @@ yarn-error.log*
 # =========================
 .DS_Store
 Thumbs.db
+*.db
 
 # =========================
 # BUILD / DISTRIBUIÇÃO
@@ -104,4 +106,8 @@ dist/
 *.bak
 *.tmp
 *.temp
-.git 
+*.git/
+git/
+.git/
+
+git-filter-repo.py
