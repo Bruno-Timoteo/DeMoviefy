@@ -104,4 +104,4 @@ dist/
 *.bak
 *.tmp
 *.temp
-
+.git 
