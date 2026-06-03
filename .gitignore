@@ -45,6 +45,7 @@ transcriptions/
 *.onnx
 *.engine
 ai_model/
+teste/model/
 
 # =========================
 # FFMPEG (BINÁRIOS LOCAIS)
