@@ -1,0 +1,1 @@
+// Aqui colocar todas as funções normalizadoras que estão em videoService.

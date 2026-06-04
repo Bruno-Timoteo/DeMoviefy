@@ -1,0 +1,800 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { AxiosError } from "axios";
+
+import { VideoService } from "../services/videoService"; // Responsável pelas chamadas de API
+import { NewVideoPanel } from "./NewVideoPanel";
+import { VideoLibrary } from "./VideoLibrary";
+import { VideoWorkbench } from "./VideoWorkbench";
+import { ProcessingQueuePanel } from "./ProcessingQueuePanel";
+import "../styles/VideoDashboard.css"
+import "../styles/NewVideoPanel.css";
+import "../styles/ProcessingQueuePanel.css";
+import "../styles/NewDashboardLayout.css";
+import type {
+    AIModelOption,
+    AITaskOption,
+    BackendVersionResponse,
+    VideoAnalysisResponse,
+    VideoRecord,
+    VideoTranscriptionResponse,
+} from "../types";
+
+type AnalysisState = "idle" | "loading" | "ready" | "pending" | "error";
+type CompatibilityState =
+    | {
+        status: "checking";
+        message: string;
+        backendInfo: null;
+    }
+    | {
+        status: "compatible" | "mismatch" | "unavailable";
+        message: string;
+        backendInfo: BackendVersionResponse | null;
+    };
+
+function prettifyJson(value: unknown) {
+    return JSON.stringify(value, null, 2);
+}
+
+function buildAnalysisMessage(
+    state: AnalysisState,
+    video: VideoRecord | null,
+    analysis: VideoAnalysisResponse | null,
+) {
+    if (!video) {
+        return "Escolha um item da biblioteca para abrir preview, analise e transcricao.";
+    }
+
+    if (state === "loading") {
+        return "Consultando o resumo gerado pelo backend.";
+    }
+
+    if (state === "pending") {
+        return (
+            analysis?.message ??
+            `O video ainda esta em processamento (${video.processing.processing_progress}%). ${video.processing.processing_message ?? ""}`.trim()
+        );
+    }
+
+    if (state === "error") {
+        return analysis?.message ?? "Nao foi possivel carregar a analise agora. Voce ainda pode editar ou recriar o JSON.";
+    }
+
+    if (!analysis) {
+        return "Este video ainda nao possui resumo salvo.";
+    }
+
+    return analysis.message ?? `Analise carregada de ${analysis.storage.analysis_relative_path}.`;
+}
+
+function chooseFirstModel(models: AIModelOption[], taskType: string) {
+    return models.find((model) => model.task_type === taskType)?.relative_path ?? "";
+}
+
+function choosePreferredTask(tasks: AITaskOption[]) {
+    return tasks.find((task) => task.task_type === "object_detection")?.task_type ?? tasks[0]?.task_type ?? "object_detection";
+}
+
+function buildArtifactSignature(video: VideoRecord | null, variantId: string | null) {
+    if (!video) {
+        return "empty";
+    }
+
+    return [
+        video.id,
+        video.status,
+        video.analysis_ready,
+        video.transcription_ready,
+        video.storage.annotated_exists,
+        video.ai_config.task_type,
+        video.ai_config.model_relative_path,
+        video.ai_config.frame_stride,
+        video.ai_config.confidence_threshold,
+        video.ai_config.max_frames,
+        video.ai_config.clip_start_sec,
+        video.ai_config.clip_end_sec ?? "end",
+        variantId ?? "latest",
+    ].join("|");
+}
+
+function getApiErrorMessage(error: unknown, fallback: string) {
+    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+    return axiosError.response?.data?.error ?? axiosError.response?.data?.message ?? fallback;
+}
+
+export default function VideoDashboard() {
+    const [file, setFile] = useState<File | null>(null);
+    const [videos, setVideos] = useState<VideoRecord[]>([]);
+    const [tasks, setTasks] = useState<AITaskOption[]>([]);
+    const [models, setModels] = useState<AIModelOption[]>([]);
+    const [selectedVideoId, setSelectedVideoId] = useState<number | null>(null);
+    const [analysis, setAnalysis] = useState<VideoAnalysisResponse | null>(null);
+    const [selectedAnalysisVariantId, setSelectedAnalysisVariantId] = useState<string | null>(null);
+    const [analysisState, setAnalysisState] = useState<AnalysisState>("idle");
+    const [analysisDraft, setAnalysisDraft] = useState("{}");
+    const [transcription, setTranscription] = useState<VideoTranscriptionResponse | null>(null);
+    const [transcriptionDraft, setTranscriptionDraft] = useState("");
+    const [transcriptionMessage, setTranscriptionMessage] = useState(
+        "Use este campo para revisar, corrigir ou escrever a transcricao manualmente.",
+    );
+    const [loadingVideos, setLoadingVideos] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [message, setMessage] = useState("");
+    const [hint, setHint] = useState("");
+    const [uploadTask, setUploadTask] = useState("object_detection");
+    const [uploadModelPath, setUploadModelPath] = useState("");
+    const [uploadFrameStride, setUploadFrameStride] = useState("8");
+    const [uploadConfidenceThreshold, setUploadConfidenceThreshold] = useState("0.35");
+    const [uploadMaxFrames, setUploadMaxFrames] = useState("300");
+    const [uploadClipStart, setUploadClipStart] = useState("0");
+    const [uploadClipEnd, setUploadClipEnd] = useState("");
+    const [videoTask, setVideoTask] = useState("object_detection");
+    const [videoModelPath, setVideoModelPath] = useState("");
+    const [videoFrameStride, setVideoFrameStride] = useState("8");
+    const [videoConfidenceThreshold, setVideoConfidenceThreshold] = useState("0.35");
+    const [videoMaxFrames, setVideoMaxFrames] = useState("300");
+    const [videoClipStart, setVideoClipStart] = useState("0");
+    const [videoClipEnd, setVideoClipEnd] = useState("");
+    const [compatibility, setCompatibility] = useState<CompatibilityState>({
+        status: "checking",
+        message: "Verificando compatibilidade entre frontend e backend.",
+        backendInfo: null,
+    });
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const initializedRef = useRef(false);
+    const lastArtifactSignatureRef = useRef("");
+
+    const selectedVideo = useMemo(
+        () => videos.find((video) => video.id === selectedVideoId) ?? null,
+        [videos, selectedVideoId],
+    );
+    useEffect(() => {
+        setSelectedAnalysisVariantId(null);
+    }, [selectedVideo?.id]);
+
+    const selectedVideoIsBusy = selectedVideo?.status.startsWith("PROCESSANDO") ?? false;
+
+    const stats = useMemo(() => {
+        const total = videos.length;
+        const processing = videos.filter((video) => video.status.startsWith("PROCESSANDO")).length;
+        const processed = videos.filter((video) => video.status === "PROCESSADO").length;
+        const errors = videos.filter((video) => video.status.startsWith("ERRO")).length;
+        return { total, processing, processed, errors };
+    }, [videos]);
+
+    const checkBackendCompatibility = useCallback(async () => {
+        setCompatibility({ status: "checking", message: "Verificando compatibilidade...", backendInfo: null })
+
+        const { isCompatible, backendInfo, reason } = await VideoService.checkCompatibility()
+
+        setCompatibility({
+            status: reason,
+            backendInfo,
+            message: reason === "compatible"
+                ? `Contrato ${backendInfo?.api_contract_version} validado com sucesso.`
+                : reason === "mismatch"
+                    ? "Frontend e backend estao em versoes de contrato diferentes."
+                    : "Nao foi possivel validar a versao do backend.",
+        })
+
+        return isCompatible
+    }, [])
+
+    const fetchCatalog = useCallback(async () => {
+        try {
+            const { tasks, models } = await VideoService.getModelCatalog();
+
+            setTasks(tasks);
+            setModels(models);
+
+            const defaultTask = choosePreferredTask(tasks);
+
+            setUploadTask(defaultTask);
+            setUploadModelPath(chooseFirstModel(models, defaultTask));
+        } catch (error) {
+            console.error(error);
+            setHint("Nao foi possivel carregar o catalogo de modelos.");
+        }
+    }, []);
+
+    const fetchVideos = useCallback(async (options?: { preserveHint?: boolean; silent?: boolean }) => {
+        const preserveHint = options?.preserveHint ?? true
+        const silent = options?.silent ?? false
+
+        if (!silent) setLoadingVideos(true)
+
+        try {
+            const normalizedVideos = await VideoService.listVideosNormalized()
+            setVideos(normalizedVideos)
+            setSelectedVideoId((current) => {
+                if (normalizedVideos.length === 0 || current === null) return null
+                return normalizedVideos.some((v) => v.id === current) ? current : null
+            })
+            if (!preserveHint) setHint(`Biblioteca atualizada com ${normalizedVideos.length} video(s).`)
+        } catch (error) {
+            console.error(error)
+            setHint("Nao foi possivel atualizar a biblioteca.")
+        } finally {
+            if (!silent) setLoadingVideos(false)
+        }
+    }, [])
+
+    const fetchTranscription = useCallback(async (video: VideoRecord) => {
+        try {
+            const { data, status } = await VideoService.getTranscription(video.transcription_url);
+            setTranscription(data);
+            setTranscriptionDraft(data.transcription.content ?? "");
+
+            if (status === 200) {
+                setTranscriptionMessage(
+                    data.transcription.status === "unavailable"
+                        ? data.transcription.error ?? "A transcrição automática não está disponível."
+                        : `Transcrição carregada de ${data.storage.transcription_relative_path}.`
+                )
+                return
+            }
+
+            if (status === 202) {
+                setTranscriptionMessage(data.transcription.error ?? "A transcrição ainda está em processamento.");
+                return
+            }
+
+            setTranscriptionMessage(data.transcription.error ?? "Ainda não existe transcrição salva.");
+        } catch (error) {
+            console.error(error);
+            setTranscriptionMessage("Não foi possível carregar a transcrição.");
+        }
+    }, []);
+
+    useEffect(() => {
+        if (initializedRef.current) {
+            return;
+        }
+        initializedRef.current = true;
+        const bootstrap = async () => {
+            const compatible = await checkBackendCompatibility();
+            if (!compatible) {
+                return;
+            }
+            await Promise.all([fetchCatalog(), fetchVideos({ preserveHint: false })]);
+        };
+        void bootstrap();
+    }, [checkBackendCompatibility, fetchCatalog, fetchVideos]);
+
+    useEffect(() => {
+        if (compatibility.status !== "compatible") {
+            return;
+        }
+
+        const hasRunningAnalysis = videos.some((video) => video.status.startsWith("PROCESSANDO"));
+        if (!hasRunningAnalysis) {
+            return;
+        }
+
+        // Poll only while something is still being processed so the UI updates
+        // itself without forcing the user to refresh manually.
+        const timer = window.setInterval(() => {
+            void fetchVideos({ silent: true });
+        }, 7000);
+
+        return () => window.clearInterval(timer);
+    }, [compatibility.status, videos, fetchVideos]);
+
+    useEffect(() => {
+        if (!selectedVideo) {
+            setAnalysis(null);
+            setSelectedAnalysisVariantId(null);
+            setAnalysisState("idle");
+            setAnalysisDraft("{}");
+            setTranscription(null);
+            setTranscriptionDraft("");
+            lastArtifactSignatureRef.current = "";
+            return;
+        }
+
+        setVideoTask(selectedVideo.ai_config.task_type);
+        setVideoModelPath(selectedVideo.ai_config.model_relative_path);
+        setVideoFrameStride(String(selectedVideo.ai_config.frame_stride ?? 8));
+        setVideoConfidenceThreshold(String(selectedVideo.ai_config.confidence_threshold ?? 0.35));
+        setVideoMaxFrames(String(selectedVideo.ai_config.max_frames ?? 300));
+        setVideoClipStart(String(selectedVideo.ai_config.clip_start_sec ?? 0));
+        setVideoClipEnd(
+            selectedVideo.ai_config.clip_end_sec === null ? "" : String(selectedVideo.ai_config.clip_end_sec),
+        );
+
+        const currentSignature = buildArtifactSignature(selectedVideo, selectedAnalysisVariantId);
+        if (lastArtifactSignatureRef.current === currentSignature) {
+            return;
+        }
+        lastArtifactSignatureRef.current = currentSignature;
+
+        let cancelled = false;
+
+        const fetchArtifacts = async () => {
+            setAnalysisState("loading")
+            try {
+            const { data: normalizedVideoAnalysis, status } = await VideoService.getNormalizedVideoAnalysis(
+                selectedVideo.analysis_url,
+                selectedAnalysisVariantId
+            )
+            if (cancelled) return
+
+            setAnalysis(normalizedVideoAnalysis)
+            if (
+                normalizedVideoAnalysis?.selected_variant_id &&
+                normalizedVideoAnalysis.selected_variant_id !== selectedAnalysisVariantId
+            ) {
+                setSelectedAnalysisVariantId(normalizedVideoAnalysis.selected_variant_id)
+            }
+            setAnalysisDraft(prettifyJson(normalizedVideoAnalysis?.analysis ?? {}))
+            setAnalysisState(status === 200 ? "ready" : status === 202 ? "pending" : "error")
+            } catch (error) {
+            if (!cancelled) {
+                console.error(error)
+                setAnalysis(null)
+                setAnalysisDraft("{}")
+                setAnalysisState("error")
+            }
+            }
+
+            if (!cancelled) await fetchTranscription(selectedVideo)
+        }
+
+        void fetchArtifacts();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [selectedVideo, selectedAnalysisVariantId]);
+
+    const handleUploadTaskChange = useCallback((taskType: string) => {
+        setUploadTask(taskType);
+        setUploadModelPath(chooseFirstModel(models, taskType));
+    }, [models]);
+
+    const handleVideoTaskChange = useCallback((taskType: string) => {
+        setVideoTask(taskType);
+        setVideoModelPath(chooseFirstModel(models, taskType));
+    }, [models]);
+
+    const handleUpload = useCallback(async () => {
+        if (!file) {
+            setMessage("Selecione um arquivo antes de enviar.");
+            setHint("");
+            return;
+        }
+
+        setUploading(true);
+        try {
+            const response = await VideoService.uploadVideo(
+                file,
+                uploadTask,
+                uploadModelPath,
+                parseInt(uploadFrameStride) || 8,
+                parseFloat(uploadConfidenceThreshold) || 0.35,
+                parseInt(uploadMaxFrames) || 300,
+                parseInt(uploadClipStart) || 0,
+                uploadClipEnd.trim() ? parseInt(uploadClipEnd) : null
+            )
+
+            setMessage(response.message);
+            setHint(
+                `Video salvo em ${response.next_steps.video_saved_in}. Analise em ${response.next_steps.analysis_will_be_saved_in}, video anotado em ${response.next_steps.annotated_will_be_saved_in} e transcricao em ${response.next_steps.transcription_will_be_saved_in}.`,
+            );
+            setFile(null);
+            setUploadFrameStride("8");
+            setUploadConfidenceThreshold("0.35");
+            setUploadMaxFrames("300");
+            setUploadClipStart("0");
+            setUploadClipEnd("");
+            await fetchVideos();
+            setSelectedVideoId(null);
+        } catch (error) {
+            console.error(error);
+            setMessage(getApiErrorMessage(error, "Erro ao enviar o video."));
+            setHint("Confira a combinacao entre tarefa e modelo e tente novamente.");
+        } finally {
+            setUploading(false);
+        }
+    }, [file, uploadTask, uploadModelPath, uploadFrameStride, uploadConfidenceThreshold, uploadMaxFrames, uploadClipStart, uploadClipEnd, fetchVideos]);
+
+    const handleSaveConfig = useCallback(async () => {
+        if (!selectedVideo) {
+            return;
+        }
+
+        try {
+            await VideoService.saveAiConfig(selectedVideo.id, {
+            task_type: videoTask,
+            model_path: videoModelPath,
+            frame_stride: videoFrameStride,
+            confidence_threshold: videoConfidenceThreshold,
+            max_frames: videoMaxFrames,
+            clip_start_sec: videoClipStart,
+            clip_end_sec: videoClipEnd.trim() ? videoClipEnd : null,
+            })
+            setMessage("Configuracao de IA salva para o video selecionado.");
+            await fetchVideos();
+        } catch (error) {
+            console.error(error);
+            setMessage(getApiErrorMessage(error, "Nao foi possivel salvar a configuracao de IA."));
+        }
+    }, [selectedVideo, videoTask, videoModelPath, videoFrameStride, videoConfidenceThreshold, videoMaxFrames, videoClipStart, videoClipEnd, fetchVideos]);
+
+    const handleReprocess = useCallback(async () => {
+        if (!selectedVideo) {
+            return;
+        }
+
+        try {
+            await VideoService.reprocessVideo(selectedVideo.id, {
+                task_type: videoTask,
+                model_path: videoModelPath,
+                frame_stride: videoFrameStride,
+                confidence_threshold: videoConfidenceThreshold,
+                max_frames: videoMaxFrames,
+                clip_start_sec: videoClipStart,
+                clip_end_sec: videoClipEnd.trim() ? videoClipEnd : null,
+            })
+            setMessage("Reprocessamento iniciado.");
+            setHint("O video sera analisado novamente com a configuracao escolhida.");
+            await fetchVideos();
+        } catch (error) {
+            console.error(error);
+            setMessage(getApiErrorMessage(error, "Nao foi possivel iniciar o reprocessamento."));
+        }
+    }, [selectedVideo, videoTask, videoModelPath, videoFrameStride, videoConfidenceThreshold, videoMaxFrames, videoClipStart, videoClipEnd, fetchVideos]);
+
+    const handleSaveAnalysis = useCallback(async () => {
+        if (!selectedVideo) {
+            return;
+        }
+
+        try {
+            const parsed = JSON.parse(analysisDraft);
+            await VideoService.saveAnalysis(selectedVideo.id, parsed, selectedAnalysisVariantId)
+
+            setAnalysis({
+                video_id: selectedVideo.id,
+                filename: selectedVideo.filename,
+                status: selectedVideo.status,
+                selected_variant_id: selectedAnalysisVariantId,
+                available_variants: analysis?.available_variants ?? [],
+                ai_config: selectedVideo.ai_config,
+                storage: selectedVideo.storage,
+                analysis: parsed,
+            });
+            setAnalysisDraft(prettifyJson(parsed));
+            setAnalysisState("ready");
+            setMessage("Analise salva com sucesso.");
+            await fetchVideos();
+        } catch (error) {
+            console.error(error);
+            setMessage(getApiErrorMessage(error, "JSON invalido ou erro ao salvar a analise."));
+        }
+    }, [selectedVideo, analysisDraft, fetchVideos]);
+
+    const handleDeleteAnalysis = useCallback(async () => {
+        if (!selectedVideo) {
+            return;
+        }
+
+        try {
+            await VideoService.deleteAnalysis(selectedVideo.id, selectedAnalysisVariantId)
+            setAnalysis(null);
+            setSelectedAnalysisVariantId(null);
+            setAnalysisDraft("{}");
+            setAnalysisState("error");
+            setMessage(selectedAnalysisVariantId ? "Versao da analise excluida." : "Analise excluida.");
+            await fetchVideos();
+        } catch (error) {
+            console.error(error);
+            setMessage(getApiErrorMessage(error, "Nao foi possivel excluir a analise."));
+        }
+    }, [selectedVideo, selectedAnalysisVariantId, fetchVideos]);
+
+    const handleDeleteVideo = useCallback(async () => {
+        if (!selectedVideo) {
+            return;
+        }
+
+        try {
+            await VideoService.deleteVideo(selectedVideo.id);        
+            setMessage("Video removido com sucesso.");
+            setHint("O arquivo enviado e os artefatos associados foram removidos.");
+            setAnalysis(null);
+            setAnalysisDraft("{}");
+            setTranscriptionDraft("");
+            setTranscription(null);
+            lastArtifactSignatureRef.current = "";
+            await fetchVideos();
+        } catch (error) {
+            console.error(error);
+            setMessage(getApiErrorMessage(error, "Nao foi possivel excluir o video."));
+        }
+    }, [selectedVideo, fetchVideos]);
+
+    const handleSaveTranscription = useCallback(async () => {
+        if (!selectedVideo) {
+            return;
+        }
+
+        try {
+            await VideoService.saveTranscription(selectedVideo.id, transcriptionDraft)
+            setMessage("Transcricao salva com sucesso.");
+            await fetchVideos();
+            await fetchTranscription(selectedVideo);
+        } catch (error) {
+            console.error(error);
+            setMessage(getApiErrorMessage(error, "Nao foi possivel salvar a transcricao."));
+        }
+    }, [selectedVideo, transcriptionDraft, fetchVideos, fetchTranscription]);
+
+    const handleDeleteTranscription = useCallback(async () => {
+        if (!selectedVideo) {
+            return;
+        }
+
+        try {
+            await VideoService.deleteTranscription(selectedVideo.id)
+            setTranscription(null);
+            setTranscriptionDraft("");
+            setTranscriptionMessage("Transcricao removida. Voce pode criar uma nova quando quiser.");
+            setMessage("Transcricao excluida.");
+            await fetchVideos();
+        } catch (error) {
+            console.error(error);
+            setMessage(getApiErrorMessage(error, "Nao foi possivel excluir a transcricao."));
+        }
+    }, [selectedVideo, fetchVideos]);
+
+    const handleGenerateTranscription = useCallback(async () => {
+        if (!selectedVideo) {
+            return;
+        }
+
+        try {
+            setTranscriptionMessage("Gerando transcricao automatica. Isso pode levar alguns instantes.");
+            const { message } = await VideoService.generateTranscription(selectedVideo.id)
+            setMessage(message)
+            await fetchVideos();
+            await fetchTranscription(selectedVideo);
+        } catch (error) {
+            console.error(error);
+            setMessage(
+                getApiErrorMessage(
+                    error,
+                    "Nao foi possivel gerar a transcricao automatica. Verifique o Whisper e o ffmpeg.",
+                ),
+            );
+        }
+    }, [selectedVideo, fetchVideos, fetchTranscription]);
+
+    const handleRetryCompatibility = useCallback(async () => {
+        const compatible = await checkBackendCompatibility();
+        if (!compatible) {
+            return;
+        }
+        await Promise.all([fetchCatalog(), fetchVideos({ preserveHint: false })]);
+    }, [checkBackendCompatibility, fetchCatalog, fetchVideos]);
+
+    if (compatibility.status !== "compatible") {
+        const { frontendAppVersion, frontendApiContractVersion } = VideoService.getVersionInfo()
+
+        return (
+            <div className="workspace">
+                <section className={`surface compatibility-banner is-${compatibility.status}`}>
+                    <div>
+                        <span className="eyebrow">Compatibilidade</span>
+                        <h2>
+                            {compatibility.status === "checking"
+                                ? "Validando versoes do sistema"
+                                : "Atualizacao necessaria antes de usar o painel"}
+                        </h2>
+                        <p>{compatibility.message}</p>
+                        <p className="compatibility-meta">
+                            Frontend {frontendAppVersion} · contrato {frontendApiContractVersion}
+                            {compatibility.backendInfo
+                                ? ` · backend ${compatibility.backendInfo.backend_app_version} · contrato ${compatibility.backendInfo.api_contract_version}`
+                                : ""}
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        className="ghost-button"
+                        onClick={() => void handleRetryCompatibility()}
+                        disabled={compatibility.status === "checking"}
+                    >
+                        {compatibility.status === "checking" ? "Verificando..." : "Tentar novamente"}
+                    </button>
+                </section>
+            </div>
+        );
+    }
+
+    const globalProcessState = uploading
+        ? { text: "Upload em andamento", progress: null }
+        : loadingVideos
+            ? { text: "Atualizando biblioteca", progress: null }
+            : selectedVideoIsBusy && selectedVideo
+                ? { text: `Processando video: ${selectedVideo.filename}`, progress: selectedVideo.processing.processing_progress }
+                : null;
+
+    const globalProgressValue = globalProcessState?.progress ?? 0;
+
+    return (
+        <div className="dashboard-container">
+            {/* Sidebar Overlay */}
+            <div
+                className={`sidebar-overlay ${sidebarOpen ? "show" : ""}`}
+                onClick={() => setSidebarOpen(false)}
+                aria-hidden="true"
+            />
+
+            {/* Sidebar Drawer */}
+            <aside className={`dashboard-sidebar ${sidebarOpen ? "open" : ""}`}>
+                <div className="dashboard-sidebar-header">
+                    <h2>Biblioteca</h2>
+                    <button
+                        className="sidebar-close-btn"
+                        onClick={() => setSidebarOpen(false)}
+                        aria-label="Fechar sidebar"
+                    >
+                        ✕
+                    </button>
+                </div>
+
+                <VideoLibrary
+                    videos={videos}
+                    selectedVideoId={selectedVideoId}
+                    loading={loadingVideos}
+                    onSelect={(id) => {
+                        setSelectedVideoId(id);
+                        setSidebarOpen(false);
+                    }}
+                />
+            </aside>
+
+            {/* Main Content */}
+            <div className="dashboard-main">
+                {/* Header */}
+                <header className="dashboard-header">
+                    <button
+                        className="menu-toggle"
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        aria-label="Abrir menu"
+                        title="Biblioteca de vídeos"
+                    >
+                        ☰
+                    </button>
+                    <h1 className="dashboard-title">DeMoviefy</h1>
+                    {selectedVideo && (
+                        <button
+                            type="button"
+                            className="ghost-button"
+                            onClick={() => setSelectedVideoId(null)}
+                        >
+                            Novo upload
+                        </button>
+                    )}
+                    <div style={{ flex: 1 }} />
+                </header>
+
+                {/* Progress Bar */}
+                {globalProcessState && (
+                    <section className="surface site-progress-panel">
+                        <div className="site-progress-title">
+                            <strong>{globalProcessState.text}</strong>
+                            <span>{globalProgressValue ? `${globalProgressValue}%` : "..."}</span>
+                        </div>
+                        <div className="site-progress-bar" aria-hidden="true">
+                            <span style={{ width: `${globalProgressValue}%` }} />
+                        </div>
+                    </section>
+                )}
+
+                {/* Content Area */}
+                <div className="dashboard-content">
+                    {selectedVideo ? (
+                        // Video Workbench
+                        <>
+                            <VideoWorkbench
+                                video={selectedVideo}
+                                analysis={analysis}
+                                analysisState={analysisState}
+                                analysisMessage={buildAnalysisMessage(analysisState, selectedVideo, analysis)}
+                                selectedAnalysisVariantId={selectedAnalysisVariantId}
+                                selectedTask={videoTask}
+                                selectedModelPath={videoModelPath}
+                                selectedFrameStride={videoFrameStride}
+                                selectedConfidenceThreshold={videoConfidenceThreshold}
+                                selectedMaxFrames={videoMaxFrames}
+                                selectedClipStart={videoClipStart}
+                                selectedClipEnd={videoClipEnd}
+                                taskOptions={tasks}
+                                modelOptions={models}
+                                analysisDraft={analysisDraft}
+                                transcription={transcription}
+                                transcriptionDraft={transcriptionDraft}
+                                transcriptionMessage={transcriptionMessage}
+                                isBusy={selectedVideoIsBusy}
+                                onAnalysisVariantChange={setSelectedAnalysisVariantId}
+                                onTaskChange={handleVideoTaskChange}
+                                onModelChange={setVideoModelPath}
+                                onFrameStrideChange={setVideoFrameStride}
+                                onConfidenceThresholdChange={setVideoConfidenceThreshold}
+                                onMaxFramesChange={setVideoMaxFrames}
+                                onClipStartChange={setVideoClipStart}
+                                onClipEndChange={setVideoClipEnd}
+                                onAnalysisDraftChange={setAnalysisDraft}
+                                onTranscriptionDraftChange={setTranscriptionDraft}
+                                onSaveConfig={handleSaveConfig}
+                                onReprocess={handleReprocess}
+                                onDeleteVideo={handleDeleteVideo}
+                                onSaveAnalysis={handleSaveAnalysis}
+                                onDeleteAnalysis={handleDeleteAnalysis}
+                                onGenerateTranscription={handleGenerateTranscription}
+                                onSaveTranscription={handleSaveTranscription}
+                                onDeleteTranscription={handleDeleteTranscription}
+                            />
+                        </>
+                    ) : (
+                        // New Video + Queue
+                        <>
+                            {/* Stats */}
+                            <div className="dashboard-stats">
+                                <div className="stat-card">
+                                    <span>Total</span>
+                                    <strong>{stats.total}</strong>
+                                </div>
+                                <div className="stat-card">
+                                    <span>Em processamento</span>
+                                    <strong>{stats.processing}</strong>
+                                </div>
+                                <div className="stat-card">
+                                    <span>Concluídos</span>
+                                    <strong>{stats.processed}</strong>
+                                </div>
+                                <div className="stat-card">
+                                    <span>Com erro</span>
+                                    <strong>{stats.errors}</strong>
+                                </div>
+                            </div>
+
+                            {/* Upload + Queue */}
+                            <div className="upload-section">
+                                <NewVideoPanel
+                                    file={file}
+                                    message={message}
+                                    hint={hint}
+                                    uploading={uploading}
+                                    selectedTask={uploadTask}
+                                    selectedModelPath={uploadModelPath}
+                                    frameStride={parseInt(uploadFrameStride, 10)}
+                                    confidenceThreshold={parseFloat(uploadConfidenceThreshold)}
+                                    maxFrames={parseInt(uploadMaxFrames, 10)}
+                                    clipStart={parseInt(uploadClipStart, 10)}
+                                    clipEnd={uploadClipEnd ? parseInt(uploadClipEnd, 10) : null}
+                                    tasks={tasks}
+                                    models={models}
+                                    onFileChange={setFile}
+                                    onTaskChange={handleUploadTaskChange}
+                                    onModelChange={setUploadModelPath}
+                                    onFrameStrideChange={(val) => setUploadFrameStride(String(val))}
+                                    onConfidenceThresholdChange={(val) => setUploadConfidenceThreshold(String(val))}
+                                    onMaxFramesChange={(val) => setUploadMaxFrames(String(val))}
+                                    onClipStartChange={(val) => setUploadClipStart(String(val))}
+                                    onClipEndChange={(val) => setUploadClipEnd(val ? String(val) : "")}
+                                    onUpload={handleUpload}
+                                    onRefresh={() => void fetchVideos({ preserveHint: false })}
+                                />
+
+                                <ProcessingQueuePanel videos={videos} />
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
