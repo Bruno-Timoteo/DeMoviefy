@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { VideoService } from "../services/videoService"; // Responsável pelas chamadas de API
+import { useCompatibility } from "../hooks/useCompatibility"
 import { NewVideoPanel } from "./NewVideoPanel";
 import { VideoLibrary } from "./VideoLibrary";
 import { VideoWorkbench } from "./VideoWorkbench";
@@ -10,7 +11,6 @@ import "../styles/NewVideoPanel.css";
 import "../styles/ProcessingQueuePanel.css";
 import "../styles/NewDashboardLayout.css";
 import type {
-    BackendVersionResponse,
     VideoTranscriptionResponse,
     VideoRecord,
     AITaskOption,
@@ -21,17 +21,6 @@ import type {
 import { prettifyJson, getApiErrorMessage, buildAnalysisMessage, chooseFirstModel, choosePreferredTask, buildArtifactSignature } from "../utils/helpers";
 
 type AnalysisState = "idle" | "loading" | "ready" | "pending" | "error";
-type CompatibilityState =
-    | {
-        status: "checking";
-        message: string;
-        backendInfo: null;
-    }
-    | {
-        status: "compatible" | "mismatch" | "unavailable";
-        message: string;
-        backendInfo: BackendVersionResponse | null;
-    };
 
 export default function VideoDashboard() {
     const [file, setFile] = useState<File | null>(null);
@@ -66,11 +55,6 @@ export default function VideoDashboard() {
     const [videoMaxFrames, setVideoMaxFrames] = useState("300");
     const [videoClipStart, setVideoClipStart] = useState("0");
     const [videoClipEnd, setVideoClipEnd] = useState("");
-    const [compatibility, setCompatibility] = useState<CompatibilityState>({
-        status: "checking",
-        message: "Verificando compatibilidade entre frontend e backend.",
-        backendInfo: null,
-    });
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const initializedRef = useRef(false);
     const lastArtifactSignatureRef = useRef("");
@@ -93,23 +77,8 @@ export default function VideoDashboard() {
         return { total, processing, processed, errors };
     }, [videos]);
 
-    const checkBackendCompatibility = useCallback(async () => {
-        setCompatibility({ status: "checking", message: "Verificando compatibilidade...", backendInfo: null })
 
-        const { isCompatible, backendInfo, reason } = await VideoService.checkCompatibility()
-
-        setCompatibility({
-            status: reason,
-            backendInfo,
-            message: reason === "compatible"
-                ? `Contrato ${backendInfo?.api_contract_version} validado com sucesso.`
-                : reason === "mismatch"
-                    ? "Frontend e backend estao em versoes de contrato diferentes."
-                    : "Nao foi possivel validar a versao do backend.",
-        })
-
-        return isCompatible
-    }, [])
+    const { compatibility, checkBackendCompatibility } = useCompatibility()
 
     const fetchCatalog = useCallback(async () => {
         try {
