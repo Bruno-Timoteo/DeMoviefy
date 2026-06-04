@@ -4,7 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 AI_MODEL_FOLDER = ROOT / "ai_model"
 BACKEND_DIR = ROOT / "demoviefy-backend"
-FRONTEND_DIR = ROOT / "demoviefy-front"
+FRONTEND_DIR = ROOT / "demoviefy-frontend"
 TEST_APP = ROOT / "ai_model" / "app" / "app.py"
 REQUIREMENTS = ROOT / "demoviefy-backend" / "requirements.txt"
 AI_REQUIREMENTS = ROOT / "demoviefy-backend" / "ai-requirements.txt"

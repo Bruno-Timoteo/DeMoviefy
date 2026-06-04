@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AxiosError } from "axios";
 
-// Será substituido para migrar tudo para o video service
-// import { api, frontendApiContractVersion, frontendAppVersion } from "../../../services/api";
-
-
-import { VideoService } from "../services/videoService";
+import { VideoService } from "../services/videoService"; // Responsável pelas chamadas de API
 import { NewVideoPanel } from "./NewVideoPanel";
 import { VideoLibrary } from "./VideoLibrary";
 import { VideoWorkbench } from "./VideoWorkbench";
@@ -18,7 +14,6 @@ import type {
     AIModelOption,
     AITaskOption,
     BackendVersionResponse,
-    UploadResponse,
     VideoAnalysisResponse,
     VideoRecord,
     VideoTranscriptionResponse,
@@ -585,7 +580,7 @@ export default function VideoDashboard() {
 
     if (compatibility.status !== "compatible") {
         const { frontendAppVersion, frontendApiContractVersion } = VideoService.getVersionInfo()
-        
+
         return (
             <div className="workspace">
                 <section className={`surface compatibility-banner is-${compatibility.status}`}>
