@@ -2,6 +2,9 @@ import { useCallback, useRef, useState } from "react";
 import type { AIModelOption, AITaskOption } from "../types";
 import "../styles/NewVideoPanel.css";
 
+
+// Página do painel de upload
+
 interface NewVideoPanelProps {
   file: File | null;
   message: string;

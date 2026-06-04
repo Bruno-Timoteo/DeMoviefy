@@ -2,7 +2,7 @@ import { memo } from "react";
 
 import { StatusBadge } from "./StatusBadge";
 import { ProcessingProgress } from "./ProcessingProgress";
-import type { VideoRecord } from "../../../features/videos/types";
+import type { VideoRecord } from "../types"
 
 type VideoLibraryProps = {
   videos: VideoRecord[];

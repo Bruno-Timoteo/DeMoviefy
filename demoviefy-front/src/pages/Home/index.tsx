@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { VideoService } from "../../services/videoService";
+import { VideoService } from "../Upload/services/videoService";
 import "./Home.css";
 
 interface Stats {

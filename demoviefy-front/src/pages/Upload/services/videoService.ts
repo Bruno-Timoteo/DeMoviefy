@@ -1,10 +1,10 @@
-import { api } from "./api";
+import { api, frontendAppVersion, frontendApiContractVersion } from "../../../services/api";
 import type {
   VideoRecord,
   BackendVersionResponse,
   ModelCatalogResponse,
   UploadResponse,
-} from "../features/videos/types";
+} from "../types";
 
 /**
  * Video Service
@@ -60,9 +60,35 @@ export class VideoService {
     return data;
   }
 
+
+  // Pega dados sobre a versão do backend
+
   static async getSystemVersion(): Promise<BackendVersionResponse> {
     const { data } = await api.get<BackendVersionResponse>("/system/version");
     return data;
+  }
+  
+  // Verifica a compatibilidade entre as duas
+  
+  static async checkCompatibility(): Promise<{
+    isCompatible: boolean;
+    backendInfo: BackendVersionResponse | null
+    reason: "compatible" | "mismatch" | "unavailable"
+  }> {
+    try {
+        const backendInfo = await VideoService.getSystemVersion();
+        const isCompatible =  backendInfo.api_contract_version == frontendApiContractVersion;
+
+        return {
+            isCompatible,
+            backendInfo,
+            reason: isCompatible ? "compatible" : "mismatch",
+        }
+    }
+
+    catch {
+        return {isCompatible: false, backendInfo: null, reason: "unavailable"}
+    }
   }
 
   static async getModelCatalog(): Promise<ModelCatalogResponse> {

@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AxiosError } from "axios";
 
-import { api, frontendApiContractVersion, frontendAppVersion } from "../../services/api";
-import { NewVideoPanel } from "../../pages/Upload/components/NewVideoPanel";
-import { VideoLibrary } from "../../pages/Upload/components/VideoLibrary";
-import { VideoWorkbench } from "../../pages/Upload/components/VideoWorkbench";
-import { ProcessingQueuePanel } from "../../pages/Upload/components/ProcessingQueuePanel";
-import "./styles/VideoDashboard.css";
-import "./styles/NewVideoPanel.css";
-import "./styles/ProcessingQueuePanel.css";
-import "./styles/NewDashboardLayout.css";
+import { api, frontendAppVersion, frontendApiContractVersion } from "../../../services/api";
+import { VideoService } from "../services/videoService";
+import { NewVideoPanel } from "./NewVideoPanel";
+import { VideoLibrary } from "./VideoLibrary";
+import { VideoWorkbench } from "./VideoWorkbench";
+import { ProcessingQueuePanel } from "./ProcessingQueuePanel";
+import "../styles/VideoDashboard.css"
+import "../styles/NewVideoPanel.css";
+import "../styles/ProcessingQueuePanel.css";
+import "../styles/NewDashboardLayout.css";
 import type {
   AIModelOption,
   AITaskOption,
@@ -20,7 +21,7 @@ import type {
   VideoAnalysisVariant,
   VideoRecord,
   VideoTranscriptionResponse,
-} from "./types";
+} from "../types";
 
 type AnalysisState = "idle" | "loading" | "ready" | "pending" | "error";
 type CompatibilityState =
@@ -278,44 +279,23 @@ export default function VideoDashboard() {
     return { total, processing, processed, errors };
   }, [videos]);
 
-  const checkBackendCompatibility = useCallback(async () => {
+    const checkBackendCompatibility = useCallback(async () => {
+    setCompatibility({ status: "checking", message: "Verificando compatibilidade...", backendInfo: null })
+
+    const { isCompatible, backendInfo, reason } = await VideoService.checkCompatibility()
+
     setCompatibility({
-      status: "checking",
-      message: "Verificando compatibilidade entre frontend e backend.",
-      backendInfo: null,
-    });
-
-    try {
-      const response = await api.get<BackendVersionResponse>("/system/version");
-      const backendInfo = response.data;
-
-      if (backendInfo.api_contract_version !== frontendApiContractVersion) {
-        setCompatibility({
-          status: "mismatch",
-          backendInfo,
-          message:
-            "Frontend e backend estao em versoes de contrato diferentes. Reinicie o backend atualizado antes de continuar.",
-        });
-        return false;
-      }
-
-      setCompatibility({
-        status: "compatible",
+        status: reason,
         backendInfo,
-        message: `Contrato ${backendInfo.api_contract_version} validado com sucesso.`,
-      });
-      return true;
-    } catch (error) {
-      console.error(error);
-      setCompatibility({
-        status: "unavailable",
-        backendInfo: null,
-        message:
-          "Nao foi possivel validar a versao do backend. Confira se o servidor foi reiniciado com a versao mais recente.",
-      });
-      return false;
-    }
-  }, []);
+        message: reason === "compatible"
+        ? `Contrato ${backendInfo?.api_contract_version} validado com sucesso.`
+        : reason === "mismatch"
+            ? "Frontend e backend estao em versoes de contrato diferentes."
+            : "Nao foi possivel validar a versao do backend.",
+    })
+
+    return isCompatible
+    }, [])
 
   const fetchCatalog = useCallback(async () => {
     try {

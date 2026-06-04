@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import Home from "../pages/Home";
 import Upload from "../pages/Upload";
 
-// Define os títulos das com base nas rotas
+// Define os títulos das páginas com base nas rotas
 const titlesMap: Record<string, string> = {
     "/": "DeMoviefy",
     "/upload": "DeMoviefy - Painel de Análise"
