@@ -9,7 +9,7 @@ import type {
   VideoAnalysisVariant,
   VideoRecord,
   VideoTranscriptionResponse,
-} from "../types";
+} from "../../../features/videos/types";
 import { toApiUrlWithQuery } from "../../../services/api";
 
 type VideoWorkbenchProps = {

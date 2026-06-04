@@ -1,4 +1,4 @@
-import type { VideoRecord } from "../types";
+import type { VideoRecord } from "../../../features/videos/types";
 import "../styles/ProcessingQueuePanel.css";
 
 interface ProcessingQueuePanelProps {

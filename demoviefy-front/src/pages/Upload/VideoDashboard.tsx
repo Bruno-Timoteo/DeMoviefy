@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AxiosError } from "axios";
 
 import { api, frontendApiContractVersion, frontendAppVersion } from "../../services/api";
-import { NewVideoPanel } from "./components/NewVideoPanel";
-import { VideoLibrary } from "./components/VideoLibrary";
-import { VideoWorkbench } from "./components/VideoWorkbench";
-import { ProcessingQueuePanel } from "./components/ProcessingQueuePanel";
+import { NewVideoPanel } from "../../pages/Upload/components/NewVideoPanel";
+import { VideoLibrary } from "../../pages/Upload/components/VideoLibrary";
+import { VideoWorkbench } from "../../pages/Upload/components/VideoWorkbench";
+import { ProcessingQueuePanel } from "../../pages/Upload/components/ProcessingQueuePanel";
 import "./styles/VideoDashboard.css";
 import "./styles/NewVideoPanel.css";
 import "./styles/ProcessingQueuePanel.css";
