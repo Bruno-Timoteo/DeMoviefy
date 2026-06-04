@@ -70,9 +70,14 @@ temp/
 # =========================
 # FRONTEND (NODE / VITE)
 # =========================
-demoviefy-front/node_modules/
-demoviefy-front/dist/
-demoviefy-front/.vite/
+demoviefy-fronend/node_modules/
+demoviefy-frontend/dist/
+demoviefy-frontend/.vite/
+
+*/node_modules/
+*/dist/
+*/.vite/
+
 
 # Logs do Node
 npm-debug.log*
