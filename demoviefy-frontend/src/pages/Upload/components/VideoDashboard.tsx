@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { AxiosError } from "axios";
 
 import { VideoService } from "../services/videoService"; // Responsável pelas chamadas de API
 import { NewVideoPanel } from "./NewVideoPanel";
@@ -11,13 +10,15 @@ import "../styles/NewVideoPanel.css";
 import "../styles/ProcessingQueuePanel.css";
 import "../styles/NewDashboardLayout.css";
 import type {
-    AIModelOption,
-    AITaskOption,
     BackendVersionResponse,
-    VideoAnalysisResponse,
-    VideoRecord,
     VideoTranscriptionResponse,
+    VideoRecord,
+    AITaskOption,
+    AIModelOption,
+    VideoAnalysisResponse
 } from "../types";
+
+import { prettifyJson, getApiErrorMessage, buildAnalysisMessage, chooseFirstModel, choosePreferredTask, buildArtifactSignature } from "../utils/helpers";
 
 type AnalysisState = "idle" | "loading" | "ready" | "pending" | "error";
 type CompatibilityState =
@@ -31,76 +32,6 @@ type CompatibilityState =
         message: string;
         backendInfo: BackendVersionResponse | null;
     };
-
-function prettifyJson(value: unknown) {
-    return JSON.stringify(value, null, 2);
-}
-
-function buildAnalysisMessage(
-    state: AnalysisState,
-    video: VideoRecord | null,
-    analysis: VideoAnalysisResponse | null,
-) {
-    if (!video) {
-        return "Escolha um item da biblioteca para abrir preview, analise e transcricao.";
-    }
-
-    if (state === "loading") {
-        return "Consultando o resumo gerado pelo backend.";
-    }
-
-    if (state === "pending") {
-        return (
-            analysis?.message ??
-            `O video ainda esta em processamento (${video.processing.processing_progress}%). ${video.processing.processing_message ?? ""}`.trim()
-        );
-    }
-
-    if (state === "error") {
-        return analysis?.message ?? "Nao foi possivel carregar a analise agora. Voce ainda pode editar ou recriar o JSON.";
-    }
-
-    if (!analysis) {
-        return "Este video ainda nao possui resumo salvo.";
-    }
-
-    return analysis.message ?? `Analise carregada de ${analysis.storage.analysis_relative_path}.`;
-}
-
-function chooseFirstModel(models: AIModelOption[], taskType: string) {
-    return models.find((model) => model.task_type === taskType)?.relative_path ?? "";
-}
-
-function choosePreferredTask(tasks: AITaskOption[]) {
-    return tasks.find((task) => task.task_type === "object_detection")?.task_type ?? tasks[0]?.task_type ?? "object_detection";
-}
-
-function buildArtifactSignature(video: VideoRecord | null, variantId: string | null) {
-    if (!video) {
-        return "empty";
-    }
-
-    return [
-        video.id,
-        video.status,
-        video.analysis_ready,
-        video.transcription_ready,
-        video.storage.annotated_exists,
-        video.ai_config.task_type,
-        video.ai_config.model_relative_path,
-        video.ai_config.frame_stride,
-        video.ai_config.confidence_threshold,
-        video.ai_config.max_frames,
-        video.ai_config.clip_start_sec,
-        video.ai_config.clip_end_sec ?? "end",
-        variantId ?? "latest",
-    ].join("|");
-}
-
-function getApiErrorMessage(error: unknown, fallback: string) {
-    const axiosError = error as AxiosError<{ error?: string; message?: string }>;
-    return axiosError.response?.data?.error ?? axiosError.response?.data?.message ?? fallback;
-}
 
 export default function VideoDashboard() {
     const [file, setFile] = useState<File | null>(null);
