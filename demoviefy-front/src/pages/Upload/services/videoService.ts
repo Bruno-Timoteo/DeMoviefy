@@ -48,7 +48,7 @@ function normalizeVideoRecord(video: Partial<VideoRecord>): VideoRecord {
     };
 }
 
-function normalizeAnalysisResponse(response: VideoAnalysisResponse | null): VideoAnalysisResponse | null {
+function normalizeVideoAnalysisResponse(response: VideoAnalysisResponse | null): VideoAnalysisResponse | null {
     if (!response) {
         return null;
     }
@@ -227,7 +227,7 @@ export class VideoService {
         return { data: response.data, status: response.status }
     }
 
-    static async getAnalysis(analysisUrl: string, variantId: string | null): Promise<{
+    static async getVideoAnalysis(analysisUrl: string, variantId: string | null): Promise<{
         data: VideoAnalysisResponse
         status: number
     }> {
@@ -238,15 +238,64 @@ export class VideoService {
         return { data: response.data, status: response.status }
     }
 
-    static async getNormalizedAnalysis(analysisUrl: string, variantId: string | null): Promise<{
+    static async getNormalizedVideoAnalysis(analysisUrl: string, variantId: string | null): Promise<{
         data: VideoAnalysisResponse | null
         status: number
     }> {
-        const response = await api.get<VideoAnalysisResponse>(analysisUrl, {
-            params: variantId ? { variant: variantId } : undefined,
-            validateStatus: (status) => status === 200 || status === 202 || status === 404,
-        })
-        return { data: normalizeAnalysisResponse(response.data), status: response.status }
+        const { data, status } = await VideoService.getVideoAnalysis(analysisUrl, variantId)
+        return { data: normalizeVideoAnalysisResponse(data), status }
     }
 
+    static async saveAiConfig(id: number, config: {
+        task_type: string;
+        model_path: string;
+        frame_stride: string;
+        confidence_threshold: string;
+        max_frames: string;
+        clip_start_sec: string;
+        clip_end_sec: string | null;
+    }): Promise<void> {
+        await api.put(`/videos/${id}/ai-config`, config)
+    }
+
+    static async reprocessVideo(id: number, config: {
+        task_type: string;
+        model_path: string;
+        frame_stride: string;
+        confidence_threshold: string;
+        max_frames: string;
+        clip_start_sec: string;
+        clip_end_sec: string | null;
+    }): Promise<void> {
+        await api.post(`/videos/${id}/reprocess`, config)
+    }
+
+    static async saveAnalysis(id: number, analysis: unknown, variantId: string | null): Promise<void> {
+        await api.put(`/videos/${id}/analysis`, { analysis }, {
+            params: variantId ? { variant: variantId } : undefined,
+        })
+    }
+
+    static async deleteAnalysis(id: number, variantId: string | null): Promise<void> {
+        await api.delete(`/videos/${id}/analysis`, {
+            params: variantId ? { variant: variantId } : undefined,
+        })
+    }
+
+    static async saveTranscription(id: number, content: string): Promise<void> {
+        await api.put(`/videos/${id}/transcription`, { content, source: "manual" })
+    }
+
+    static async deleteTranscription(id: number): Promise<void> {
+        await api.delete(`/videos/${id}/transcription`)
+    }
+
+    static async generateTranscription(id: number): Promise<{ message: string }> {
+        const { data } = await api.post<{ message: string }>(`/videos/${id}/transcription/generate`, {})
+        return data
+    }
+
+    static getVersionInfo() {
+        return { frontendAppVersion, frontendApiContractVersion }
+    }
 }

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AxiosError } from "axios";
 
 // Será substituido para migrar tudo para o video service
-import { api, frontendApiContractVersion, frontendAppVersion } from "../../../services/api";
+// import { api, frontendApiContractVersion, frontendAppVersion } from "../../../services/api";
 
 
 import { VideoService } from "../services/videoService";
@@ -318,20 +318,20 @@ export default function VideoDashboard() {
         const fetchArtifacts = async () => {
             setAnalysisState("loading")
             try {
-            const { data: normalizedAnalysis, status } = await VideoService.getNormalizedAnalysis(
+            const { data: normalizedVideoAnalysis, status } = await VideoService.getNormalizedVideoAnalysis(
                 selectedVideo.analysis_url,
                 selectedAnalysisVariantId
             )
             if (cancelled) return
 
-            setAnalysis(normalizedAnalysis)
+            setAnalysis(normalizedVideoAnalysis)
             if (
-                normalizedAnalysis?.selected_variant_id &&
-                normalizedAnalysis.selected_variant_id !== selectedAnalysisVariantId
+                normalizedVideoAnalysis?.selected_variant_id &&
+                normalizedVideoAnalysis.selected_variant_id !== selectedAnalysisVariantId
             ) {
-                setSelectedAnalysisVariantId(normalizedAnalysis.selected_variant_id)
+                setSelectedAnalysisVariantId(normalizedVideoAnalysis.selected_variant_id)
             }
-            setAnalysisDraft(prettifyJson(normalizedAnalysis?.analysis ?? {}))
+            setAnalysisDraft(prettifyJson(normalizedVideoAnalysis?.analysis ?? {}))
             setAnalysisState(status === 200 ? "ready" : status === 202 ? "pending" : "error")
             } catch (error) {
             if (!cancelled) {
@@ -369,29 +369,22 @@ export default function VideoDashboard() {
             return;
         }
 
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("ai_task", uploadTask);
-        formData.append("model_path", uploadModelPath);
-        formData.append("frame_stride", uploadFrameStride || "8");
-        formData.append("confidence_threshold", uploadConfidenceThreshold || "0.35");
-        formData.append("max_frames", uploadMaxFrames || "300");
-        formData.append("clip_start_sec", uploadClipStart || "0");
-        if (uploadClipEnd.trim()) {
-            formData.append("clip_end_sec", uploadClipEnd.trim());
-        }
-
         setUploading(true);
         try {
-            const response = await api.post<UploadResponse>("/videos", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+            const response = await VideoService.uploadVideo(
+                file,
+                uploadTask,
+                uploadModelPath,
+                parseInt(uploadFrameStride) || 8,
+                parseFloat(uploadConfidenceThreshold) || 0.35,
+                parseInt(uploadMaxFrames) || 300,
+                parseInt(uploadClipStart) || 0,
+                uploadClipEnd.trim() ? parseInt(uploadClipEnd) : null
+            )
 
-            setMessage(response.data.message);
+            setMessage(response.message);
             setHint(
-                `Video salvo em ${response.data.next_steps.video_saved_in}. Analise em ${response.data.next_steps.analysis_will_be_saved_in}, video anotado em ${response.data.next_steps.annotated_will_be_saved_in} e transcricao em ${response.data.next_steps.transcription_will_be_saved_in}.`,
+                `Video salvo em ${response.next_steps.video_saved_in}. Analise em ${response.next_steps.analysis_will_be_saved_in}, video anotado em ${response.next_steps.annotated_will_be_saved_in} e transcricao em ${response.next_steps.transcription_will_be_saved_in}.`,
             );
             setFile(null);
             setUploadFrameStride("8");
@@ -408,17 +401,7 @@ export default function VideoDashboard() {
         } finally {
             setUploading(false);
         }
-    }, [
-        file,
-        uploadTask,
-        uploadModelPath,
-        uploadFrameStride,
-        uploadConfidenceThreshold,
-        uploadMaxFrames,
-        uploadClipStart,
-        uploadClipEnd,
-        fetchVideos,
-    ]);
+    }, [file, uploadTask, uploadModelPath, uploadFrameStride, uploadConfidenceThreshold, uploadMaxFrames, uploadClipStart, uploadClipEnd, fetchVideos]);
 
     const handleSaveConfig = useCallback(async () => {
         if (!selectedVideo) {
@@ -426,32 +409,22 @@ export default function VideoDashboard() {
         }
 
         try {
-            await api.put(`/videos/${selectedVideo.id}/ai-config`, {
-                task_type: videoTask,
-                model_path: videoModelPath,
-                frame_stride: videoFrameStride,
-                confidence_threshold: videoConfidenceThreshold,
-                max_frames: videoMaxFrames,
-                clip_start_sec: videoClipStart,
-                clip_end_sec: videoClipEnd.trim() ? videoClipEnd : null,
-            });
+            await VideoService.saveAiConfig(selectedVideo.id, {
+            task_type: videoTask,
+            model_path: videoModelPath,
+            frame_stride: videoFrameStride,
+            confidence_threshold: videoConfidenceThreshold,
+            max_frames: videoMaxFrames,
+            clip_start_sec: videoClipStart,
+            clip_end_sec: videoClipEnd.trim() ? videoClipEnd : null,
+            })
             setMessage("Configuracao de IA salva para o video selecionado.");
             await fetchVideos();
         } catch (error) {
             console.error(error);
             setMessage(getApiErrorMessage(error, "Nao foi possivel salvar a configuracao de IA."));
         }
-    }, [
-        selectedVideo,
-        videoTask,
-        videoModelPath,
-        videoFrameStride,
-        videoConfidenceThreshold,
-        videoMaxFrames,
-        videoClipStart,
-        videoClipEnd,
-        fetchVideos,
-    ]);
+    }, [selectedVideo, videoTask, videoModelPath, videoFrameStride, videoConfidenceThreshold, videoMaxFrames, videoClipStart, videoClipEnd, fetchVideos]);
 
     const handleReprocess = useCallback(async () => {
         if (!selectedVideo) {
@@ -459,7 +432,7 @@ export default function VideoDashboard() {
         }
 
         try {
-            await api.post(`/videos/${selectedVideo.id}/reprocess`, {
+            await VideoService.reprocessVideo(selectedVideo.id, {
                 task_type: videoTask,
                 model_path: videoModelPath,
                 frame_stride: videoFrameStride,
@@ -467,7 +440,7 @@ export default function VideoDashboard() {
                 max_frames: videoMaxFrames,
                 clip_start_sec: videoClipStart,
                 clip_end_sec: videoClipEnd.trim() ? videoClipEnd : null,
-            });
+            })
             setMessage("Reprocessamento iniciado.");
             setHint("O video sera analisado novamente com a configuracao escolhida.");
             await fetchVideos();
@@ -475,17 +448,7 @@ export default function VideoDashboard() {
             console.error(error);
             setMessage(getApiErrorMessage(error, "Nao foi possivel iniciar o reprocessamento."));
         }
-    }, [
-        selectedVideo,
-        videoTask,
-        videoModelPath,
-        videoFrameStride,
-        videoConfidenceThreshold,
-        videoMaxFrames,
-        videoClipStart,
-        videoClipEnd,
-        fetchVideos,
-    ]);
+    }, [selectedVideo, videoTask, videoModelPath, videoFrameStride, videoConfidenceThreshold, videoMaxFrames, videoClipStart, videoClipEnd, fetchVideos]);
 
     const handleSaveAnalysis = useCallback(async () => {
         if (!selectedVideo) {
@@ -494,11 +457,8 @@ export default function VideoDashboard() {
 
         try {
             const parsed = JSON.parse(analysisDraft);
-            await api.put(`/videos/${selectedVideo.id}/analysis`, {
-                analysis: parsed,
-            }, {
-                params: selectedAnalysisVariantId ? { variant: selectedAnalysisVariantId } : undefined,
-            });
+            await VideoService.saveAnalysis(selectedVideo.id, parsed, selectedAnalysisVariantId)
+
             setAnalysis({
                 video_id: selectedVideo.id,
                 filename: selectedVideo.filename,
@@ -525,9 +485,7 @@ export default function VideoDashboard() {
         }
 
         try {
-            await api.delete(`/videos/${selectedVideo.id}/analysis`, {
-                params: selectedAnalysisVariantId ? { variant: selectedAnalysisVariantId } : undefined,
-            });
+            await VideoService.deleteAnalysis(selectedVideo.id, selectedAnalysisVariantId)
             setAnalysis(null);
             setSelectedAnalysisVariantId(null);
             setAnalysisDraft("{}");
@@ -546,7 +504,7 @@ export default function VideoDashboard() {
         }
 
         try {
-            await api.delete(`/videos/${selectedVideo.id}`);
+            await VideoService.deleteVideo(selectedVideo.id);        
             setMessage("Video removido com sucesso.");
             setHint("O arquivo enviado e os artefatos associados foram removidos.");
             setAnalysis(null);
@@ -567,10 +525,7 @@ export default function VideoDashboard() {
         }
 
         try {
-            await api.put(`/videos/${selectedVideo.id}/transcription`, {
-                content: transcriptionDraft,
-                source: "manual",
-            });
+            await VideoService.saveTranscription(selectedVideo.id, transcriptionDraft)
             setMessage("Transcricao salva com sucesso.");
             await fetchVideos();
             await fetchTranscription(selectedVideo);
@@ -586,7 +541,7 @@ export default function VideoDashboard() {
         }
 
         try {
-            await api.delete(`/videos/${selectedVideo.id}/transcription`);
+            await VideoService.deleteTranscription(selectedVideo.id)
             setTranscription(null);
             setTranscriptionDraft("");
             setTranscriptionMessage("Transcricao removida. Voce pode criar uma nova quando quiser.");
@@ -605,11 +560,8 @@ export default function VideoDashboard() {
 
         try {
             setTranscriptionMessage("Gerando transcricao automatica. Isso pode levar alguns instantes.");
-            const response = await api.post<{
-                message: string;
-                transcription: VideoTranscriptionResponse["transcription"];
-            }>(`/videos/${selectedVideo.id}/transcription/generate`, {});
-            setMessage(response.data.message);
+            const { message } = await VideoService.generateTranscription(selectedVideo.id)
+            setMessage(message)
             await fetchVideos();
             await fetchTranscription(selectedVideo);
         } catch (error) {
@@ -632,6 +584,8 @@ export default function VideoDashboard() {
     }, [checkBackendCompatibility, fetchCatalog, fetchVideos]);
 
     if (compatibility.status !== "compatible") {
+        const { frontendAppVersion, frontendApiContractVersion } = VideoService.getVersionInfo()
+        
         return (
             <div className="workspace">
                 <section className={`surface compatibility-banner is-${compatibility.status}`}>
