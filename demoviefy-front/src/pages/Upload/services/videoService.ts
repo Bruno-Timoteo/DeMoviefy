@@ -6,15 +6,59 @@ import type {
   UploadResponse,
 } from "../types";
 
-/**
- * Video Service
- * Centralized API client for video operations
- */
+import { DEFAULT_PROCESSING, DEFAULT_AI_CONFIG } from "../constants";
+
+function normalizeVideoRecord(video: Partial<VideoRecord>): VideoRecord {
+  return {
+    id: video.id ?? 0,
+    filename: video.filename ?? "video_sem_nome.mp4",
+    status: video.status ?? "PROCESSANDO",
+    created_at: video.created_at ?? null,
+    analysis_ready: Boolean(video.analysis_ready),
+    transcription_ready: Boolean(video.transcription_ready),
+    video_url: video.video_url ?? "",
+    annotated_url: video.annotated_url ?? "",
+    analysis_url: video.analysis_url ?? "",
+    transcription_url: video.transcription_url ?? "",
+    ai_config: {
+      ...DEFAULT_AI_CONFIG,
+      ...(video.ai_config ?? {}),
+    },
+    processing: {
+      ...DEFAULT_PROCESSING,
+      ...(video.processing ?? {}),
+    },
+    storage: {
+      video_relative_path: video.storage?.video_relative_path ?? "",
+      video_absolute_path: video.storage?.video_absolute_path ?? "",
+      video_exists: Boolean(video.storage?.video_exists),
+      analysis_relative_path: video.storage?.analysis_relative_path ?? "",
+      analysis_absolute_path: video.storage?.analysis_absolute_path ?? "",
+      analysis_exists: Boolean(video.storage?.analysis_exists),
+      annotated_relative_path: video.storage?.annotated_relative_path ?? "",
+      annotated_absolute_path: video.storage?.annotated_absolute_path ?? "",
+      annotated_exists: Boolean(video.storage?.annotated_exists),
+      transcription_relative_path: video.storage?.transcription_relative_path ?? "",
+      transcription_absolute_path: video.storage?.transcription_absolute_path ?? "",
+      transcription_exists: Boolean(video.storage?.transcription_exists),
+    },
+  };
+}
+
+
+// Faz as chamadas de vídeo para a API, mantendo os .tsx livres de importar a API diretamente.
+
 
 export class VideoService {
+
   static async listVideos(): Promise<VideoRecord[]> {
     const { data } = await api.get<VideoRecord[]>("/videos");
     return data;
+  }
+
+  static async listVideosNormalized(): Promise<VideoRecord[]> {
+    const videos = await VideoService.listVideos()
+    return videos.map((video) => normalizeVideoRecord(video))
   }
 
   static async getVideoById(id: number): Promise<VideoRecord> {
@@ -69,7 +113,7 @@ export class VideoService {
   }
   
   // Verifica a compatibilidade entre as duas
-  
+
   static async checkCompatibility(): Promise<{
     isCompatible: boolean;
     backendInfo: BackendVersionResponse | null
@@ -114,4 +158,6 @@ export class VideoService {
       return { total: 0, processing: 0, processed: 0, errors: 0 };
     }
   }
+
+  static
 }
