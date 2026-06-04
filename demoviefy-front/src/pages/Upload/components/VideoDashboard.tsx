@@ -289,42 +289,28 @@ export default function VideoDashboard() {
 
     const fetchTranscription = useCallback(async (video: VideoRecord) => {
         try {
-            const response = await api.get<VideoTranscriptionResponse>(video.transcription_url, {
-                validateStatus: (status) => status === 200 || status === 202 || status === 404,
-            });
+            const { data, status } = await VideoService.getTranscription(video.transcription_url);
+            setTranscription(data);
+            setTranscriptionDraft(data.transcription.content ?? "");
 
-            setTranscription(response.data);
-            setTranscriptionDraft(response.data.transcription.content ?? "");
-
-            if (response.status === 200) {
-                if (response.data.transcription.status === "unavailable") {
-                    setTranscriptionMessage(
-                        response.data.transcription.error ??
-                        "A transcricao automatica nao esta disponivel neste ambiente ainda.",
-                    );
-                } else {
-                    setTranscriptionMessage(
-                        `Transcricao carregada de ${response.data.storage.transcription_relative_path}.`,
-                    );
-                }
-                return;
-            }
-
-            if (response.status === 202) {
+            if (status === 200) {
                 setTranscriptionMessage(
-                    response.data.transcription.error ??
-                    "A transcricao ainda esta em processamento e sera atualizada em breve.",
-                );
-                return;
+                    data.transcription.status === "unavailable"
+                        ? data.transcription.error ?? "A transcrição automática não está disponível."
+                        : `Transcrição carregada de ${data.storage.transcription_relative_path}.`
+                )
+                return
             }
 
-            setTranscriptionMessage(
-                response.data.transcription.error ??
-                "Ainda nao existe transcricao salva. Voce pode criar uma manualmente aqui.",
-            );
+            if (status === 202) {
+                setTranscriptionMessage(data.transcription.error ?? "A transcrição ainda está em processamento.");
+                return
+            }
+
+            setTranscriptionMessage(data.transcription.error ?? "Ainda não existe transcrição salva.");
         } catch (error) {
             console.error(error);
-            setTranscriptionMessage("Nao foi possivel carregar a transcricao.");
+            setTranscriptionMessage("Não foi possível carregar a transcrição.");
         }
     }, []);
 

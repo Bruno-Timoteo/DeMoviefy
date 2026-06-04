@@ -4,6 +4,7 @@ import type {
   BackendVersionResponse,
   ModelCatalogResponse,
   UploadResponse,
+  VideoTranscriptionResponse,
 } from "../types";
 
 import { DEFAULT_PROCESSING, DEFAULT_AI_CONFIG } from "../constants";
@@ -159,5 +160,14 @@ export class VideoService {
     }
   }
 
-  static
+  static async getTranscription(transcriptionUrl: string): Promise<{
+    data: VideoTranscriptionResponse;
+    status: number;
+  }> {
+    const response = await api.get<VideoTranscriptionResponse>(transcriptionUrl, {
+        validateStatus: (status) => status === 200 || status === 204 || status === 404,
+    })
+    return { data: response.data, status: response.status }
+  } 
+
 }
