@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import Home from "../pages/Home";
 import Upload from "../pages/Upload";
 
-/* Define os títulos das com base nas rotas */
+// Define os títulos das com base nas rotas
 const titlesMap: Record<string, string> = {
     "/": "DeMoviefy",
     "/upload": "DeMoviefy - Painel de Análise"
@@ -21,6 +21,8 @@ function TitleManager() {
 }
 
 // Declara todas as rotas disponíveis em nosso projeto. Mais fácil para gerenciamento unificado.
+// A úlitma rota (com *) declara um cenário de exceção, caso não atenda nenhuma das anteriores.
+
 export default function Router() {
     return (
         <>

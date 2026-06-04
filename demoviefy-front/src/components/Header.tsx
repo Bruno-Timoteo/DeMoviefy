@@ -1,5 +1,7 @@
 import { NavLink } from "react-router-dom";
 
+import logoFull from "../assets/LogoFull.png"
+
 type HeaderProps = {
   themeLabel: string;
   onToggleTheme: () => void;
@@ -9,11 +11,12 @@ export default function Header({ themeLabel, onToggleTheme }: HeaderProps) {
   return (
     <header className="app-header">
       <div className="header-brand">
-        <span className="eyebrow">DeMoviefy</span>
+        
         <nav className="header-navigation">
-          <NavLink to="/" end className={({ isActive }) => `header-link${isActive ? " is-active" : ""}`}>
-            Home
-          </NavLink>
+          <NavLink to="/">
+            <img src={logoFull} alt="DeMoviefy" className="h-16 w-auto dark:invert" />
+          </NavLink>  
+
           <NavLink to="/upload" className={({ isActive }) => `header-link${isActive ? " is-active" : ""}`}>
             Upload
           </NavLink>
