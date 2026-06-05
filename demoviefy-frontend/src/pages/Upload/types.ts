@@ -151,3 +151,13 @@ export type UploadResponse = {
     };
   };
 };
+
+export type AiConfigPayload = {
+  task_type: string
+  model_path: string
+  frame_stride: string
+  confidence_threshold: string
+  max_frames: string
+  clip_start_sec: string
+  clip_end_sec: string | null
+};

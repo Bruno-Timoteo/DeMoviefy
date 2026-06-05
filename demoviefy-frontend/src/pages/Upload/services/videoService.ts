@@ -9,6 +9,7 @@ import type {
     VideoAnalysisVariant
 } from "../types";
 
+import type { AiConfigPayload } from "../types";
 import { DEFAULT_PROCESSING, DEFAULT_AI_CONFIG } from "../constants";
 
 function normalizeVideoRecord(video: Partial<VideoRecord>): VideoRecord {
@@ -246,28 +247,13 @@ export class VideoService {
         return { data: normalizeVideoAnalysisResponse(data), status }
     }
 
-    static async saveAiConfig(id: number, config: {
-        task_type: string;
-        model_path: string;
-        frame_stride: string;
-        confidence_threshold: string;
-        max_frames: string;
-        clip_start_sec: string;
-        clip_end_sec: string | null;
-    }): Promise<void> {
-        await api.put(`/videos/${id}/ai-config`, config)
+    static async saveAiConfig(id: number, config: AiConfigPayload): Promise<void> {
+        await api.put(`/videos/${id}/ai-config`, config);
     }
 
-    static async reprocessVideo(id: number, config: {
-        task_type: string;
-        model_path: string;
-        frame_stride: string;
-        confidence_threshold: string;
-        max_frames: string;
-        clip_start_sec: string;
-        clip_end_sec: string | null;
-    }): Promise<void> {
-        await api.post(`/videos/${id}/reprocess`, config)
+
+    static async reprocessVideo(id: number, config: AiConfigPayload): Promise<void> {
+        await api.post(`/videos/${id}/reprocess`, config);
     }
 
     static async saveAnalysis(id: number, analysis: unknown, variantId: string | null): Promise<void> {
