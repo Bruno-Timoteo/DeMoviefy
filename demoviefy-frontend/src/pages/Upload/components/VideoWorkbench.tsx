@@ -12,6 +12,8 @@ import type {
 } from "../types"
 import { toApiUrlWithQuery } from "../../../services/api";
 
+import { VideoConfigPanel } from "./VideoConfigPanel";
+
 type VideoWorkbenchProps = {
   video: VideoRecord | null;
   analysis: VideoAnalysisResponse | null;
@@ -128,7 +130,6 @@ export const VideoWorkbench = memo(function VideoWorkbench({
   const summary = analysis?.analysis ?? null;
   const analysisVariants = analysis?.available_variants ?? [];
   const hasMultipleAnalysisVariants = analysisVariants.length > 1;
-  const filteredModels = modelOptions.filter((model) => model.task_type === selectedTask);
   const transcriptionSegments = transcription?.transcription.segments ?? [];
   const annotatedVideoSrc = video
     ? toApiUrlWithQuery(video.annotated_url, {
@@ -367,115 +368,30 @@ export const VideoWorkbench = memo(function VideoWorkbench({
           )}
 
           <div className="editor-grid">
-            <section className="editor-card">
-              <div className="section-heading">
-                <div>
-                  <span className="eyebrow">IA</span>
-                  <h3>Configuracao do video</h3>
-                </div>
-              </div>
 
-              <div className="config-grid">
-                <label className="field-block">
-                  <span>Tarefa</span>
-                  <select value={selectedTask} onChange={(event) => onTaskChange(event.target.value)}>
-                    {taskOptions.map((task) => (
-                      <option key={task.task_type} value={task.task_type}>
-                        {task.task_label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="field-block">
-                  <span>Modelo</span>
-                  <select
-                    value={selectedModelPath}
-                    onChange={(event) => onModelChange(event.target.value)}
-                  >
-                    {filteredModels.map((model) => (
-                      <option key={model.relative_path} value={model.relative_path}>
-                        {model.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="field-block">
-                  <span>Stride de frames</span>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={selectedFrameStride}
-                    onChange={(event) => onFrameStrideChange(event.target.value)}
-                  />
-                </label>
-
-                <label className="field-block">
-                  <span>Confianca minima</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={selectedConfidenceThreshold}
-                    onChange={(event) => onConfidenceThresholdChange(event.target.value)}
-                  />
-                </label>
-
-                <label className="field-block">
-                  <span>Maximo de frames</span>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={selectedMaxFrames}
-                    onChange={(event) => onMaxFramesChange(event.target.value)}
-                  />
-                </label>
-
-                <label className="field-block">
-                  <span>Inicio da analise (s)</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    value={selectedClipStart}
-                    onChange={(event) => onClipStartChange(event.target.value)}
-                  />
-                </label>
-
-                <label className="field-block">
-                  <span>Fim da analise (s)</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    value={selectedClipEnd}
-                    onChange={(event) => onClipEndChange(event.target.value)}
-                    placeholder="Vazio = ate o fim"
-                  />
-                </label>
-              </div>
-              <p className="field-help">
-                Ajuste densidade, confianca e recorte para controlar exatamente como a IA vai analisar esse video.
-              </p>
-
-              <div className="action-row">
-                <button type="button" className="ghost-button danger-button" onClick={onDeleteVideo}>
-                  Excluir video
-                </button>
-                <button type="button" className="ghost-button" onClick={onSaveConfig} disabled={isBusy}>
-                  Salvar configuracao
-                </button>
-                <button type="button" className="primary-button" onClick={onReprocess} disabled={isBusy}>
-                  {isBusy
-                    ? `Reprocessando... ${video.processing.processing_progress}%`
-                    : "Reprocessar video"}
-                </button>
-              </div>
-            </section>
+            <VideoConfigPanel
+                video={video}
+                selectedTask={selectedTask}
+                selectedModelPath={selectedModelPath}
+                selectedFrameStride={selectedFrameStride}
+                selectedConfidenceThreshold={selectedConfidenceThreshold}
+                selectedMaxFrames={selectedMaxFrames}
+                selectedClipStart={selectedClipStart}
+                selectedClipEnd={selectedClipEnd}
+                taskOptions={taskOptions}
+                modelOptions={modelOptions}
+                isBusy={isBusy}
+                onTaskChange={onTaskChange}
+                onModelChange={onModelChange}
+                onFrameStrideChange={onFrameStrideChange}
+                onConfidenceThresholdChange={onConfidenceThresholdChange}
+                onMaxFramesChange={onMaxFramesChange}
+                onClipStartChange={onClipStartChange}
+                onClipEndChange={onClipEndChange}
+                onSaveConfig={onSaveConfig}
+                onReprocess={onReprocess}
+                onDeleteVideo={onDeleteVideo}
+            />
 
             <section className="editor-card">
               <div className="section-heading">
