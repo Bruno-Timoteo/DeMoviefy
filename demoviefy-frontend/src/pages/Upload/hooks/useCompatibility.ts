@@ -1,4 +1,3 @@
-// hooks/useCompatibility.ts
 import { useCallback, useState } from "react"
 import { VideoService } from "../services/videoService"
 import type { BackendVersionResponse } from "../types"
