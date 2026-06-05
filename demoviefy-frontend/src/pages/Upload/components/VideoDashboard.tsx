@@ -8,7 +8,7 @@ import { useCatalog } from "../hooks/useCatalog";
 import { useAnalysis } from "../hooks/useAnalysis";
 import { useTranscription } from "../hooks/useTranscription"
 import { useUpload } from "../hooks/useUpload";
-
+import { useVideoConfig } from "../hooks/useVideoConfig";
 
 import { NewVideoPanel } from "./NewVideoPanel";
 import { VideoLibrary } from "./VideoLibrary";
@@ -19,17 +19,10 @@ import "../styles/NewVideoPanel.css";
 import "../styles/ProcessingQueuePanel.css";
 import "../styles/NewDashboardLayout.css";
 
-import { prettifyJson, getApiErrorMessage, buildAnalysisMessage, chooseFirstModel } from "../utils/helpers";
+import { prettifyJson, getApiErrorMessage, buildAnalysisMessage } from "../utils/helpers";
 
 export default function VideoDashboard() {
 
-    const [videoTask, setVideoTask] = useState("object_detection");
-    const [videoModelPath, setVideoModelPath] = useState("");
-    const [videoFrameStride, setVideoFrameStride] = useState("8");
-    const [videoConfidenceThreshold, setVideoConfidenceThreshold] = useState("0.35");
-    const [videoMaxFrames, setVideoMaxFrames] = useState("300");
-    const [videoClipStart, setVideoClipStart] = useState("0");
-    const [videoClipEnd, setVideoClipEnd] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const initializedRef = useRef(false);
 
@@ -101,6 +94,24 @@ export default function VideoDashboard() {
         handleUpload,
     } = useUpload(fetchVideos, setSelectedVideoId, setHint)
 
+    const {
+        videoTask,
+        videoModelPath,
+        setVideoModelPath,
+        videoFrameStride,
+        setVideoFrameStride,
+        videoConfidenceThreshold,
+        setVideoConfidenceThreshold,
+        videoMaxFrames,
+        setVideoMaxFrames,
+        videoClipStart,
+        setVideoClipStart,
+        videoClipEnd,
+        setVideoClipEnd,
+        handleVideoTaskChange,
+        handleSaveConfig,
+        handleReprocess,
+    } = useVideoConfig(selectedVideo, fetchVideos, models, setMessage, setHint)
 
     useEffect(() => {
         if (initializedRef.current) {
@@ -116,59 +127,6 @@ export default function VideoDashboard() {
         };
         void bootstrap();
     }, [checkBackendCompatibility, fetchCatalog, fetchVideos]);
-
-    const handleVideoTaskChange = useCallback((taskType: string) => {
-        setVideoTask(taskType);
-        setVideoModelPath(chooseFirstModel(models, taskType));
-    }, [models]);
-
-
-    const handleSaveConfig = useCallback(async () => {
-        if (!selectedVideo) {
-            return;
-        }
-
-        try {
-            await VideoService.saveAiConfig(selectedVideo.id, {
-                task_type: videoTask,
-                model_path: videoModelPath,
-                frame_stride: videoFrameStride,
-                confidence_threshold: videoConfidenceThreshold,
-                max_frames: videoMaxFrames,
-                clip_start_sec: videoClipStart,
-                clip_end_sec: videoClipEnd.trim() ? videoClipEnd : null,
-            })
-            setMessage("Configuracao de IA salva para o video selecionado.");
-            await fetchVideos();
-        } catch (error) {
-            console.error(error);
-            setMessage(getApiErrorMessage(error, "Nao foi possivel salvar a configuracao de IA."));
-        }
-    }, [selectedVideo, videoTask, videoModelPath, videoFrameStride, videoConfidenceThreshold, videoMaxFrames, videoClipStart, videoClipEnd, fetchVideos]);
-
-    const handleReprocess = useCallback(async () => {
-        if (!selectedVideo) {
-            return;
-        }
-
-        try {
-            await VideoService.reprocessVideo(selectedVideo.id, {
-                task_type: videoTask,
-                model_path: videoModelPath,
-                frame_stride: videoFrameStride,
-                confidence_threshold: videoConfidenceThreshold,
-                max_frames: videoMaxFrames,
-                clip_start_sec: videoClipStart,
-                clip_end_sec: videoClipEnd.trim() ? videoClipEnd : null,
-            })
-            setMessage("Reprocessamento iniciado.");
-            setHint("O video sera analisado novamente com a configuracao escolhida.");
-            await fetchVideos();
-        } catch (error) {
-            console.error(error);
-            setMessage(getApiErrorMessage(error, "Nao foi possivel iniciar o reprocessamento."));
-        }
-    }, [selectedVideo, videoTask, videoModelPath, videoFrameStride, videoConfidenceThreshold, videoMaxFrames, videoClipStart, videoClipEnd, fetchVideos]);
 
     const handleSaveAnalysis = useCallback(async () => {
         if (!selectedVideo) {
@@ -222,7 +180,6 @@ export default function VideoDashboard() {
         if (!selectedVideo) {
             return;
         }
-
         try {
             await VideoService.deleteVideo(selectedVideo.id);
             setMessage("Video removido com sucesso.");
@@ -242,7 +199,6 @@ export default function VideoDashboard() {
         if (!selectedVideo) {
             return;
         }
-
         try {
             await VideoService.saveTranscription(selectedVideo.id, transcriptionDraft)
             setMessage("Transcricao salva com sucesso.");
@@ -258,7 +214,6 @@ export default function VideoDashboard() {
         if (!selectedVideo) {
             return;
         }
-
         try {
             await VideoService.deleteTranscription(selectedVideo.id)
             setTranscription(null);
