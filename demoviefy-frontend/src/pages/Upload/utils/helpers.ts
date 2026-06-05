@@ -90,3 +90,15 @@ export function buildArtifactSignature(video: VideoRecord | null, variantId: str
         variantId ?? "latest",
     ].join("|");
 }
+
+// Formata horas
+
+export function formatTimecode(seconds: number): string {
+  const safe = Math.max(0, Math.floor(seconds))
+  const hours = Math.floor(safe / 3600)
+  const minutes = Math.floor((safe % 3600) / 60)
+  const remaining = safe % 60
+  return hours > 0
+    ? `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${remaining.toString().padStart(2, "0")}`
+    : `${minutes.toString().padStart(2, "0")}:${remaining.toString().padStart(2, "0")}`
+}

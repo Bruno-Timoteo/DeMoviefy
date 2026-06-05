@@ -3,6 +3,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import { StatusBadge } from "./StatusBadge";
 import { ProcessingProgress } from "./ProcessingProgress";
 import type {
+    AiConfigPayload,
   AIModelOption,
   AITaskOption,
   VideoAnalysisResponse,
@@ -13,6 +14,8 @@ import type {
 import { toApiUrlWithQuery } from "../../../services/api";
 
 import { VideoConfigPanel } from "./VideoConfigPanel";
+import { AnalysisEditor } from "./AnalysisEditor";
+import { TranscriptionEditor } from "./TranscriptionEditor";
 
 type VideoWorkbenchProps = {
   video: VideoRecord | null;
@@ -20,13 +23,7 @@ type VideoWorkbenchProps = {
   analysisState: "idle" | "loading" | "ready" | "pending" | "error";
   analysisMessage: string;
   selectedAnalysisVariantId: string | null;
-  selectedTask: string;
-  selectedModelPath: string;
-  selectedFrameStride: string;
-  selectedConfidenceThreshold: string;
-  selectedMaxFrames: string;
-  selectedClipStart: string;
-  selectedClipEnd: string;
+  config: AiConfigPayload;
   taskOptions: AITaskOption[];
   modelOptions: AIModelOption[];
   analysisDraft: string;
@@ -35,13 +32,6 @@ type VideoWorkbenchProps = {
   transcriptionMessage: string;
   isBusy: boolean;
   onAnalysisVariantChange: (variantId: string | null) => void;
-  onTaskChange: (taskType: string) => void;
-  onModelChange: (modelPath: string) => void;
-  onFrameStrideChange: (value: string) => void;
-  onConfidenceThresholdChange: (value: string) => void;
-  onMaxFramesChange: (value: string) => void;
-  onClipStartChange: (value: string) => void;
-  onClipEndChange: (value: string) => void;
   onAnalysisDraftChange: (value: string) => void;
   onTranscriptionDraftChange: (value: string) => void;
   onSaveConfig: () => void;
@@ -52,6 +42,7 @@ type VideoWorkbenchProps = {
   onGenerateTranscription: () => void;
   onSaveTranscription: () => void;
   onDeleteTranscription: () => void;
+  onConfigChange: (config: AiConfigPayload) => void;
 };
 
 function formatPercent(value: number | undefined) {
@@ -91,13 +82,7 @@ export const VideoWorkbench = memo(function VideoWorkbench({
   analysisState,
   analysisMessage,
   selectedAnalysisVariantId,
-  selectedTask,
-  selectedModelPath,
-  selectedFrameStride,
-  selectedConfidenceThreshold,
-  selectedMaxFrames,
-  selectedClipStart,
-  selectedClipEnd,
+    config,
   taskOptions,
   modelOptions,
   analysisDraft,
@@ -105,14 +90,8 @@ export const VideoWorkbench = memo(function VideoWorkbench({
   transcriptionDraft,
   transcriptionMessage,
   isBusy,
-  onAnalysisVariantChange,
-  onTaskChange,
-  onModelChange,
-  onFrameStrideChange,
-  onConfidenceThresholdChange,
-  onMaxFramesChange,
-  onClipStartChange,
-  onClipEndChange,
+    onConfigChange,
+    onAnalysisVariantChange,
   onAnalysisDraftChange,
   onTranscriptionDraftChange,
   onSaveConfig,
@@ -166,16 +145,6 @@ export const VideoWorkbench = memo(function VideoWorkbench({
     }
     videoRef.current.currentTime = seconds;
     void videoRef.current.play().catch(() => undefined);
-  };
-
-  const formatTimecode = (seconds: number) => {
-    const safe = Math.max(0, Math.floor(seconds));
-    const hours = Math.floor(safe / 3600);
-    const minutes = Math.floor((safe % 3600) / 60);
-    const remaining = safe % 60;
-    return hours > 0
-      ? `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${remaining.toString().padStart(2, "0")}`
-      : `${minutes.toString().padStart(2, "0")}:${remaining.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -369,103 +338,45 @@ export const VideoWorkbench = memo(function VideoWorkbench({
 
           <div className="editor-grid">
 
+            {/* Editor de configurações do vídeo */}
             <VideoConfigPanel
                 video={video}
-                selectedTask={selectedTask}
-                selectedModelPath={selectedModelPath}
-                selectedFrameStride={selectedFrameStride}
-                selectedConfidenceThreshold={selectedConfidenceThreshold}
-                selectedMaxFrames={selectedMaxFrames}
-                selectedClipStart={selectedClipStart}
-                selectedClipEnd={selectedClipEnd}
+                config={config}
+                onConfigChange={onConfigChange}
                 taskOptions={taskOptions}
                 modelOptions={modelOptions}
                 isBusy={isBusy}
-                onTaskChange={onTaskChange}
-                onModelChange={onModelChange}
-                onFrameStrideChange={onFrameStrideChange}
-                onConfidenceThresholdChange={onConfidenceThresholdChange}
-                onMaxFramesChange={onMaxFramesChange}
-                onClipStartChange={onClipStartChange}
-                onClipEndChange={onClipEndChange}
                 onSaveConfig={onSaveConfig}
                 onReprocess={onReprocess}
                 onDeleteVideo={onDeleteVideo}
             />
 
-            <section className="editor-card">
-              <div className="section-heading">
-                <div>
-                  <span className="eyebrow">Analise</span>
-                  <h3>JSON editavel</h3>
-                </div>
-              </div>
-              <textarea
-                className="editor-area"
-                value={analysisDraft}
-                onChange={(event) => onAnalysisDraftChange(event.target.value)}
-                spellCheck={false}
-              />
-              <div className="action-row">
-                <button type="button" className="ghost-button danger-button" onClick={onDeleteAnalysis}>
-                  {hasMultipleAnalysisVariants ? "Excluir versao selecionada" : "Excluir analise"}
-                </button>
-                <button type="button" className="primary-button" onClick={onSaveAnalysis} disabled={isBusy}>
-                  Salvar analise
-                </button>
-              </div>
-            </section>
+            {/* Editor de análise */} 
 
-            <section className="editor-card">
-              <div className="section-heading">
-                <div>
-                  <span className="eyebrow">Transcricao</span>
-                  <h3>Texto editavel</h3>
-                </div>
-              </div>
-              <div className="action-row action-row-start">
-                <button type="button" className="ghost-button" onClick={onGenerateTranscription} disabled={isBusy}>
-                  {isBusy ? "Transcricao aguardando..." : "Gerar transcricao IA"}
-                </button>
-              </div>
-              <textarea
-                className="editor-area transcription-area"
-                value={transcriptionDraft}
-                onChange={(event) => onTranscriptionDraftChange(event.target.value)}
-                placeholder="Cole ou escreva aqui a transcricao do video."
-              />
-              <p className="transcription-note">{transcriptionMessage}</p>
-              {transcriptionSegments.length > 0 && (
-                <div className="segment-list">
-                  {transcriptionSegments.map((segment) => (
-                    <button
-                      key={`${segment.id}-${segment.start}`}
-                      type="button"
-                      className="segment-item"
-                      onClick={() => seekTo(segment.start)}
-                    >
-                      <span className="segment-time">
-                        {formatTimecode(segment.start)} - {formatTimecode(segment.end)}
-                      </span>
-                      <span className="segment-text">{segment.text}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-              <div className="action-row">
-                <button
-                  type="button"
-                  className="ghost-button danger-button"
-                  onClick={onDeleteTranscription}
-                  disabled={isBusy}
-                >
-                  Excluir transcricao
-                </button>
-                <button type="button" className="primary-button" onClick={onSaveTranscription} disabled={isBusy}>
-                  Salvar transcricao
-                </button>
-              </div>
-            </section>
+
+            <AnalysisEditor
+                analysisDraft={analysisDraft}
+                hasMultipleVariants={hasMultipleAnalysisVariants}
+                isBusy={isBusy}
+                onDraftChange={onAnalysisDraftChange}
+                onSave={onSaveAnalysis}
+                onDelete={onDeleteAnalysis}
+            />
+
+            {/* Editor de transcrição */}
+
+            <TranscriptionEditor
+                transcriptionDraft={transcriptionDraft}
+                transcriptionMessage={transcriptionMessage}
+                segments={transcriptionSegments}
+                isBusy={isBusy}
+                onDraftChange={onTranscriptionDraftChange}
+                onSave={onSaveTranscription}
+                onDelete={onDeleteTranscription}
+                onGenerate={onGenerateTranscription}
+                onSeek={seekTo}
+            />
+
           </div>
         </div>
       </div>
