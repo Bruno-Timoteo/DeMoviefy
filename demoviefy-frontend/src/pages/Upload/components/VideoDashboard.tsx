@@ -10,8 +10,13 @@ import { useTranscription } from "../hooks/useTranscription"
 import { useUpload } from "../hooks/useUpload";
 import { useVideoConfig } from "../hooks/useVideoConfig";
 
+import { CompatibilityBanner } from "./CompatibilityBanner";
+import { DashboardSidebar } from "./DashboardSidebar";
+import { DashboardHeader } from "./DashboardHeader";
+import { DashboardProgressBar } from "./DashboardProgressBar";
+import { StatsPanel } from "./StatsPanel";
+
 import { NewVideoPanel } from "./NewVideoPanel";
-import { VideoLibrary } from "./VideoLibrary";
 import { VideoWorkbench } from "./VideoWorkbench";
 import { ProcessingQueuePanel } from "./ProcessingQueuePanel";
 import "../styles/VideoDashboard.css"
@@ -258,121 +263,54 @@ export default function VideoDashboard() {
     }, [checkBackendCompatibility, fetchCatalog, fetchVideos]);
 
     if (compatibility.status !== "compatible") {
-        const { frontendAppVersion, frontendApiContractVersion } = VideoService.getVersionInfo()
 
         return (
-            <div className="workspace">
-                <section className={`surface compatibility-banner is-${compatibility.status}`}>
-                    <div>
-                        <span className="eyebrow">Compatibilidade</span>
-                        <h2>
-                            {compatibility.status === "checking"
-                                ? "Validando versoes do sistema"
-                                : "Atualizacao necessaria antes de usar o painel"}
-                        </h2>
-                        <p>{compatibility.message}</p>
-                        <p className="compatibility-meta">
-                            Frontend {frontendAppVersion} · contrato {frontendApiContractVersion}
-                            {compatibility.backendInfo
-                                ? ` · backend ${compatibility.backendInfo.backend_app_version} · contrato ${compatibility.backendInfo.api_contract_version}`
-                                : ""}
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        className="ghost-button"
-                        onClick={() => void handleRetryCompatibility()}
-                        disabled={compatibility.status === "checking"}
-                    >
-                        {compatibility.status === "checking" ? "Verificando..." : "Tentar novamente"}
-                    </button>
-                </section>
-            </div>
-        );
+            <CompatibilityBanner
+            status={compatibility.status}
+            message={compatibility.message}
+            backendInfo={compatibility.backendInfo}
+            onRetry={() => void handleRetryCompatibility()}
+            />
+        )
     }
-
-    const globalProcessState = uploading
-        ? { text: "Upload em andamento", progress: null }
-        : loadingVideos
-            ? { text: "Atualizando biblioteca", progress: null }
-            : selectedVideoIsBusy && selectedVideo
-                ? { text: `Processando video: ${selectedVideo.filename}`, progress: selectedVideo.processing.processing_progress }
-                : null;
-
-    const globalProgressValue = globalProcessState?.progress ?? 0;
-
     return (
+
         <div className="dashboard-container">
-            {/* Sidebar Overlay */}
-            <div
-                className={`sidebar-overlay ${sidebarOpen ? "show" : ""}`}
-                onClick={() => setSidebarOpen(false)}
-                aria-hidden="true"
+            
+            {/* Sidebar */}
+
+            <DashboardSidebar
+                open={sidebarOpen}
+                videos={videos}
+                selectedVideoId={selectedVideoId}
+                loading={loadingVideos}
+                onSelect={setSelectedVideoId}
+                onClose={() => setSidebarOpen(false)}
             />
 
-            {/* Sidebar Drawer */}
-            <aside className={`dashboard-sidebar ${sidebarOpen ? "open" : ""}`}>
-                <div className="dashboard-sidebar-header">
-                    <h2>Biblioteca</h2>
-                    <button
-                        className="sidebar-close-btn"
-                        onClick={() => setSidebarOpen(false)}
-                        aria-label="Fechar sidebar"
-                    >
-                        ✕
-                    </button>
-                </div>
+            {/* Conteúdo principal */}
 
-                <VideoLibrary
-                    videos={videos}
-                    selectedVideoId={selectedVideoId}
-                    loading={loadingVideos}
-                    onSelect={(id) => {
-                        setSelectedVideoId(id);
-                        setSidebarOpen(false);
-                    }}
-                />
-            </aside>
-
-            {/* Main Content */}
             <div className="dashboard-main">
+
                 {/* Header */}
-                <header className="dashboard-header">
-                    <button
-                        className="menu-toggle"
-                        onClick={() => setSidebarOpen(!sidebarOpen)}
-                        aria-label="Abrir menu"
-                        title="Biblioteca de vídeos"
-                    >
-                        ☰
-                    </button>
-                    <h1 className="dashboard-title">DeMoviefy</h1>
-                    {selectedVideo && (
-                        <button
-                            type="button"
-                            className="ghost-button"
-                            onClick={() => setSelectedVideoId(null)}
-                        >
-                            Novo upload
-                        </button>
-                    )}
-                    <div style={{ flex: 1 }} />
-                </header>
+
+                <DashboardHeader
+                    hasSelectedVideo={!!selectedVideo}
+                    onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+                    onNewUpload={() => setSelectedVideoId(null)}
+                />
 
                 {/* Progress Bar */}
-                {globalProcessState && (
-                    <section className="surface site-progress-panel">
-                        <div className="site-progress-title">
-                            <strong>{globalProcessState.text}</strong>
-                            <span>{globalProgressValue ? `${globalProgressValue}%` : "..."}</span>
-                        </div>
-                        <div className="site-progress-bar" aria-hidden="true">
-                            <span style={{ width: `${globalProgressValue}%` }} />
-                        </div>
-                    </section>
-                )}
+
+                <DashboardProgressBar
+                    uploading={uploading}
+                    loadingVideos={loadingVideos}
+                    selectedVideo={selectedVideo}
+                    selectedVideoIsBusy={selectedVideoIsBusy}
+                />
 
                 {/* Content Area */}
+
                 <div className="dashboard-content">
                     {selectedVideo ? (
                         // Video Workbench
@@ -421,24 +359,13 @@ export default function VideoDashboard() {
                         // New Video + Queue
                         <>
                             {/* Stats */}
-                            <div className="dashboard-stats">
-                                <div className="stat-card">
-                                    <span>Total</span>
-                                    <strong>{stats.total}</strong>
-                                </div>
-                                <div className="stat-card">
-                                    <span>Em processamento</span>
-                                    <strong>{stats.processing}</strong>
-                                </div>
-                                <div className="stat-card">
-                                    <span>Concluídos</span>
-                                    <strong>{stats.processed}</strong>
-                                </div>
-                                <div className="stat-card">
-                                    <span>Com erro</span>
-                                    <strong>{stats.errors}</strong>
-                                </div>
-                            </div>
+                            
+                            <StatsPanel 
+                                total = {stats.total}
+                                processing={stats.processing}
+                                processed={stats.processed}
+                                errors={stats.errors}
+                            />  
 
                             {/* Upload + Queue */}
                             <div className="upload-section">
