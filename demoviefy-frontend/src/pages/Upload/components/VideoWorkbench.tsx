@@ -1,13 +1,15 @@
-import { memo, useEffect, useRef, useState } from "react"
+import { memo, useRef } from "react"
 import { StatusBadge } from "./StatusBadge"
 import { ProcessingProgress } from "./ProcessingProgress"
 import { VideoConfigPanel } from "./VideoConfigPanel"
 import { AnalysisEditor } from "./AnalysisEditor"
+import { AnalysisHeader } from "./AnalysisHeader"
+import { AnalysisResults } from "./AnalysisResults"
 import { TranscriptionEditor } from "./TranscriptionEditor"
 import { VideoPreviewPanel } from "./VideoPreviewPanel"
 import { WorkbenchEmptyState } from "./WorkbenchEmptyState"
 import { toApiUrlWithQuery } from "../../../services/api"
-import { formatPercent, formatSeconds, formatVariantLabel } from "../utils/helpers"
+
 import type {
   AiConfigPayload,
   AIModelOption,
@@ -73,7 +75,6 @@ export const VideoWorkbench = memo(function VideoWorkbench({
   onDeleteTranscription,
 }: VideoWorkbenchProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null)
-  const [annotatedPlaybackError, setAnnotatedPlaybackError] = useState(false)
 
   const summary = analysis?.analysis ?? null
   const analysisVariants = analysis?.available_variants ?? []
@@ -95,9 +96,6 @@ export const VideoWorkbench = memo(function VideoWorkbench({
     ? toApiUrlWithQuery(video.video_url, { v: video.created_at ?? video.id })
     : ""
 
-  useEffect(() => {
-    setAnnotatedPlaybackError(false)
-  }, [annotatedVideoSrc, video?.id])
 
   if (!video) return <WorkbenchEmptyState />
 
@@ -139,91 +137,20 @@ export const VideoWorkbench = memo(function VideoWorkbench({
         </div>
 
         <div className="analysis-panel">
-          <div className="analysis-state">
-            <span className="eyebrow">Resumo</span>
-            <p>{analysisMessage}</p>
-            {analysisVariants.length > 0 && (
-              <label className="field-block">
-                <span>Versao da analise</span>
-                <select
-                  value={selectedAnalysisVariantId ?? ""}
-                  onChange={(e) => onAnalysisVariantChange(e.target.value || null)}
-                >
-                  {analysisVariants.map((variant) => (
-                    <option key={variant.variant_id} value={variant.variant_id}>
-                      {formatVariantLabel(variant)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-          </div>
 
-          {analysisState === "loading" && <div className="skeleton-block" />}
+          <AnalysisHeader
+            message={analysisMessage}
+            variants={analysisVariants}
+            selectedVariantId={selectedAnalysisVariantId}
+            onVariantChange={onAnalysisVariantChange}
+          />
 
-          {summary && (
-            <div className="analysis-metrics">
-              <div className="metric-card">
-                <span>Deteccoes</span>
-                <strong>{summary.total_detections}</strong>
-              </div>
-              <div className="metric-card">
-                <span>Frames amostrados</span>
-                <strong>{summary.sampled_frames}</strong>
-              </div>
-              <div className="metric-card">
-                <span>Stride / limite</span>
-                <strong>{summary.frame_stride} / {summary.max_frames}</strong>
-              </div>
-              <div className="metric-card">
-                <span>Tarefa</span>
-                <strong>{video.ai_config.task_label}</strong>
-              </div>
-              <div className="metric-card">
-                <span>Modelo</span>
-                <strong>{video.ai_config.model_name}</strong>
-              </div>
-              <div className="metric-card">
-                <span>Trecho</span>
-                <strong>
-                  {formatSeconds(summary.clip_start_sec)} -{" "}
-                  {summary.clip_end_sec === null ? "fim" : formatSeconds(summary.clip_end_sec)}
-                </strong>
-              </div>
-              <div className="metric-card">
-                <span>Confianca minima</span>
-                <strong>
-                  {typeof summary.confidence_threshold === "number"
-                    ? `${(summary.confidence_threshold * 100).toFixed(0)}%`
-                    : "-"}
-                </strong>
-              </div>
-            </div>
-          )}
-
-          {summary && (
-            <div className="label-table">
-              <div className="label-table-header">
-                <span>Classe</span>
-                <span>Ocorrencias</span>
-                <span>Confianca media</span>
-              </div>
-              {Object.keys(summary.label_counts).length === 0 && (
-                <div className="label-table-row muted-row">
-                  <span>Nenhuma deteccao encontrada</span>
-                  <span>0</span>
-                  <span>-</span>
-                </div>
-              )}
-              {Object.entries(summary.label_counts).map(([label, count]) => (
-                <div key={label} className="label-table-row">
-                  <span>{label}</span>
-                  <span>{count}</span>
-                  <span>{formatPercent(summary.avg_confidence_by_label[label])}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          <AnalysisResults
+            state={analysisState}
+            summary={summary}
+            taskLabel={video.ai_config.task_label}
+            modelName={video.ai_config.model_name}
+          />
 
           <div className="editor-grid">
             <VideoConfigPanel
