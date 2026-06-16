@@ -14,7 +14,7 @@ export default function Header({ themeLabel, onToggleTheme }: HeaderProps) {
         
         <nav className="header-navigation">
           <NavLink to="/">
-            <img src={logoFull} alt="DeMoviefy" className="h-16 w-auto dark:invert" />
+            <img src={logoFull} alt="DeMoviefy" className="h-16 w-auto invert" />
           </NavLink>  
 
           <NavLink to="/upload" className={({ isActive }) => `header-link${isActive ? " is-active" : ""}`}>
