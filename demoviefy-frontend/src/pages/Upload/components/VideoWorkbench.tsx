@@ -1,6 +1,9 @@
-import { memo, useRef } from "react"
-import { StatusBadge } from "./StatusBadge"
-import { ProcessingProgress } from "./ProcessingProgress"
+import { memo } from "react"
+
+import { useVideoPlayer } from "../hooks/useVideoPlayer"
+import { WorkbenchHeader } from "./WorkbenchHeader"
+
+
 import { VideoConfigPanel } from "./VideoConfigPanel"
 import { AnalysisEditor } from "./AnalysisEditor"
 import { AnalysisHeader } from "./AnalysisHeader"
@@ -8,7 +11,6 @@ import { AnalysisResults } from "./AnalysisResults"
 import { TranscriptionEditor } from "./TranscriptionEditor"
 import { VideoPreviewPanel } from "./VideoPreviewPanel"
 import { WorkbenchEmptyState } from "./WorkbenchEmptyState"
-import { toApiUrlWithQuery } from "../../../services/api"
 
 import type {
   AiConfigPayload,
@@ -74,55 +76,25 @@ export const VideoWorkbench = memo(function VideoWorkbench({
   onSaveTranscription,
   onDeleteTranscription,
 }: VideoWorkbenchProps) {
-  const videoRef = useRef<HTMLVideoElement | null>(null)
 
   const summary = analysis?.analysis ?? null
   const analysisVariants = analysis?.available_variants ?? []
   const hasMultipleAnalysisVariants = analysisVariants.length > 1
   const transcriptionSegments = transcription?.transcription.segments ?? []
 
-  const annotatedVideoSrc = video
-    ? toApiUrlWithQuery(video.annotated_url, {
-        v: video.storage.annotated_exists ? video.created_at ?? video.id : null,
-        status: video.status,
-        stride: video.ai_config.frame_stride,
-        clip_start: video.ai_config.clip_start_sec,
-        clip_end: video.ai_config.clip_end_sec ?? "end",
-        variant: selectedAnalysisVariantId,
-      })
-    : ""
-
-  const originalVideoSrc = video
-    ? toApiUrlWithQuery(video.video_url, { v: video.created_at ?? video.id })
-    : ""
+  const { videoRef, annotatedVideoSrc, originalVideoSrc, seekTo } = useVideoPlayer(
+    video,
+    selectedAnalysisVariantId
+  )
 
 
   if (!video) return <WorkbenchEmptyState />
 
-  const seekTo = (seconds: number) => {
-    if (!videoRef.current) return
-    videoRef.current.currentTime = seconds
-    void videoRef.current.play().catch(() => undefined)
-  }
-
   return (
     <section className="surface inspector-panel">
-      <div className="section-heading">
-        <div>
-          <span className="eyebrow">Workbench</span>
-          <h2>{video.filename}</h2>
-        </div>
-        <StatusBadge status={video.status} />
-      </div>
-
-      {video.status.startsWith("PROCESSANDO") && (
-        <ProcessingProgress
-          progress={video.processing.processing_progress}
-          stage={video.processing.processing_stage}
-          etaSeconds={video.processing.processing_eta_seconds}
-          message={video.processing.processing_message}
-        />
-      )}
+      <WorkbenchHeader
+        video={video}
+      />
 
       <div className="inspector-grid">
         <div className="media-panel">
