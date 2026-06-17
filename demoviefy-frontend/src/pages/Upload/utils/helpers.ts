@@ -4,7 +4,8 @@ import type {
     AIModelOption, 
     AITaskOption, 
     VideoAnalysisResponse, 
-    VideoRecord 
+    VideoRecord,
+    VideoAnalysisVariant
 } from "../types";
 
 type AnalysisState = "idle" | "loading" | "ready" | "pending" | "error";
@@ -89,4 +90,47 @@ export function buildArtifactSignature(video: VideoRecord | null, variantId: str
         video.ai_config.clip_end_sec ?? "end",
         variantId ?? "latest",
     ].join("|");
+}
+
+// Formata horas
+
+export function formatTimecode(seconds: number): string {
+  const safe = Math.max(0, Math.floor(seconds))
+  const hours = Math.floor(safe / 3600)
+  const minutes = Math.floor((safe % 3600) / 60)
+  const remaining = safe % 60
+  return hours > 0
+    ? `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${remaining.toString().padStart(2, "0")}`
+    : `${minutes.toString().padStart(2, "0")}:${remaining.toString().padStart(2, "0")}`
+}
+
+export function formatDurationText(value: number | null | undefined) {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "Duracao indisponivel";
+  }
+
+  if (value < 1) {
+    return `Duracao aproximada: ${value.toFixed(2)}s`;
+  }
+
+  return `Duracao aproximada: ${value.toFixed(1)}s`;
+}
+
+export function formatPercent(value: number | undefined) {
+  if (typeof value !== "number") {
+    return "-";
+  }
+  return `${(value * 100).toFixed(1)}%`;
+}
+
+export function formatSeconds(value: number | null | undefined) {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "-";
+  }
+  return `${value.toFixed(1)}s`;
+}
+
+export function formatVariantLabel(variant: VideoAnalysisVariant) {
+  const createdAt = variant.created_at ? new Date(variant.created_at).toLocaleString() : "Sem data";
+  return `${variant.task_label} - ${variant.model_name} - ${createdAt}`;
 }

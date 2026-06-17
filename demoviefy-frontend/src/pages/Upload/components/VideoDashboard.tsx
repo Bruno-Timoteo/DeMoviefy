@@ -100,20 +100,8 @@ export default function VideoDashboard() {
     } = useUpload(fetchVideos, setSelectedVideoId, setHint)
 
     const {
-        videoTask,
-        videoModelPath,
-        setVideoModelPath,
-        videoFrameStride,
-        setVideoFrameStride,
-        videoConfidenceThreshold,
-        setVideoConfidenceThreshold,
-        videoMaxFrames,
-        setVideoMaxFrames,
-        videoClipStart,
-        setVideoClipStart,
-        videoClipEnd,
-        setVideoClipEnd,
-        handleVideoTaskChange,
+        videoConfig,
+        setVideoConfig,
         handleSaveConfig,
         handleReprocess,
     } = useVideoConfig(selectedVideo, fetchVideos, models, setMessage, setHint)
@@ -316,18 +304,13 @@ export default function VideoDashboard() {
                         // Video Workbench
                         <>
                             <VideoWorkbench
+
                                 video={selectedVideo}
+                                config={videoConfig}
                                 analysis={analysis}
                                 analysisState={analysisState}
                                 analysisMessage={buildAnalysisMessage(analysisState, selectedVideo, analysis)}
                                 selectedAnalysisVariantId={selectedAnalysisVariantId}
-                                selectedTask={videoTask}
-                                selectedModelPath={videoModelPath}
-                                selectedFrameStride={videoFrameStride}
-                                selectedConfidenceThreshold={videoConfidenceThreshold}
-                                selectedMaxFrames={videoMaxFrames}
-                                selectedClipStart={videoClipStart}
-                                selectedClipEnd={videoClipEnd}
                                 taskOptions={tasks}
                                 modelOptions={models}
                                 analysisDraft={analysisDraft}
@@ -336,16 +319,10 @@ export default function VideoDashboard() {
                                 transcriptionMessage={transcriptionMessage}
                                 isBusy={selectedVideoIsBusy}
                                 onAnalysisVariantChange={setSelectedAnalysisVariantId}
-                                onTaskChange={handleVideoTaskChange}
-                                onModelChange={setVideoModelPath}
-                                onFrameStrideChange={setVideoFrameStride}
-                                onConfidenceThresholdChange={setVideoConfidenceThreshold}
-                                onMaxFramesChange={setVideoMaxFrames}
-                                onClipStartChange={setVideoClipStart}
-                                onClipEndChange={setVideoClipEnd}
                                 onAnalysisDraftChange={setAnalysisDraft}
                                 onTranscriptionDraftChange={setTranscriptionDraft}
                                 onSaveConfig={handleSaveConfig}
+                                onConfigChange={setVideoConfig}
                                 onReprocess={handleReprocess}
                                 onDeleteVideo={handleDeleteVideo}
                                 onSaveAnalysis={handleSaveAnalysis}
