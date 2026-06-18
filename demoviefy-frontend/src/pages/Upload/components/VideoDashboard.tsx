@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { useWorkbenchActions } from "../hooks/useWorkbenchActions";
 import { useCompatibility } from "../hooks/useCompatibility";
 import { useVideos } from "../hooks/useVideos";
 import { useCatalog } from "../hooks/useCatalog";
@@ -24,7 +23,6 @@ import "../styles/NewVideoPanel.css";
 import "../styles/ProcessingQueuePanel.css";
 import "../styles/NewDashboardLayout.css";
 
-import { buildAnalysisMessage } from "../utils/helpers";
 
 export default function VideoDashboard() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -57,25 +55,10 @@ export default function VideoDashboard() {
     } = useCatalog();
 
     const {
-        transcription,
-        setTranscription,
-        transcriptionDraft,
-        setTranscriptionDraft,
-        transcriptionMessage,
-        setTranscriptionMessage,
         fetchTranscription,
-        resetTranscription,
     } = useTranscription();
 
     const {
-        analysis,
-        setAnalysis,
-        selectedAnalysisVariantId,
-        setSelectedAnalysisVariantId,
-        analysisState,
-        setAnalysisState,
-        analysisDraft,
-        setAnalysisDraft,
         resetArtifactSignature,
     } = useAnalysis(selectedVideo, fetchTranscription);
 
@@ -88,25 +71,6 @@ export default function VideoDashboard() {
         handleReprocess,
     } = useVideoConfig(selectedVideo, fetchVideos, models, setMessage, setHint);
 
-    const workbenchActions = useWorkbenchActions({
-        selectedVideo,
-        selectedAnalysisVariantId,
-        analysisDraft,
-        transcriptionDraft,
-        setAnalysis,
-        setAnalysisDraft,
-        setAnalysisState,
-        setSelectedAnalysisVariantId,
-        setTranscription,
-        setTranscriptionDraft,
-        setTranscriptionMessage,
-        setMessage,
-        setHint,
-        fetchVideos,
-        fetchTranscription,
-        resetTranscription,
-        resetArtifactSignature,
-    });
 
     useEffect(() => {
         if (initializedRef.current) {
@@ -179,28 +143,15 @@ export default function VideoDashboard() {
                             <VideoWorkbench
                                 video={selectedVideo}
                                 config={videoConfig}
-                                analysis={analysis}
-                                analysisState={analysisState}
-                                analysisMessage={buildAnalysisMessage(
-                                    analysisState,
-                                    selectedVideo,
-                                    analysis
-                                )}
-                                selectedAnalysisVariantId={selectedAnalysisVariantId}
                                 taskOptions={tasks}
                                 modelOptions={models}
-                                analysisDraft={analysisDraft}
-                                transcription={transcription}
-                                transcriptionDraft={transcriptionDraft}
-                                transcriptionMessage={transcriptionMessage}
                                 isBusy={selectedVideoIsBusy}
-                                onAnalysisVariantChange={setSelectedAnalysisVariantId}
-                                onAnalysisDraftChange={setAnalysisDraft}
-                                onTranscriptionDraftChange={setTranscriptionDraft}
-                                onSaveConfig={handleSaveConfig}
                                 onConfigChange={setVideoConfig}
+                                onSaveConfig={handleSaveConfig}
                                 onReprocess={handleReprocess}
-                                {...workbenchActions}
+                                fetchVideos={fetchVideos}
+                                fetchTranscription={fetchTranscription}
+                                resetArtifactSignature={resetArtifactSignature}
                             />
                         </>
                     ) : (
