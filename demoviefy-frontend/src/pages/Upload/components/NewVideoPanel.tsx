@@ -1,90 +1,62 @@
+// src/pages/Upload/components/NewVideoPanel.tsx
 import { useCallback, useRef, useState } from "react";
-import type { AIModelOption, AITaskOption } from "../types";
+import { useUpload } from "../hooks/useUpload";
+import { useUploadStore } from "../../../store/useUploadStore";
+import { useCatalogStore } from "../../../store/useCatalogStore";
+
 import "../styles/NewVideoPanel.css";
 
-
-// Página do painel de upload
-
 interface NewVideoPanelProps {
-  file: File | null;
-  message: string;
-  hint: string;
-  uploading: boolean;
-  selectedTask: string;
-  selectedModelPath: string;
-  frameStride: number;
-  confidenceThreshold: number;
-  maxFrames: number;
-  clipStart: number;
-  clipEnd: number | null;
-  tasks: AITaskOption[];
-  models: AIModelOption[];
-  onFileChange: (file: File | null) => void;
-  onTaskChange: (taskType: string) => void;
-  onModelChange: (modelPath: string) => void;
-  onFrameStrideChange: (value: number) => void;
-  onConfidenceThresholdChange: (value: number) => void;
-  onMaxFramesChange: (value: number) => void;
-  onClipStartChange: (value: number) => void;
-  onClipEndChange: (value: number | null) => void;
-  onUpload: () => void;
   onRefresh: () => void;
+  fetchVideos: () => Promise<void>;
 }
 
-export function NewVideoPanel({
-  file,
-  message,
-  hint,
-  uploading,
-  selectedTask,
-  selectedModelPath,
-  frameStride,
-  confidenceThreshold,
-  maxFrames,
-  clipStart,
-  clipEnd,
-  tasks,
-  models,
-  onFileChange,
-  onTaskChange,
-  onModelChange,
-  onFrameStrideChange,
-  onConfidenceThresholdChange,
-  onMaxFramesChange,
-  onClipStartChange,
-  onClipEndChange,
-  onUpload,
-  onRefresh,
-}: NewVideoPanelProps) {
+export function NewVideoPanel({onRefresh, fetchVideos,}: NewVideoPanelProps) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Estados globais do Catálogo
+  const {
+    tasks,
+    models,
+    uploadTask,
+    uploadModelPath,
+    handleUploadTaskChange,
+    setUploadModelPath,
+  } = useCatalogStore();
+
+
+  // Estados locais do formulário
+  const {
+    file, setFile, uploadFrameStride, setUploadFrameStride,
+    uploadConfidenceThreshold, setUploadConfidenceThreshold,
+    uploadMaxFrames, setUploadMaxFrames, uploadClipStart, setUploadClipStart,
+    uploadClipEnd, setUploadClipEnd, handleUpload
+  } = useUpload(fetchVideos);
+
+  // Estados globais da UI
+  const uploading = useUploadStore((state) => state.uploading);
+  const message = useUploadStore((state) => state.message);
+  const hint = useUploadStore((state) => state.hint);
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
       e.stopPropagation();
       setIsDragging(false);
-
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        onFileChange(files[0]);
-      }
+      if (e.dataTransfer.files.length > 0) setFile(e.dataTransfer.files[0]);
     },
-    [onFileChange]
+    [setFile]
   );
 
-  const handleClick = () => {
-    fileInputRef.current?.click();
-  };
+  const handleClick = () => fileInputRef.current?.click();
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      onFileChange(e.target.files[0]);
-    }
+    if (e.target.files && e.target.files.length > 0) setFile(e.target.files[0]);
   };
 
-  const filteredModels = selectedTask
-    ? models.filter((m) => m.task_type === selectedTask)
+  const filteredModels = uploadTask
+    ? models.filter((m) => m.task_type === uploadTask)
     : [];
 
   return (
@@ -104,7 +76,9 @@ export function NewVideoPanel({
 
       {/* Dropzone */}
       <div
-        className={`file-dropzone ${isDragging ? "dragging" : ""} ${file ? "has-file" : ""}`}
+        className={`file-dropzone ${isDragging ? "dragging" : ""} ${
+          file ? "has-file" : ""
+        }`}
         onDrop={handleDrop}
         onDragOver={(e) => {
           e.preventDefault();
@@ -149,7 +123,11 @@ export function NewVideoPanel({
 
       {/* Status Message */}
       {message && (
-        <div className={`status-message ${message.includes("Erro") ? "error" : "success"}`}>
+        <div
+          className={`status-message ${
+            message.includes("Erro") ? "error" : "success"
+          }`}
+        >
           {message}
         </div>
       )}
@@ -161,8 +139,8 @@ export function NewVideoPanel({
             <label htmlFor="task-select">Tarefa IA</label>
             <select
               id="task-select"
-              value={selectedTask}
-              onChange={(e) => onTaskChange(e.target.value)}
+              value={uploadTask}
+              onChange={(e) => handleUploadTaskChange(e.target.value)}
               className="form-select"
             >
               <option value="">Selecione uma tarefa</option>
@@ -174,13 +152,13 @@ export function NewVideoPanel({
             </select>
           </div>
 
-          {selectedTask && (
+          {uploadTask && (
             <div className="config-group">
               <label htmlFor="model-select">Modelo</label>
               <select
                 id="model-select"
-                value={selectedModelPath}
-                onChange={(e) => onModelChange(e.target.value)}
+                value={uploadModelPath}
+                onChange={(e) => setUploadModelPath(e.target.value)}
                 className="form-select"
               >
                 <option value="">Selecione um modelo</option>
@@ -202,8 +180,8 @@ export function NewVideoPanel({
                 type="number"
                 min="1"
                 max="30"
-                value={frameStride}
-                onChange={(e) => onFrameStrideChange(parseInt(e.target.value, 10))}
+                value={uploadFrameStride}
+                onChange={(e) => setUploadFrameStride(e.target.value)}
                 className="form-input"
               />
             </div>
@@ -216,8 +194,8 @@ export function NewVideoPanel({
                 min="0"
                 max="1"
                 step="0.05"
-                value={confidenceThreshold}
-                onChange={(e) => onConfidenceThresholdChange(parseFloat(e.target.value))}
+                value={uploadConfidenceThreshold}
+                onChange={(e) => setUploadConfidenceThreshold(e.target.value)}
                 className="form-input"
               />
             </div>
@@ -229,8 +207,8 @@ export function NewVideoPanel({
                 type="number"
                 min="1"
                 max="600"
-                value={maxFrames}
-                onChange={(e) => onMaxFramesChange(parseInt(e.target.value, 10))}
+                value={uploadMaxFrames}
+                onChange={(e) => setUploadMaxFrames(e.target.value)}
                 className="form-input"
               />
             </div>
@@ -244,8 +222,8 @@ export function NewVideoPanel({
                 id="clipstart"
                 type="number"
                 min="0"
-                value={clipStart}
-                onChange={(e) => onClipStartChange(parseInt(e.target.value, 10))}
+                value={uploadClipStart}
+                onChange={(e) => setUploadClipStart(e.target.value)}
                 className="form-input"
               />
             </div>
@@ -256,10 +234,8 @@ export function NewVideoPanel({
                 id="clipend"
                 type="number"
                 min="0"
-                value={clipEnd ?? ""}
-                onChange={(e) =>
-                  onClipEndChange(e.target.value ? parseInt(e.target.value, 10) : null)
-                }
+                value={uploadClipEnd}
+                onChange={(e) => setUploadClipEnd(e.target.value)}
                 className="form-input"
                 placeholder="Vídeo inteiro"
               />
@@ -268,8 +244,8 @@ export function NewVideoPanel({
 
           {/* Upload Button */}
           <button
-            onClick={onUpload}
-            disabled={!selectedTask || !selectedModelPath || uploading}
+            onClick={() => handleUpload(uploadTask, uploadModelPath)}
+            disabled={!uploadTask || !uploadModelPath || uploading}
             className="primary-button full-width"
             aria-busy={uploading}
           >
