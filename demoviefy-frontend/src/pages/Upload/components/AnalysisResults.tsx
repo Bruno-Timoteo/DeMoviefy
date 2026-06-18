@@ -1,7 +1,6 @@
-import { AnalysisMetrics } from "./AnalysisMetrics"
-import { AnalysisDetectionTable } from "./AnalysisDetectionTable"
-import type { VideoAnalysisResponse } from "../types"
-
+import { AnalysisMetrics } from "src/pages/Upload/components/AnalysisMetrics"
+import { AnalysisDetectionTable } from "src/pages/Upload/components/AnalysisDetectionTable"
+import type { VideoAnalysisResponse } from "src/pages/Upload/types"
 type AnalysisResultsProps = {
   state: "idle" | "loading" | "ready" | "pending" | "error"
   summary: NonNullable<VideoAnalysisResponse["analysis"]> | null

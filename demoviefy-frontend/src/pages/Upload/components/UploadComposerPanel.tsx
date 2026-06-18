@@ -1,6 +1,6 @@
 import { memo, type ChangeEvent } from "react";
 
-import type { AIModelOption, AITaskOption } from "../types"
+import type { AIModelOption, AITaskOption } from "src/pages/Upload/types";
 
 type UploadComposerPanelProps = {
   file: File | null;

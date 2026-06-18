@@ -1,6 +1,6 @@
 import { memo } from "react"
-import { formatVariantLabel } from "../utils/helpers"
-import type { VideoAnalysisResponse } from "../types"
+import { formatVariantLabel } from "src/pages/Upload/utils/helpers"
+import type { VideoAnalysisResponse } from "src/pages/Upload/types"
 
 type AnalysisHeaderProps = {
   message: string

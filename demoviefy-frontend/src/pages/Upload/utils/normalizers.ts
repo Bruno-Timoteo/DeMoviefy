@@ -2,7 +2,7 @@ import type {
     VideoRecord,
     VideoAnalysisResponse,
     VideoAnalysisVariant
-} from "../types";
+} from "src/pages/Upload/types";
 
 import { DEFAULT_PROCESSING, DEFAULT_AI_CONFIG } from "../constants";
 

@@ -1,5 +1,5 @@
 import { StatusBadge } from "./StatusBadge";
-import type { VideoAnalysisResponse, VideoRecord } from "../types"
+import type { VideoAnalysisResponse, VideoRecord } from "src/pages/Upload/types"
 import { toApiUrl } from "../../../services/api";
 
 type VideoInspectorProps = {

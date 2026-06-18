@@ -1,6 +1,6 @@
 import { useRef } from "react"
 import { VideoService } from "../services/videoService" // Ajuste o caminho até o seu videoService
-import type { VideoRecord } from "../types"
+import type { VideoRecord } from "src/pages/Upload/types"
 
 export function useVideoPlayer(
   video: VideoRecord | null,

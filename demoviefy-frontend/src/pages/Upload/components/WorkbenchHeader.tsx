@@ -1,6 +1,6 @@
 import { StatusBadge } from "./StatusBadge"
 import { ProcessingProgress } from "./ProcessingProgress"
-import type { VideoRecord } from "../types"
+import type { VideoRecord } from "src/pages/Upload/types"
 
 type WorkbenchHeaderProps = {
   video: VideoRecord

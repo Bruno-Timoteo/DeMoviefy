@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { VideoService } from "../services/videoService"
-import type { VideoRecord } from "../types"
+import type { VideoRecord } from "src/pages/Upload/types"
 
 export function useVideos(compatibilityStatus: string) {
     const [videos, setVideos] = useState<VideoRecord[]>([])

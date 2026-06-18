@@ -1,8 +1,8 @@
 // src/pages/Upload/hooks/useUpload.ts
 import { useCallback, useState } from "react";
 import { VideoService } from "../services/videoService";
-import { getApiErrorMessage } from "../utils/helpers";
-import { useUploadStore } from "../../../store/useUploadStore";
+import { getApiErrorMessage } from "src/pages/Upload/utils/helpers";
+import { useUploadStore } from "src/stores/useUploadStore";
 
 export function useUpload(fetchVideos: () => Promise<void>) {
   const [file, setFile] = useState<File | null>(null);

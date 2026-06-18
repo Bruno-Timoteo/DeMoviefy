@@ -1,13 +1,12 @@
 // src/pages/Upload/hooks/useVideoConfig.ts
 import { useCallback, useEffect, useState } from "react";
 import { VideoService } from "../services/videoService";
-import type { AiConfigPayload, VideoRecord } from "../types";
-import { getApiErrorMessage, chooseFirstModel } from "../utils/helpers";
+import type { AiConfigPayload, VideoRecord } from "src/pages/Upload/types";
+import { getApiErrorMessage, chooseFirstModel } from "src/pages/Upload/utils/helpers";
 
 // Importando as stores globais
-import { useUploadStore } from "../../../store/useUploadStore";
-import { useCatalogStore } from "../../../store/useCatalogStore";
-
+import { useUploadStore } from "src/stores/useUploadStore";
+import { useCatalogStore } from "src/stores/useCatalogStore";
 export function useVideoConfig(
   selectedVideo: VideoRecord | null,
   fetchVideos: () => Promise<void>

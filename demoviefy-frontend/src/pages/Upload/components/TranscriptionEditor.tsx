@@ -1,4 +1,4 @@
-import { formatTimecode } from "../utils/helpers"
+import { formatTimecode } from "src/pages/Upload/utils/helpers"
 
 interface TranscriptionSegment {
   id: number

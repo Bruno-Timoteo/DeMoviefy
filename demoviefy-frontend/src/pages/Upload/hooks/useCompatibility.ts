@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react"
 import { VideoService } from "../services/videoService"
-import type { BackendVersionResponse } from "../types"
+import type { BackendVersionResponse } from "src/pages/Upload/types"
 
 type CompatibilityState =
   | { status: "checking"; message: string; backendInfo: null }

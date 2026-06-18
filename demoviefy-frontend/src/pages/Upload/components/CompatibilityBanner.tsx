@@ -1,5 +1,5 @@
-import { VideoService } from "../services/videoService"
-import type { BackendVersionResponse } from "../types"
+import { VideoService } from "src/pages/Upload/services/videoService"
+import type { BackendVersionResponse } from "src/pages/Upload/types"
 
 type CompatibilityStatus = "checking" | "compatible" | "mismatch" | "unavailable"
 

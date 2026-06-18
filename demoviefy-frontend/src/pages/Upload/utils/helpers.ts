@@ -6,7 +6,7 @@ import type {
     VideoAnalysisResponse, 
     VideoRecord,
     VideoAnalysisVariant
-} from "../types";
+} from "src/pages/Upload/types";
 
 type AnalysisState = "idle" | "loading" | "ready" | "pending" | "error";
 

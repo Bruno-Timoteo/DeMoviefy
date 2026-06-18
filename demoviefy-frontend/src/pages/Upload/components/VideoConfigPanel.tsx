@@ -1,5 +1,5 @@
-import { useCatalogStore } from "../../../store/useCatalogStore"
-import type { AiConfigPayload, VideoRecord } from "../types"
+import { useCatalogStore } from "src/stores/useCatalogStore"
+import type { AiConfigPayload, VideoRecord } from "src/pages/Upload/types"
 
 interface VideoConfigPanelProps {
   video: VideoRecord

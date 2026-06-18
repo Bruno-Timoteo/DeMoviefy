@@ -1,7 +1,7 @@
 // src/pages/Upload/components/VideoWorkbench.tsx
 import { memo } from "react";
-import { useVideoPlayer } from "../hooks/useVideoPlayer";
-import { useWorkbenchStore } from "../../../store/useWorkbenchStore";
+import { useVideoPlayer } from "src/pages/Upload/hooks/useVideoPlayer";
+import { useWorkbenchStore } from "../../../stores/useWorkbenchStore";
 
 import { WorkbenchHeader } from "./WorkbenchHeader";
 import { VideoConfigPanel } from "./VideoConfigPanel";
@@ -12,7 +12,7 @@ import { TranscriptionEditor } from "./TranscriptionEditor";
 import { VideoPreviewPanel } from "./VideoPreviewPanel";
 import { WorkbenchEmptyState } from "./WorkbenchEmptyState";
 
-import type { AiConfigPayload, VideoRecord } from "../types";
+import type { AiConfigPayload, VideoRecord } from "src/pages/Upload/types";
 
 type VideoWorkbenchProps = {
   video: VideoRecord | null;
