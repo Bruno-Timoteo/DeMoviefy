@@ -2,48 +2,36 @@
 import { useCallback, useRef, useState } from "react";
 import { useUpload } from "../hooks/useUpload";
 import { useUploadStore } from "../../../store/useUploadStore";
-import type { AIModelOption, AITaskOption } from "../types";
+import { useCatalogStore } from "../../../store/useCatalogStore";
+
 import "../styles/NewVideoPanel.css";
 
 interface NewVideoPanelProps {
-  tasks: AITaskOption[];
-  models: AIModelOption[];
-  selectedTask: string;
-  selectedModelPath: string;
-  onTaskChange: (taskType: string) => void;
-  onModelChange: (modelPath: string) => void;
   onRefresh: () => void;
   fetchVideos: () => Promise<void>;
 }
 
-export function NewVideoPanel({
-  tasks,
-  models,
-  selectedTask,
-  selectedModelPath,
-  onTaskChange,
-  onModelChange,
-  onRefresh,
-  fetchVideos,
-}: NewVideoPanelProps) {
+export function NewVideoPanel({onRefresh, fetchVideos,}: NewVideoPanelProps) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Estados globais do Catálogo
+  const {
+    tasks,
+    models,
+    uploadTask,
+    uploadModelPath,
+    handleUploadTaskChange,
+    setUploadModelPath,
+  } = useCatalogStore();
+
+
   // Estados locais do formulário
   const {
-    file,
-    setFile,
-    uploadFrameStride,
-    setUploadFrameStride,
-    uploadConfidenceThreshold,
-    setUploadConfidenceThreshold,
-    uploadMaxFrames,
-    setUploadMaxFrames,
-    uploadClipStart,
-    setUploadClipStart,
-    uploadClipEnd,
-    setUploadClipEnd,
-    handleUpload,
+    file, setFile, uploadFrameStride, setUploadFrameStride,
+    uploadConfidenceThreshold, setUploadConfidenceThreshold,
+    uploadMaxFrames, setUploadMaxFrames, uploadClipStart, setUploadClipStart,
+    uploadClipEnd, setUploadClipEnd, handleUpload
   } = useUpload(fetchVideos);
 
   // Estados globais da UI
@@ -67,8 +55,8 @@ export function NewVideoPanel({
     if (e.target.files && e.target.files.length > 0) setFile(e.target.files[0]);
   };
 
-  const filteredModels = selectedTask
-    ? models.filter((m) => m.task_type === selectedTask)
+  const filteredModels = uploadTask
+    ? models.filter((m) => m.task_type === uploadTask)
     : [];
 
   return (
@@ -151,8 +139,8 @@ export function NewVideoPanel({
             <label htmlFor="task-select">Tarefa IA</label>
             <select
               id="task-select"
-              value={selectedTask}
-              onChange={(e) => onTaskChange(e.target.value)}
+              value={uploadTask}
+              onChange={(e) => handleUploadTaskChange(e.target.value)}
               className="form-select"
             >
               <option value="">Selecione uma tarefa</option>
@@ -164,13 +152,13 @@ export function NewVideoPanel({
             </select>
           </div>
 
-          {selectedTask && (
+          {uploadTask && (
             <div className="config-group">
               <label htmlFor="model-select">Modelo</label>
               <select
                 id="model-select"
-                value={selectedModelPath}
-                onChange={(e) => onModelChange(e.target.value)}
+                value={uploadModelPath}
+                onChange={(e) => setUploadModelPath(e.target.value)}
                 className="form-select"
               >
                 <option value="">Selecione um modelo</option>
@@ -256,8 +244,8 @@ export function NewVideoPanel({
 
           {/* Upload Button */}
           <button
-            onClick={() => handleUpload(selectedTask, selectedModelPath)}
-            disabled={!selectedTask || !selectedModelPath || uploading}
+            onClick={() => handleUpload(uploadTask, uploadModelPath)}
+            disabled={!uploadTask || !uploadModelPath || uploading}
             className="primary-button full-width"
             aria-busy={uploading}
           >

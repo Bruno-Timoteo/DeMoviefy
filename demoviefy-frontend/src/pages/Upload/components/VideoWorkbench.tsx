@@ -12,13 +12,11 @@ import { TranscriptionEditor } from "./TranscriptionEditor";
 import { VideoPreviewPanel } from "./VideoPreviewPanel";
 import { WorkbenchEmptyState } from "./WorkbenchEmptyState";
 
-import type { AiConfigPayload, AIModelOption, AITaskOption, VideoRecord } from "../types";
+import type { AiConfigPayload, VideoRecord } from "../types";
 
 type VideoWorkbenchProps = {
   video: VideoRecord | null;
   config: AiConfigPayload;
-  taskOptions: AITaskOption[];
-  modelOptions: AIModelOption[];
   isBusy: boolean;
   onConfigChange: (config: AiConfigPayload) => void;
   onSaveConfig: () => void;
@@ -31,8 +29,6 @@ type VideoWorkbenchProps = {
 export const VideoWorkbench = memo(function VideoWorkbench({
   video,
   config,
-  taskOptions,
-  modelOptions,
   isBusy,
   onConfigChange,
   onSaveConfig,
@@ -42,6 +38,7 @@ export const VideoWorkbench = memo(function VideoWorkbench({
   resetArtifactSignature,
 }: VideoWorkbenchProps) {
   
+
   // Conectando com o Zustand do Workbench
   const {
     analysis, analysisState, analysisMessage, selectedAnalysisVariantId, analysisDraft,
@@ -98,8 +95,6 @@ export const VideoWorkbench = memo(function VideoWorkbench({
               video={video}
               config={config}
               onConfigChange={onConfigChange}
-              taskOptions={taskOptions}
-              modelOptions={modelOptions}
               isBusy={isBusy}
               onSaveConfig={onSaveConfig}
               onReprocess={onReprocess}

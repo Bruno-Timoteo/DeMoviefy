@@ -1,1 +1,1 @@
-Pasta para guardar ("store") os estados (como o estado de upload), assim minimizando props.
+Pasta para guardar ("store") os estados (como o estado de upload), assim evitando prop drilling.

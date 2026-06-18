@@ -1,11 +1,10 @@
-import type { AIModelOption, AITaskOption, AiConfigPayload, VideoRecord } from "../types"
+import { useCatalogStore } from "../../../store/useCatalogStore"
+import type { AiConfigPayload, VideoRecord } from "../types"
 
 interface VideoConfigPanelProps {
   video: VideoRecord
   config: AiConfigPayload
   onConfigChange: (config: AiConfigPayload) => void
-  taskOptions: AITaskOption[]
-  modelOptions: AIModelOption[]
   isBusy: boolean
   onSaveConfig: () => void
   onReprocess: () => void
@@ -17,14 +16,15 @@ export function VideoConfigPanel({
   video,
   config,
   onConfigChange,
-  taskOptions,
-  modelOptions,
   isBusy,
   onSaveConfig,
   onReprocess,
   onDeleteVideo,
 }: VideoConfigPanelProps) {
-  const filteredModels = modelOptions.filter((m) => m.task_type === config.task_type)
+
+  const { tasks, models } = useCatalogStore()
+
+  const filteredModels = models.filter((m) => m.task_type === config.task_type)
 
   const update = (field: keyof AiConfigPayload, value: string | null) =>
     onConfigChange({ ...config, [field]: value })
@@ -42,7 +42,7 @@ export function VideoConfigPanel({
                 <label className="field-block">
                     <span>Tarefa</span>
                     <select value={config.task_type} onChange={(e) => update("task_type", e.target.value)}>
-                        {taskOptions.map((task) => (
+                        {tasks.map((task) => (
                             <option key={task.task_type} value={task.task_type}>
                                 {task.task_label}
                             </option>
