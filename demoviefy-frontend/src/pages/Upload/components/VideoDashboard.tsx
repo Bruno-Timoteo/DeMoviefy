@@ -30,12 +30,9 @@ export default function VideoDashboard() {
 
     // Zustand globais
     const uploading = useUploadStore((state) => state.uploading);
-    const setMessage = useUploadStore((state) => state.setMessage);
-    const setHint = useUploadStore((state) => state.setHint);
     
     // Puxando ações e dados da nova store do Catálogo
     const fetchCatalog = useCatalogStore((state) => state.fetchCatalog);
-    const models = useCatalogStore((state) => state.models); // 👈 Temporário: apenas para não quebrar o useVideoConfig
 
     const { compatibility, checkBackendCompatibility } = useCompatibility();
 
@@ -55,13 +52,12 @@ export default function VideoDashboard() {
 
     const selectedVideoIsBusy = selectedVideo?.status.startsWith("PROCESSANDO") ?? false;
 
-    // Repare que ainda passamos 'models' aqui. Limparemos isso no próximo passo!
     const {
         videoConfig,
         setVideoConfig,
         handleSaveConfig,
         handleReprocess,
-    } = useVideoConfig(selectedVideo, fetchVideos, models, setMessage, setHint);
+    } = useVideoConfig(selectedVideo, fetchVideos);
 
     useEffect(() => {
         if (initializedRef.current) {
@@ -161,7 +157,9 @@ export default function VideoDashboard() {
                                     onRefresh={() => void fetchVideos({ preserveHint: false })}
                                 />
 
-                                <ProcessingQueuePanel videos={videos} />
+                                <ProcessingQueuePanel 
+                                    videos={videos} 
+                                />
                             </div>
                         </>
                     )}

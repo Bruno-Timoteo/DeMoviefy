@@ -1,16 +1,17 @@
-import { useCallback, useEffect, useState } from "react"
-import { VideoService } from "../services/videoService"
-import type { AiConfigPayload, AIModelOption, VideoRecord } from "../types"
-import { getApiErrorMessage, chooseFirstModel } from "../utils/helpers"
+// src/pages/Upload/hooks/useVideoConfig.ts
+import { useCallback, useEffect, useState } from "react";
+import { VideoService } from "../services/videoService";
+import type { AiConfigPayload, VideoRecord } from "../types";
+import { getApiErrorMessage, chooseFirstModel } from "../utils/helpers";
+
+// Importando as stores globais
+import { useUploadStore } from "../../../store/useUploadStore";
+import { useCatalogStore } from "../../../store/useCatalogStore";
 
 export function useVideoConfig(
   selectedVideo: VideoRecord | null,
-  fetchVideos: () => Promise<void>,
-  models: AIModelOption[],
-  setMessage: (message: string) => void,
-  setHint: (hint: string) => void,
+  fetchVideos: () => Promise<void>
 ) {
-
   const [videoConfig, setVideoConfig] = useState<AiConfigPayload>({
     task_type: "object_detection",
     model_path: "",
@@ -19,11 +20,11 @@ export function useVideoConfig(
     max_frames: "300",
     clip_start_sec: "0",
     clip_end_sec: null,
-  })
+  });
 
   // Sincroniza estados com o vídeo selecionado
   useEffect(() => {
-    if (!selectedVideo) return
+    if (!selectedVideo) return;
 
     setVideoConfig({
       task_type: selectedVideo.ai_config.task_type,
@@ -35,42 +36,47 @@ export function useVideoConfig(
       clip_end_sec: selectedVideo.ai_config.clip_end_sec === null
         ? null
         : String(selectedVideo.ai_config.clip_end_sec),
-    })
-  }, [selectedVideo])
+    });
+  }, [selectedVideo]);
 
-    const handleVideoTaskChange = useCallback((taskType: string) => {
-        setVideoConfig((prev) => ({
-            ...prev,
-            task_type: taskType,
-            model_path: chooseFirstModel(models, taskType),
-        }))
-    }, [models])
+  // Pega os models direto da store para a lógica de auto-seleção
+  const handleVideoTaskChange = useCallback((taskType: string) => {
+    const models = useCatalogStore.getState().models;
+    setVideoConfig((prev) => ({
+      ...prev,
+      task_type: taskType,
+      model_path: chooseFirstModel(models, taskType),
+    }));
+  }, []);
 
-    const handleSaveConfig = useCallback(async () => {
-        if (!selectedVideo) return
-        try {
-            await VideoService.saveAiConfig(selectedVideo.id, videoConfig)
+  const handleSaveConfig = useCallback(async () => {
+    if (!selectedVideo) return;
+    const setMessage = useUploadStore.getState().setMessage;
 
-            setMessage("Configuracao de IA salva para o video selecionado.")
-            await fetchVideos()
-        } catch (error) {
-            console.error(error)
-            setMessage(getApiErrorMessage(error, "Nao foi possivel salvar a configuracao de IA."))
-        }
-    }, [selectedVideo, videoConfig, fetchVideos, setMessage])
+    try {
+      await VideoService.saveAiConfig(selectedVideo.id, videoConfig);
+      setMessage("Configuração de IA salva para o vídeo selecionado.");
+      await fetchVideos();
+    } catch (error) {
+      console.error(error);
+      setMessage(getApiErrorMessage(error, "Não foi possível salvar a configuração de IA."));
+    }
+  }, [selectedVideo, videoConfig, fetchVideos]);
 
   const handleReprocess = useCallback(async () => {
-    if (!selectedVideo) return
+    if (!selectedVideo) return;
+    const { setMessage, setHint } = useUploadStore.getState();
+
     try {
-      await VideoService.reprocessVideo(selectedVideo.id, videoConfig)
-      setMessage("Reprocessamento iniciado.")
-      setHint("O vídeo sera analisado novamente com a configuração escolhida.")
-      await fetchVideos()
+      await VideoService.reprocessVideo(selectedVideo.id, videoConfig);
+      setMessage("Reprocessamento iniciado.");
+      setHint("O vídeo será analisado novamente com a configuração escolhida.");
+      await fetchVideos();
     } catch (error) {
-      console.error(error)
-      setMessage(getApiErrorMessage(error, "Nao foi possivel iniciar o reprocessamento."))
+      console.error(error);
+      setMessage(getApiErrorMessage(error, "Não foi possível iniciar o reprocessamento."));
     }
-  }, [selectedVideo, videoConfig, fetchVideos, setMessage])
+  }, [selectedVideo, videoConfig, fetchVideos]);
 
   return {
     videoConfig,
@@ -78,5 +84,5 @@ export function useVideoConfig(
     handleVideoTaskChange,
     handleSaveConfig,
     handleReprocess,
-  }
+  };
 }
