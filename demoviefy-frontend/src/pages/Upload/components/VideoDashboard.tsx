@@ -6,8 +6,8 @@ import { useVideos } from "../hooks/useVideos";
 import { useCatalog } from "../hooks/useCatalog";
 import { useAnalysis } from "../hooks/useAnalysis";
 import { useTranscription } from "../hooks/useTranscription";
-import { useUpload } from "../hooks/useUpload";
 import { useVideoConfig } from "../hooks/useVideoConfig";
+import { useUploadStore } from "../../../store/useUploadStore";
 
 import { CompatibilityBanner } from "./CompatibilityBanner";
 import { DashboardSidebar } from "./DashboardSidebar";
@@ -30,6 +30,10 @@ export default function VideoDashboard() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const initializedRef = useRef(false);
 
+    const uploading = useUploadStore((state) => state.uploading);
+    const setMessage = useUploadStore((state) => state.setMessage);
+    const setHint = useUploadStore((state) => state.setHint);
+
     const { compatibility, checkBackendCompatibility } = useCompatibility();
 
     const {
@@ -38,8 +42,6 @@ export default function VideoDashboard() {
         selectedVideoId,
         selectedVideo,
         stats,
-        hint,
-        setHint,
         setSelectedVideoId,
         fetchVideos,
     } = useVideos(compatibility.status);
@@ -80,32 +82,12 @@ export default function VideoDashboard() {
     const selectedVideoIsBusy = selectedVideo?.status.startsWith("PROCESSANDO") ?? false;
 
     const {
-        file,
-        setFile,
-        uploading,
-        message,
-        setMessage,
-        uploadFrameStride,
-        setUploadFrameStride,
-        uploadConfidenceThreshold,
-        setUploadConfidenceThreshold,
-        uploadMaxFrames,
-        setUploadMaxFrames,
-        uploadClipStart,
-        setUploadClipStart,
-        uploadClipEnd,
-        setUploadClipEnd,
-        handleUpload,
-    } = useUpload(fetchVideos, setSelectedVideoId, setHint);
-
-    const {
         videoConfig,
         setVideoConfig,
         handleSaveConfig,
         handleReprocess,
     } = useVideoConfig(selectedVideo, fetchVideos, models, setMessage, setHint);
 
-    // Inicializando o nosso novo hook para gerenciar as ações do Workbench
     const workbenchActions = useWorkbenchActions({
         selectedVideo,
         selectedAnalysisVariantId,
@@ -181,7 +163,7 @@ export default function VideoDashboard() {
                     onNewUpload={() => setSelectedVideoId(null)}
                 />
 
-                {/* Progress Bar */}
+                {/* Progress Bar usando o estado global do Zustand */}
                 <DashboardProgressBar
                     uploading={uploading}
                     loadingVideos={loadingVideos}
@@ -235,32 +217,13 @@ export default function VideoDashboard() {
                             {/* Upload + Queue */}
                             <div className="upload-section">
                                 <NewVideoPanel
-                                    file={file}
-                                    message={message}
-                                    hint={hint}
-                                    uploading={uploading}
-                                    selectedTask={uploadTask}
-                                    selectedModelPath={uploadModelPath}
-                                    frameStride={parseInt(uploadFrameStride, 10)}
-                                    confidenceThreshold={parseFloat(uploadConfidenceThreshold)}
-                                    maxFrames={parseInt(uploadMaxFrames, 10)}
-                                    clipStart={parseInt(uploadClipStart, 10)}
-                                    clipEnd={uploadClipEnd ? parseInt(uploadClipEnd, 10) : null}
                                     tasks={tasks}
                                     models={models}
-                                    onFileChange={setFile}
+                                    selectedTask={uploadTask}
+                                    selectedModelPath={uploadModelPath}
                                     onTaskChange={handleUploadTaskChange}
                                     onModelChange={setUploadModelPath}
-                                    onFrameStrideChange={(val) => setUploadFrameStride(String(val))}
-                                    onConfidenceThresholdChange={(val) =>
-                                        setUploadConfidenceThreshold(String(val))
-                                    }
-                                    onMaxFramesChange={(val) => setUploadMaxFrames(String(val))}
-                                    onClipStartChange={(val) => setUploadClipStart(String(val))}
-                                    onClipEndChange={(val) =>
-                                        setUploadClipEnd(val ? String(val) : "")
-                                    }
-                                    onUpload={() => handleUpload(uploadTask, uploadModelPath)}
+                                    fetchVideos={fetchVideos}
                                     onRefresh={() => void fetchVideos({ preserveHint: false })}
                                 />
 
