@@ -9,11 +9,8 @@ export function useAnalysis(
   selectedVideo: VideoRecord | null,
   fetchTranscription: (video: VideoRecord) => Promise<void>
 ) {
-  const [analysis, setAnalysis] = useState<VideoAnalysisResponse | null>(null)
-  const [selectedAnalysisVariantId, setSelectedAnalysisVariantId] = useState<string | null>(null)
-  const [analysisState, setAnalysisState] = useState<AnalysisState>("idle")
-  const [analysisDraft, setAnalysisDraft] = useState("{}")
-  const lastArtifactSignatureRef = useRef("")
+  const selectedAnalysisVariantId = useWorkbenchStore((state) => state.selectedAnalysisVariantId);
+  const lastArtifactSignatureRef = useRef("");
 
   // Reset do variant ID quando troca de vídeo
   useEffect(() => {
