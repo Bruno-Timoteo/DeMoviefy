@@ -1,9 +1,9 @@
 import { createRoot, type Root } from "react-dom/client";
 
 
-import "./styles/global.css";
+import "src/styles/global.css";
 
-import "./index.css";
+import "src/index.css";
 
 function StartupScreen({ title, message }: { title: string; message: string }) {
   return (

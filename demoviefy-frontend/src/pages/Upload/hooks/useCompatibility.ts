@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react"
-import { VideoService } from "../services/videoService"
+import { VideoService } from "src/pages/Upload/services/videoService"
 import type { BackendVersionResponse } from "src/pages/Upload/types"
 
 type CompatibilityState =

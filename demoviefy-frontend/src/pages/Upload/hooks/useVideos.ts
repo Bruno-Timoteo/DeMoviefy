@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { VideoService } from "../services/videoService"
+import { VideoService } from "src/pages/Upload/services/videoService"
 import type { VideoRecord } from "src/pages/Upload/types"
 
 export function useVideos(compatibilityStatus: string) {

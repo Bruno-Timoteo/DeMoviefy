@@ -1,6 +1,6 @@
 // src/pages/Upload/hooks/useUpload.ts
 import { useCallback, useState } from "react";
-import { VideoService } from "../services/videoService";
+import { VideoService } from "src/pages/Upload/services/videoService";
 import { getApiErrorMessage } from "src/pages/Upload/utils/helpers";
 import { useUploadStore } from "src/stores/useUploadStore";
 

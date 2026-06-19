@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 
-import logoFull from "../assets/LogoFull.png"
+import logoFull from "src/assets/LogoFull.png"
 
 type HeaderProps = {
   themeLabel: string;

@@ -1,6 +1,6 @@
-import { StatusBadge } from "./StatusBadge";
+import { StatusBadge } from "src/pages/Upload/components/StatusBadge";
 import type { VideoAnalysisResponse, VideoRecord } from "src/pages/Upload/types"
-import { toApiUrl } from "../../../services/api";
+import { toApiUrl } from "src/services/api"
 
 type VideoInspectorProps = {
   video: VideoRecord | null;

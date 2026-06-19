@@ -1,7 +1,7 @@
 import { memo } from "react";
 
-import { StatusBadge } from "./StatusBadge";
-import { ProcessingProgress } from "./ProcessingProgress";
+import { StatusBadge } from "src/pages/Upload/components/StatusBadge";
+import { ProcessingProgress } from "src/pages/Upload/components/ProcessingProgress";
 import type { VideoRecord } from "src/pages/Upload/types"
 
 type VideoLibraryProps = {

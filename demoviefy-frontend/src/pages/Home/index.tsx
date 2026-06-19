@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { VideoService } from "../Upload/services/videoService";
-import "./Home.css";
+import { VideoService } from "src/pages/Upload/services/videoService";
+import "/src/pages/Home/Home.css";
 
 interface Stats {
   total: number;

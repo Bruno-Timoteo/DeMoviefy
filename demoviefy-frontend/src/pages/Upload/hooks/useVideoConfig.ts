@@ -1,6 +1,6 @@
 // src/pages/Upload/hooks/useVideoConfig.ts
 import { useCallback, useEffect, useState } from "react";
-import { VideoService } from "../services/videoService";
+import { VideoService } from "src/pages/Upload/services/videoService";
 import type { AiConfigPayload, VideoRecord } from "src/pages/Upload/types";
 import { getApiErrorMessage, chooseFirstModel } from "src/pages/Upload/utils/helpers";
 

@@ -8,15 +8,15 @@ import { useTranscription } from "src/pages/Upload/hooks/useTranscription";
 import { useVideoConfig } from "src/pages/Upload/hooks/useVideoConfig";
 import { useUploadStore } from "src/stores/useUploadStore";
 import { useCatalogStore } from "src/stores/useCatalogStore";
-import { CompatibilityBanner } from "./CompatibilityBanner";
+import { CompatibilityBanner } from "src/pages/Upload/components/CompatibilityBanner";
 import { DashboardSidebar } from "src/pages/Upload/components/DashboardSidebar";
-import { DashboardHeader } from "./DashboardHeader";
-import { DashboardProgressBar } from "./DashboardProgressBar";
+import { DashboardHeader } from "src/pages/Upload/components/DashboardHeader";
+import { DashboardProgressBar } from "src/pages/Upload/components/DashboardProgressBar";
 
-import { StatsPanel } from "./StatsPanel";
-import { NewVideoPanel } from "./NewVideoPanel";
-import { VideoWorkbench } from "./VideoWorkbench";
-import { ProcessingQueuePanel } from "./ProcessingQueuePanel";
+import { StatsPanel } from "src/pages/Upload/components/StatsPanel";
+import { NewVideoPanel } from "src/pages/Upload/components/NewVideoPanel";
+import { VideoWorkbench } from "src/pages/Upload/components/VideoWorkbench";
+import { ProcessingQueuePanel } from "src/pages/Upload/components/ProcessingQueuePanel";
 
 import "/src/pages/Upload/styles/VideoDashboard.css";
 import "/src/pages/Upload/styles/NewVideoPanel.css";

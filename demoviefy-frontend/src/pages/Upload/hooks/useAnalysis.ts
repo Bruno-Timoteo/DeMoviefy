@@ -1,7 +1,7 @@
 // src/pages/Upload/hooks/useAnalysis.ts
 import { useEffect, useRef } from "react";
-import { VideoService } from "../services/videoService";
-import { useWorkbenchStore } from "../../../stores/useWorkbenchStore";
+import { VideoService } from "src/pages/Upload/services/videoService";
+import { useWorkbenchStore } from "src/stores/useWorkbenchStore";
 import type { VideoRecord } from "src/pages/Upload/types";
 import { prettifyJson, buildArtifactSignature } from "src/pages/Upload/utils/helpers";
 

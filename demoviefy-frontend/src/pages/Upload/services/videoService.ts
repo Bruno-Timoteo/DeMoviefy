@@ -9,7 +9,7 @@ import type {
     
 } from "src/pages/Upload/types";
 
-import { normalizeVideoRecord, normalizeVideoAnalysisResponse } from "../utils/normalizers";
+import { normalizeVideoRecord, normalizeVideoAnalysisResponse } from "src/pages/Upload/utils/normalizers";
 
 import type { AiConfigPayload } from "src/pages/Upload/types";
 
