@@ -42,7 +42,7 @@ export function UploadComposer({
 
   return (
     <section className="surface hero-panel">
-      <div className="eyebrow">Pipeline de Moderacao</div>
+      <div className="eyebrow">Pipeline de Moderação</div>
       <h1>Envie um video e acompanhe a analise no mesmo lugar.</h1>
       <p className="hero-copy">
         O backend salva o arquivo em <code>uploads/</code>, gera o resumo em

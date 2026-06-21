@@ -303,7 +303,7 @@ def upload_video():
         progress=1,
         stage="queued",
         eta_seconds=None,
-        message="Upload concluido. Aguardando inicio do processamento.",
+        message="Upload concluído. Aguardando inicio do processamento.",
     )
     current_app.logger.info("upload_video:db_saved video_id=%s", new_video.id)
 
@@ -401,12 +401,12 @@ def delete_video_analysis_by_id(video_id: int):
     if requested_variant:
         deleted = delete_analysis_variant(video_id, requested_variant)
         if not deleted:
-            return jsonify({"error": "Versao de análise não encontrada"}), 404
+            return jsonify({"error": "Versão de análise não encontrada"}), 404
         if not has_analysis(video_id):
             update_status(video, "SEM_ANALISE")
         return jsonify(
             {
-                "message": "Versao selecionada removida com sucesso",
+                "message": "Versão selecionada removida com sucesso",
                 "video": _serialize_video(video),
                 "available_variants": list_analysis_variants(video.id),
             }

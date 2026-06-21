@@ -5,7 +5,7 @@ type StatusBadgeProps = {
 const STATUS_LABELS: Record<string, string> = {
   PROCESSANDO: "Na fila",
   PROCESSANDO_IA: "Analisando",
-  PROCESSADO: "Concluido",
+  PROCESSADO: "Concluído",
   SEM_ANALISE: "Sem analise",
   ERRO_ARQUIVO: "Erro no arquivo",
   ERRO_IA: "Erro na analise",

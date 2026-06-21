@@ -98,15 +98,15 @@ export function VideoConfigPanel({
 
             <div className="action-row">
                 <button type="button" className="ghost-button danger-button" onClick={onDeleteVideo}>
-                    Excluir video
+                    Excluir vídeo
                 </button>
                 <button type="button" className="ghost-button" onClick={onSaveConfig} disabled={isBusy}>
-                    Salvar configuracao
+                    Salvar configuração
                 </button>
                 <button type="button" className="primary-button" onClick={onReprocess} disabled={isBusy}>
                     {isBusy
                         ? `Reprocessando... ${video.processing.processing_progress}%`
-                        : "Reprocessar video"}
+                        : "Reprocessar vídeo"}
                 </button>
             </div>
         </section>

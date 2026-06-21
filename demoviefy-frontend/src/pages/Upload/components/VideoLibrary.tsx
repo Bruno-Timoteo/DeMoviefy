@@ -40,15 +40,15 @@ export const VideoLibrary = memo(function VideoLibrary({
       <div className="section-heading">
         <div>
           <span className="eyebrow">Biblioteca</span>
-          <h2>Videos analisados</h2>
+          <h2>Vídeos analisados</h2>
         </div>
         {loading && <span className="panel-state">Atualizando...</span>}
       </div>
 
       {videos.length === 0 ? (
         <div className="empty-state">
-          <strong>Nenhum video enviado ainda.</strong>
-          <p>Assim que o upload terminar, ele aparece aqui com status e caminho de armazenamento.</p>
+          <strong>Nenhum vídeo enviado ainda.</strong>
+          <p>Assim que o upload terminar, ele aparecerá aqui com status e caminho de armazenamento.</p>
         </div>
       ) : (
         <div className="video-list">
@@ -80,8 +80,8 @@ export const VideoLibrary = memo(function VideoLibrary({
                   {!video.storage.video_exists
                     ? "Arquivo ausente"
                     : video.transcription_ready
-                      ? "Transcricao pronta"
-                      : "Sem transcricao"}
+                      ? "Transcrição pronta"
+                      : "Sem transcrição"}
                 </span>
               </div>
 

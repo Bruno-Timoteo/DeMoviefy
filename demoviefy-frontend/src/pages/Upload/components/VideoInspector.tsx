@@ -96,7 +96,7 @@ export function VideoInspector({
                 </div>
                 {Object.keys(summary.label_counts).length === 0 && (
                   <div className="label-table-row muted-row">
-                    <span>Nenhuma deteccao encontrada</span>
+                    <span>Nenhuma detecção encontrada</span>
                     <span>0</span>
                     <span>-</span>
                   </div>

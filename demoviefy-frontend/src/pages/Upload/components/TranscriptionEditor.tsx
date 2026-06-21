@@ -44,7 +44,7 @@ export function TranscriptionEditor({
       <div className="action-row action-row-start">
         Botão desab
         <button type="button" className="ghost-button" onClick={onGenerate} disabled={isBusy}>
-          {isBusy ? "Transcricao aguardando..." : "Gerar transcrição por IA"}
+          {isBusy ? "Transcrição aguardando..." : "Gerar transcrição por IA"}
         </button>
         
       </div>

@@ -9,7 +9,7 @@ function StartupScreen({ title, message }: { title: string; message: string }) {
   return (
     <div className="app-shell">
       <section className="surface crash-panel">
-        <span className="eyebrow">Inicializacao</span>
+        <span className="eyebrow">Inicialização</span>
         <h1>{title}</h1>
         <p>{message}</p>
       </section>
@@ -21,7 +21,7 @@ function FatalStartupScreen({ errorMessage }: { errorMessage: string }) {
   return (
     <div className="app-shell">
       <section className="surface crash-panel">
-        <span className="eyebrow">Inicializacao</span>
+        <span className="eyebrow">Inicialização</span>
         <h1>O frontend nao conseguiu carregar.</h1>
         <p>
           Em vez de deixar a pagina em branco, o bootstrap exibiu esta tela. Reinicie o frontend e o backend e,
@@ -63,7 +63,7 @@ window.addEventListener("unhandledrejection", (event) => {
 root.render(
   <StartupScreen
     title="Carregando o painel"
-    message="Estamos preparando a interface e validando os modulos principais."
+    message="Estamos preparando a interface e validando os módulos principais."
   />,
 );
 

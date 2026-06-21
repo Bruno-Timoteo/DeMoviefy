@@ -24,7 +24,7 @@ export function useVideos(compatibilityStatus: string) {
             if (!preserveHint) setHint(`Biblioteca atualizada com ${normalizedVideos.length} video(s).`)
         } catch (error) {
             console.error(error)
-            setHint("Nao foi possivel atualizar a biblioteca.")
+            setHint("Não foi possível atualizar a biblioteca.")
         } finally {
             if (!silent) setLoadingVideos(false)
         }

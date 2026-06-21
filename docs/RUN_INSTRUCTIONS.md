@@ -2,7 +2,7 @@
 
 ## Inicio rapido
 
-Launcher com deteccao automatica de Python:
+Launcher com detecção automática de Python:
 
 ```powershell
 .\run_form.ps1
@@ -40,7 +40,7 @@ Depois clique em:
 5. O preview anotado vai para `uploads/annotated/video_<id>.mp4`.
 6. A pagina mostra preview original, preview anotado, status e caminhos dos artefatos.
 
-## Execucao manual
+## Execução manual
 
 ### Python
 
@@ -79,12 +79,12 @@ Frontend padrao:
 - `PROXY_URL`: proxy HTTP/HTTPS para pip, npm e subprocessos do launcher
 - `FRAME_AI_MODEL`: caminho alternativo para o modelo YOLO
 - `FRAME_AI_FRAME_STRIDE`: intervalo de frames amostrados
-- `FRAME_AI_CONFIDENCE`: confianca minima da deteccao
+- `FRAME_AI_CONFIDENCE`: confianca minima da detecção
 - `FRAME_AI_MAX_FRAMES`: limite de frames processados
 
-## Transcricao automatica
+## Transcrição automática
 
-O sistema agora tenta gerar transcricao automatica com timestamps apos o processamento do video e tambem oferece um botao manual na interface.
+O sistema agora tenta gerar transcrição automática com timestamps apos o processamento do video e tambem oferece um botao manual na interface.
 
 O launcher tenta preparar automaticamente uma `.venv-transcription` com Python 3.11 ou 3.12. Se quiser fazer manualmente:
 
@@ -96,11 +96,11 @@ py -3.12 -m venv .venv-transcription
 
 No Linux, troque `.\.venv-transcription\Scripts\python` por `.venv-transcription/bin/python`.
 
-Sem o Whisper instalado, o restante da analise continua funcionando normalmente. A tela vai mostrar o status da transcricao e ainda permitira edicao manual.
+Sem o Whisper instalado, o restante da analise continua funcionando normalmente. A tela vai mostrar o status da transcrição e ainda permitira edição manual.
 
 ## Troubleshooting
 
 - Se a `.venv` estiver quebrada, o launcher recria durante `Setup Environment`.
-- Se a transcricao automatica nao aparecer, confira se a `.venv-transcription` foi criada com Python 3.11/3.12.
+- Se a transcrição automática nao aparecer, confira se a `.venv-transcription` foi criada com Python 3.11/3.12.
 - Se algum upload parecer "sumido", abra o painel do video na interface: o caminho do arquivo e do JSON aparecem ali.
 - Se `npm` ou `pip` precisarem do proxy da escola, use `--proxy http://proxy.spo.ifsp.edu.br:3128`.

@@ -155,12 +155,12 @@ def _transcribe_with_worker(
     )
     if completed.returncode != 0:
         details = completed.stderr.strip() or completed.stdout.strip() or "worker sem detalhes"
-        raise RuntimeError(f"Falha no worker de transcricao: {details}")
+        raise RuntimeError(f"Falha no worker de transcrição: {details}")
 
     try:
         payload = json.loads(completed.stdout)
     except json.JSONDecodeError as exc:
-        raise RuntimeError("O worker de transcricao retornou JSON invalido.") from exc
+        raise RuntimeError("O worker de transcrição retornou JSON invalido.") from exc
 
     if logger:
         logger.info(
@@ -208,12 +208,12 @@ def transcribe_video_with_timestamps(
 
     if worker_error is not None:
         raise RuntimeError(
-            f"Transcricao automatica indisponivel no worker dedicado: {worker_error}"
+            f"Transcrição automática indisponível no worker dedicado: {worker_error}"
         ) from worker_error
 
     raise RuntimeError(
-        "Transcricao automatica indisponivel: instale openai-whisper no ambiente atual "
-        "ou habilite a transcricao via setup e execute novamente."
+        "Transcrição automática indisponível: instale openai-whisper no ambiente atual "
+        "ou habilite a transcrição via setup e execute novamente."
     )
 
 

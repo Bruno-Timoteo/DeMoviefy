@@ -31,7 +31,7 @@ export function buildAnalysisMessage(
     analysis: VideoAnalysisResponse | null,
 ) {
     if (!video) {
-        return "Escolha um item da biblioteca para abrir preview, analise e transcricao.";
+        return "Escolha um item da biblioteca para abrir preview, analise e transcrição.";
     }
 
     if (state === "loading") {
@@ -46,7 +46,7 @@ export function buildAnalysisMessage(
     }
 
     if (state === "error") {
-        return analysis?.message ?? "Nao foi possivel carregar a analise agora. Voce ainda pode editar ou recriar o JSON.";
+        return analysis?.message ?? "Não foi possível carregar a analise agora. Voce ainda pode editar ou recriar o JSON.";
     }
 
     if (!analysis) {
@@ -106,7 +106,7 @@ export function formatTimecode(seconds: number): string {
 
 export function formatDurationText(value: number | null | undefined) {
   if (typeof value !== "number" || Number.isNaN(value)) {
-    return "Duração indisponivel";
+    return "Duração indisponível";
   }
 
   if (value < 1) {
