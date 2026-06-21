@@ -11,7 +11,6 @@ interface VideoConfigPanelProps {
   onDeleteVideo: () => void
 }
 
-
 export function VideoConfigPanel({
   video,
   config,
