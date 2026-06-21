@@ -106,14 +106,14 @@ export function formatTimecode(seconds: number): string {
 
 export function formatDurationText(value: number | null | undefined) {
   if (typeof value !== "number" || Number.isNaN(value)) {
-    return "Duracao indisponivel";
+    return "Duração indisponivel";
   }
 
   if (value < 1) {
-    return `Duracao aproximada: ${value.toFixed(2)}s`;
+    return `Duração aproximada: ${value.toFixed(2)}s`;
   }
 
-  return `Duracao aproximada: ${value.toFixed(1)}s`;
+  return `Duração aproximada: ${value.toFixed(1)}s`;
 }
 
 export function formatPercent(value: number | undefined) {

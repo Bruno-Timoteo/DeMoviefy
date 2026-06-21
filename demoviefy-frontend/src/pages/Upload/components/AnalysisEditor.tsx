@@ -20,8 +20,8 @@ export function AnalysisEditor({
     <section className="editor-card">
       <div className="section-heading">
         <div>
-          <span className="eyebrow">Analise</span>
-          <h3>JSON editavel</h3>
+          <span className="eyebrow">Análise</span>
+          <h3>JSON da análise</h3>
         </div>
       </div>
       <textarea
@@ -32,10 +32,10 @@ export function AnalysisEditor({
       />
       <div className="action-row">
         <button type="button" className="ghost-button danger-button" onClick={onDelete}>
-          {hasMultipleVariants ? "Excluir versao selecionada" : "Excluir analise"}
+          {hasMultipleVariants ? "Excluir versão selecionada" : "Excluir análise"}
         </button>
         <button type="button" className="primary-button" onClick={onSave} disabled={isBusy}>
-          Salvar analise
+          Salvar análise
         </button>
       </div>
     </section>

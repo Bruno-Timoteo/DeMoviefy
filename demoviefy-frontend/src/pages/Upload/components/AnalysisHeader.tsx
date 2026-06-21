@@ -21,7 +21,7 @@ export const AnalysisHeader = memo(function AnalysisHeader({
       <p>{message}</p>
       {variants.length > 0 && (
         <label className="field-block">
-          <span>Versao da analise</span>
+          <span>Versão da análise</span>
           <select
             value={selectedVariantId ?? ""}
             onChange={(e) => onVariantChange(e.target.value || null)}

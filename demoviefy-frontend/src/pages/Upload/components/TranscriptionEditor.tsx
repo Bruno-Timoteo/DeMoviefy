@@ -27,7 +27,7 @@ export function TranscriptionEditor({
   onDraftChange,
   onSave,
   onDelete,
-  onGenerate,
+  // onGenerate,
   onSeek,
 }: TranscriptionEditorProps) {
 
@@ -35,20 +35,25 @@ export function TranscriptionEditor({
     <section className="editor-card">
       <div className="section-heading">
         <div>
-          <span className="eyebrow">Transcricao</span>
-          <h3>Texto editavel</h3>
+          <span className="eyebrow">Transcrição</span>
+          <h3>Texto editável</h3>
         </div>
       </div>
+      {/* Botão desabilitado pois a funcionalidade ainda não está pronta para ser apresentada
+
       <div className="action-row action-row-start">
+        Botão desab
         <button type="button" className="ghost-button" onClick={onGenerate} disabled={isBusy}>
-          {isBusy ? "Transcricao aguardando..." : "Gerar transcricao IA"}
+          {isBusy ? "Transcricao aguardando..." : "Gerar transcrição por IA"}
         </button>
+        
       </div>
+      */}
       <textarea
         className="editor-area transcription-area"
         value={transcriptionDraft}
         onChange={(e) => onDraftChange(e.target.value)}
-        placeholder="Cole ou escreva aqui a transcricao do video."
+        placeholder="Cole ou escreva aqui a transcrição do vídeo."
       />
       <p className="transcription-note">{transcriptionMessage}</p>
       {segments.length > 0 && (
@@ -70,10 +75,10 @@ export function TranscriptionEditor({
       )}
       <div className="action-row">
         <button type="button" className="ghost-button danger-button" onClick={onDelete} disabled={isBusy}>
-          Excluir transcricao
+          Excluir transcrição
         </button>
         <button type="button" className="primary-button" onClick={onSave} disabled={isBusy}>
-          Salvar transcricao
+          Salvar transcrição
         </button>
       </div>
     </section>
