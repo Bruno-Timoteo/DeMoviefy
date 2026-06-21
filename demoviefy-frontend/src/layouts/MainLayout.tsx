@@ -23,10 +23,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
     }
 
     try {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      // return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      return "dark";
     } catch (error) {
       console.warn("Nao foi possivel consultar o tema do sistema.", error);
-      return "light";
+      // return "light";
+      return "dark";
     }
   });
 

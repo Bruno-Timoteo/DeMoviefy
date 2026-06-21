@@ -22,9 +22,11 @@ export default function Header({ themeLabel, onToggleTheme }: HeaderProps) {
           </NavLink>
         </nav>
       </div>
+        {/*}
       <button type="button" className="ghost-button theme-toggle" onClick={onToggleTheme}>
         {themeLabel}
       </button>
+      {*/}
     </header>
   );
 }

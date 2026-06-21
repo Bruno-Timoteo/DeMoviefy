@@ -1,7 +1,7 @@
 import { createRoot, type Root } from "react-dom/client";
 
 
-import "src/styles/global.css";
+import "src/styles/global.css"
 
 import "src/index.css";
 
