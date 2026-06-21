@@ -36,7 +36,7 @@ export function VideoPreviewPanel({
             </video>
           ) : (
             <div className="empty-preview">
-              <strong>Arquivo de vídeo nao encontrado.</strong>
+              <strong>Arquivo de vídeo não encontrado.</strong>
               <p>O registro ainda existe no banco, mas o arquivo não esta mais em uploads/.</p>
             </div>
           )}

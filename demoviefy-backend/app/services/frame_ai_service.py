@@ -394,7 +394,7 @@ def list_analysis_variants(video_id: int) -> list[dict[str, Any]]:
                 "variant_id": variant_id,
                 "created_at": payload.get("analysis_created_at"),
                 "task_type": payload.get("task_type"),
-                "task_label": selected_model.get("task_label") or payload.get("task_type") or "Analise",
+                "task_label": selected_model.get("task_label") or payload.get("task_type") or "Análise",
                 "model_name": selected_model.get("model_name") or Path(str(payload.get("model_path") or "")).name,
                 "frame_stride": payload.get("frame_stride"),
                 "clip_start_sec": payload.get("clip_start_sec"),

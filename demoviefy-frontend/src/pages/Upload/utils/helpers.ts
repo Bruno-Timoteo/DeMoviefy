@@ -31,7 +31,7 @@ export function buildAnalysisMessage(
     analysis: VideoAnalysisResponse | null,
 ) {
     if (!video) {
-        return "Escolha um item da biblioteca para abrir preview, analise e transcrição.";
+        return "Escolha um item da biblioteca para abrir preview, análise e transcrição.";
     }
 
     if (state === "loading") {
@@ -41,19 +41,19 @@ export function buildAnalysisMessage(
     if (state === "pending") {
         return (
             analysis?.message ??
-            `O video ainda esta em processamento (${video.processing.processing_progress}%). ${video.processing.processing_message ?? ""}`.trim()
+            `O vídeo ainda esta em processamento (${video.processing.processing_progress}%). ${video.processing.processing_message ?? ""}`.trim()
         );
     }
 
     if (state === "error") {
-        return analysis?.message ?? "Não foi possível carregar a analise agora. Voce ainda pode editar ou recriar o JSON.";
+        return analysis?.message ?? "Não foi possível carregar a análise agora. Voce ainda pode editar ou recriar o JSON.";
     }
 
     if (!analysis) {
-        return "Este video ainda nao possui resumo salvo.";
+        return "Este vídeo ainda não possui resumo salvo.";
     }
 
-    return analysis.message ?? `Analise carregada de ${analysis.storage.analysis_relative_path}.`;
+    return analysis.message ?? `Análise carregada de ${analysis.storage.analysis_relative_path}.`;
 }
 
 // Retorna o caminho relativo do diretório para o primeiro modelo encontrado para uma determinada tarefa.

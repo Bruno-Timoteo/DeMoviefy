@@ -43,7 +43,7 @@ export function UploadComposer({
   return (
     <section className="surface hero-panel">
       <div className="eyebrow">Pipeline de Moderação</div>
-      <h1>Envie um video e acompanhe a analise no mesmo lugar.</h1>
+      <h1>Envie um video e acompanhe a análise no mesmo lugar.</h1>
       <p className="hero-copy">
         O backend salva o arquivo em <code>uploads/</code>, gera o resumo em
         <code>uploads/analysis/</code> e a tela mostra esse caminho sem esconder o fluxo.

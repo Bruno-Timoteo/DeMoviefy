@@ -39,7 +39,7 @@ export function useUpload(fetchVideos: () => Promise<void>) {
 
       setMessage(response.message);
       setHint(
-        `Video salvo em ${response.next_steps.video_saved_in}. Analise em ${response.next_steps.analysis_will_be_saved_in}, video anotado em ${response.next_steps.annotated_will_be_saved_in} e transcrição em ${response.next_steps.transcription_will_be_saved_in}.`
+        `Video salvo em ${response.next_steps.video_saved_in}. Análise em ${response.next_steps.analysis_will_be_saved_in}, video anotado em ${response.next_steps.annotated_will_be_saved_in} e transcrição em ${response.next_steps.transcription_will_be_saved_in}.`
       );
       
       // Limpando o formulário local

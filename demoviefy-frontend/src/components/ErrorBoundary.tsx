@@ -38,7 +38,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <span className="eyebrow">Interface</span>
             <h1>O painel encontrou um erro.</h1>
             <p>
-              A interface foi protegida para nao ficar em branco. Voce pode recarregar a pagina e tentar novamente.
+              A interface foi protegida para não ficar em branco. Voce pode recarregar a pagina e tentar novamente.
             </p>
             <code>{this.state.errorMessage}</code>
             <div className="action-row action-row-start">

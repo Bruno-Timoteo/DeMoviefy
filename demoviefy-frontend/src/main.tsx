@@ -22,7 +22,7 @@ function FatalStartupScreen({ errorMessage }: { errorMessage: string }) {
     <div className="app-shell">
       <section className="surface crash-panel">
         <span className="eyebrow">Inicialização</span>
-        <h1>O frontend nao conseguiu carregar.</h1>
+        <h1>O frontend não conseguiu carregar.</h1>
         <p>
           Em vez de deixar a pagina em branco, o bootstrap exibiu esta tela. Reinicie o frontend e o backend e,
           se o problema continuar, use a mensagem abaixo para depurarmos.
@@ -41,7 +41,7 @@ function FatalStartupScreen({ errorMessage }: { errorMessage: string }) {
 const rootElement = document.getElementById("root");
 
 if (!rootElement) {
-  throw new Error("Elemento #root nao encontrado no index.html.");
+  throw new Error("Elemento #root não encontrado no index.html.");
 }
 
 const root = createRoot(rootElement);

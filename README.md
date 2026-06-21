@@ -2,21 +2,21 @@
 
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-Monorepo para upload, analise e acompanhamento de videos com backend Flask, frontend React e pipeline YOLO.
+Monorepo para upload, análise e acompanhamento de videos com backend Flask, frontend React e pipeline YOLO.
 
 ## Estrutura
 
 - `demoviefy-backend/`: API Flask, persistencia e processamento
-- `demoviefy-front/`: interface React para upload, biblioteca e visualização da analise
+- `demoviefy-front/`: interface React para upload, biblioteca e visualização da análise
 - `ai_model/`: modelo YOLO, app de teste e utilitarios de IA
 - `docs/`: instrucoes complementares
-- `uploads/`: videos enviados e arquivos de analise gerados em tempo de execução
+- `uploads/`: videos enviados e arquivos de análise gerados em tempo de execução
 - `run_form.py`: launcher principal, multiplataforma, capaz de criar ou reparar a `.venv`
 
 ## Onde os arquivos ficam
 
 - Video enviado: `uploads/<nome-do-arquivo>`
-- Resumo da analise: `uploads/analysis/video_<id>.json`
+- Resumo da análise: `uploads/analysis/video_<id>.json`
 - Banco SQLite local: `demoviefy-backend/instance/demoviefy.db`
 
 O frontend agora mostra esses caminhos diretamente no painel de detalhes, junto com o preview do video e o status do processamento.
@@ -80,7 +80,7 @@ Acesse: `http://localhost:5173`
 
 1. Envie o video pela interface
 2. Backend salva em `uploads/`
-3. Thread de processamento executa analise com YOLO
+3. Thread de processamento executa análise com YOLO
 4. Resumo final vai para `uploads/analysis/video_<id>.json`
 5. Preview anotado vai para `uploads/annotated/video_<id>.mp4`
 6. Interface mostra preview, status e caminhos dos artefatos

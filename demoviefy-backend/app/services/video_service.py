@@ -30,7 +30,7 @@ def process_video(flask_app, video_id):
                 progress=5,
                 stage="preparing",
                 eta_seconds=None,
-                message="Preparando video e configuracoes da analise.",
+                message="Preparando video e configuracoes da análise.",
             )
             # The per-video config lets the user reprocess the same upload with
             # a different model or task without duplicating the file itself.

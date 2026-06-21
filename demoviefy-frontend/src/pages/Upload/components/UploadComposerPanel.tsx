@@ -62,10 +62,10 @@ export const UploadComposerPanel = memo(function UploadComposerPanel({
   return (
     <section className="surface hero-panel">
       <div className="eyebrow">Pipeline de Moderação</div>
-      <h1>Envie um video e acompanhe a analise no mesmo lugar.</h1>
+      <h1>Envie um video e acompanhe a análise no mesmo lugar.</h1>
       <p className="hero-copy">
         O backend salva o arquivo em <code>uploads/</code>, registra a tarefa
-        escolhida, processa o video e deixa a analise e a transcrição
+        escolhida, processa o video e deixa a análise e a transcrição
         editaveis depois.
       </p>
 
@@ -144,7 +144,7 @@ export const UploadComposerPanel = memo(function UploadComposerPanel({
             </label>
 
             <label className="field-block">
-              <span>Inicio da analise (s)</span>
+              <span>Inicio da análise (s)</span>
               <input
                 type="number"
                 min="0"
@@ -155,7 +155,7 @@ export const UploadComposerPanel = memo(function UploadComposerPanel({
             </label>
 
             <label className="field-block">
-              <span>Fim da analise (s)</span>
+              <span>Fim da análise (s)</span>
               <input
                 type="number"
                 min="0"

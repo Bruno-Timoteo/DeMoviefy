@@ -35,7 +35,7 @@ Depois clique em:
 
 1. Envie o video pela interface.
 2. O backend salva o arquivo em `uploads/`.
-3. A thread de processamento executa a analise com YOLO.
+3. A thread de processamento executa a análise com YOLO.
 4. O resumo final vai para `uploads/analysis/video_<id>.json`.
 5. O preview anotado vai para `uploads/annotated/video_<id>.mp4`.
 6. A pagina mostra preview original, preview anotado, status e caminhos dos artefatos.
@@ -96,11 +96,11 @@ py -3.12 -m venv .venv-transcription
 
 No Linux, troque `.\.venv-transcription\Scripts\python` por `.venv-transcription/bin/python`.
 
-Sem o Whisper instalado, o restante da analise continua funcionando normalmente. A tela vai mostrar o status da transcrição e ainda permitira edição manual.
+Sem o Whisper instalado, o restante da análise continua funcionando normalmente. A tela vai mostrar o status da transcrição e ainda permitira edição manual.
 
 ## Troubleshooting
 
 - Se a `.venv` estiver quebrada, o launcher recria durante `Setup Environment`.
-- Se a transcrição automática nao aparecer, confira se a `.venv-transcription` foi criada com Python 3.11/3.12.
+- Se a transcrição automática não aparecer, confira se a `.venv-transcription` foi criada com Python 3.11/3.12.
 - Se algum upload parecer "sumido", abra o painel do video na interface: o caminho do arquivo e do JSON aparecem ali.
 - Se `npm` ou `pip` precisarem do proxy da escola, use `--proxy http://proxy.spo.ifsp.edu.br:3128`.

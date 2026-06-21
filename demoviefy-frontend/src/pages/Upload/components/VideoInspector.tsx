@@ -26,7 +26,7 @@ export function VideoInspector({
     return (
       <section className="surface inspector-panel empty-state">
         <strong>Selecione um video para inspecionar.</strong>
-        <p>Aqui vao aparecer preview, caminhos dos arquivos e o resumo da analise.</p>
+        <p>Aqui vao aparecer preview, caminhos dos arquivos e o resumo da análise.</p>
       </section>
     );
   }
@@ -46,7 +46,7 @@ export function VideoInspector({
       <div className="inspector-grid">
         <div className="media-panel">
           <video className="video-preview" controls preload="metadata" src={toApiUrl(video.video_url)}>
-            Seu navegador nao suporta reproduzir este video.
+            Seu navegador não suporta reproduzir este video.
           </video>
 
           <div className="info-grid">
