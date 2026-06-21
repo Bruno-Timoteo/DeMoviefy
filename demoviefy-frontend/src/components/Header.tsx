@@ -7,7 +7,7 @@ type HeaderProps = {
   onToggleTheme: () => void;
 };
 
-export default function Header({ themeLabel, onToggleTheme }: HeaderProps) {
+export default function Header({/* themeLabel, onToggleTheme */}: HeaderProps) {
   return (
     <header className="app-header">
       <div className="header-brand">
