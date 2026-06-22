@@ -108,25 +108,6 @@ export class VideoService {
         return data;
     }
 
-    static async getVideoStats(): Promise<{
-        total: number;
-        processing: number;
-        processed: number;
-        errors: number;
-    }> {
-        try {
-            const videos = await this.listVideos();
-            return {
-                total: videos.length,
-                processing: videos.filter((v) => v.status.startsWith("PROCESSANDO")).length,
-                processed: videos.filter((v) => v.status === "PROCESSADO").length,
-                errors: videos.filter((v) => v.status.startsWith("ERRO")).length,
-            };
-        } catch {
-            return { total: 0, processing: 0, processed: 0, errors: 0 };
-        }
-    }
-
     static async getTranscription(transcriptionUrl: string): Promise<{
         data: VideoTranscriptionResponse;
         status: number;

@@ -1,3 +1,5 @@
+// -src/pages/Upload/constants.ts
+
 export const DEFAULT_PROCESSING = {
   processing_progress: 0,
   processing_stage: "idle",

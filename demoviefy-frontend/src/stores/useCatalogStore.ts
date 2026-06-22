@@ -1,4 +1,4 @@
-// src/store/useCatalogStore.ts
+// src/stores/useCatalogStore.ts
 import { create } from "zustand";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import type { AITaskOption, AIModelOption } from "src/pages/Upload/types";
