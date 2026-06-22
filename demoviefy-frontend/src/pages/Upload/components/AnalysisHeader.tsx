@@ -1,3 +1,5 @@
+// src/pages/Upload/components/AnalysisHeader.tsx
+
 import { memo } from "react"
 import { formatVariantLabel } from "src/pages/Upload/utils/helpers"
 import type { VideoAnalysisResponse } from "src/pages/Upload/types"

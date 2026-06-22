@@ -1,4 +1,5 @@
-// components/AnalysisEditor.tsx
+// src/pages/Upload/components/AnalysisEditor.tsx
+
 interface AnalysisEditorProps {
   analysisDraft: string
   hasMultipleVariants: boolean

@@ -1,3 +1,5 @@
+// src/pages/Upload/components/AnalysisMetrics.tsx
+
 import { memo } from "react"
 import { formatSeconds } from "src/pages/Upload/utils/helpers"
 import type { VideoAnalysisResponse } from "src/pages/Upload/types"

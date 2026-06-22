@@ -1,4 +1,7 @@
+// src/pages/Upload/components/VideoConfigPanel.tsx
+
 import { useCatalogStore } from "src/stores/useCatalogStore"
+import { useAnalysisStore } from "src/stores/useAnalysisStore"
 import type { AiConfigPayload, VideoRecord } from "src/pages/Upload/types"
 
 interface VideoConfigPanelProps {
@@ -8,7 +11,6 @@ interface VideoConfigPanelProps {
   isBusy: boolean
   onSaveConfig: () => void
   onReprocess: () => void
-  onDeleteVideo: () => void
 }
 
 export function VideoConfigPanel({
@@ -18,15 +20,16 @@ export function VideoConfigPanel({
   isBusy,
   onSaveConfig,
   onReprocess,
-  onDeleteVideo,
 }: VideoConfigPanelProps) {
 
   const { tasks, models } = useCatalogStore()
+  const onDeleteVideo = useAnalysisStore((state) => state.onDeleteVideo)
 
   const filteredModels = models.filter((m) => m.task_type === config.task_type)
 
   const update = (field: keyof AiConfigPayload, value: string | null) =>
     onConfigChange({ ...config, [field]: value })
+
 
     return (
         <section className="editor-card">
@@ -112,3 +115,4 @@ export function VideoConfigPanel({
         </section>
     )
 }
+
