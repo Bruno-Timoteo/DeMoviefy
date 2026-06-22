@@ -17,7 +17,7 @@ interface CatalogState {
 export const useCatalogStore = create<CatalogState>((set, get) => ({
   tasks: [],
   models: [],
-  uploadTask: "object_detection",
+  uploadTask: "",
   uploadModelPath: "",
 
   setUploadModelPath: (uploadModelPath) => set({ uploadModelPath }),
