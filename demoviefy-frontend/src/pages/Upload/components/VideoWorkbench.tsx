@@ -3,7 +3,7 @@ import { memo } from "react";
 import { useVideoPlayer } from "src/pages/Upload/hooks/useVideoPlayer";
 import { useWorkbenchStore } from "src/stores/useWorkbenchStore";
 
-import { WorkbenchHeader } from "src/pages/Upload/components/WorkbenchHeader";
+import { WorkbenchHeader } from "src/pages/Upload/hooks/WorkbenchHeader";
 import { VideoConfigPanel } from "src/pages/Upload/components/VideoConfigPanel";
 import { AnalysisEditor } from "src/pages/Upload/components/AnalysisEditor";
 import { AnalysisHeader } from "src/pages/Upload/components/AnalysisHeader";
@@ -35,7 +35,6 @@ export const VideoWorkbench = memo(function VideoWorkbench({
   onReprocess,
   fetchVideos,
   fetchTranscription,
-  resetArtifactSignature,
 }: VideoWorkbenchProps) {
   
 
@@ -44,7 +43,7 @@ export const VideoWorkbench = memo(function VideoWorkbench({
     analysis, analysisState, analysisMessage, selectedAnalysisVariantId, analysisDraft,
     transcription, transcriptionDraft, transcriptionMessage,
     setSelectedAnalysisVariantId, setAnalysisDraft, setTranscriptionDraft,
-    onSaveAnalysis, onDeleteAnalysis, onDeleteVideo, onSaveTranscription, onDeleteTranscription, onGenerateTranscription
+    onSaveAnalysis, onDeleteAnalysis, onSaveTranscription, onDeleteTranscription, onGenerateTranscription
   } = useWorkbenchStore();
 
   const summary = analysis?.analysis ?? null;
@@ -98,7 +97,6 @@ export const VideoWorkbench = memo(function VideoWorkbench({
               isBusy={isBusy}
               onSaveConfig={onSaveConfig}
               onReprocess={onReprocess}
-              onDeleteVideo={() => onDeleteVideo(video, fetchVideos, resetArtifactSignature)}
             />
 
             <AnalysisEditor
