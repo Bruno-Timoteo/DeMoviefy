@@ -1,3 +1,5 @@
+//src/pages/Upload/types.ts
+
 export type VideoStorage = {
   video_relative_path: string;
   video_absolute_path: string;

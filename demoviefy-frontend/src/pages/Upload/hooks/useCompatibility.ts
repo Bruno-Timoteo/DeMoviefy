@@ -1,3 +1,5 @@
+// src/pages/Upload/hooks/useCompatibility.ts
+
 import { useCallback, useState } from "react"
 import { VideoService } from "src/pages/Upload/services/videoService"
 import type { BackendVersionResponse } from "src/pages/Upload/types"

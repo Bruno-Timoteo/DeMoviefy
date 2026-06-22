@@ -1,3 +1,7 @@
+// src/stores/useWorkbenchStore.ts
+
+// pretendo fragmentar este arquivo em duas stores. useAnalysisStore e useTranscriptionStore
+
 import { create } from "zustand";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import { prettifyJson, getApiErrorMessage } from "src/pages/Upload/utils/helpers";
