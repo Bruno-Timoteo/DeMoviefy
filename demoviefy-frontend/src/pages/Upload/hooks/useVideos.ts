@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { VideoService } from "../services/videoService"
-import type { VideoRecord } from "../types"
+import { VideoService } from "src/pages/Upload/services/videoService"
+import type { VideoRecord } from "src/pages/Upload/types"
 
 export function useVideos(compatibilityStatus: string) {
     const [videos, setVideos] = useState<VideoRecord[]>([])
@@ -24,7 +24,7 @@ export function useVideos(compatibilityStatus: string) {
             if (!preserveHint) setHint(`Biblioteca atualizada com ${normalizedVideos.length} video(s).`)
         } catch (error) {
             console.error(error)
-            setHint("Nao foi possivel atualizar a biblioteca.")
+            setHint("Não foi possível atualizar a biblioteca.")
         } finally {
             if (!silent) setLoadingVideos(false)
         }

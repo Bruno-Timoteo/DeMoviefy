@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import { VideoService } from "../pages/Upload/services/videoService";
-import { prettifyJson, getApiErrorMessage } from "../pages/Upload/utils/helpers";
-import { useUploadStore } from "./useUploadStore";
-import type { VideoAnalysisResponse, VideoRecord, VideoTranscriptionResponse } from "../pages/Upload/types";
+import { VideoService } from "src/pages/Upload/services/videoService";
+import { prettifyJson, getApiErrorMessage } from "src/pages/Upload/utils/helpers";
+import { useUploadStore } from "src/stores/useUploadStore";
+import type { VideoAnalysisResponse, VideoRecord, VideoTranscriptionResponse } from "src/pages/Upload/types";
 
 interface WorkbenchState {
   analysis: VideoAnalysisResponse | null;

@@ -7,11 +7,11 @@ import type {
     VideoTranscriptionResponse,
     VideoAnalysisResponse,
     
-} from "../types";
+} from "src/pages/Upload/types";
 
-import { normalizeVideoRecord, normalizeVideoAnalysisResponse } from "../utils/normalizers";
+import { normalizeVideoRecord, normalizeVideoAnalysisResponse } from "src/pages/Upload/utils/normalizers";
 
-import type { AiConfigPayload } from "../types";
+import type { AiConfigPayload } from "src/pages/Upload/types";
 
 // Faz as chamadas de vídeo para a API, mantendo os .tsx livres de importar a API diretamente.
 

@@ -1,8 +1,8 @@
 // src/pages/Upload/hooks/useUpload.ts
 import { useCallback, useState } from "react";
-import { VideoService } from "../services/videoService";
-import { getApiErrorMessage } from "../utils/helpers";
-import { useUploadStore } from "../../../store/useUploadStore";
+import { VideoService } from "src/pages/Upload/services/videoService";
+import { getApiErrorMessage } from "src/pages/Upload/utils/helpers";
+import { useUploadStore } from "src/stores/useUploadStore";
 
 export function useUpload(fetchVideos: () => Promise<void>) {
   const [file, setFile] = useState<File | null>(null);
@@ -39,7 +39,7 @@ export function useUpload(fetchVideos: () => Promise<void>) {
 
       setMessage(response.message);
       setHint(
-        `Video salvo em ${response.next_steps.video_saved_in}. Analise em ${response.next_steps.analysis_will_be_saved_in}, video anotado em ${response.next_steps.annotated_will_be_saved_in} e transcricao em ${response.next_steps.transcription_will_be_saved_in}.`
+        `Video salvo em ${response.next_steps.video_saved_in}. Análise em ${response.next_steps.analysis_will_be_saved_in}, video anotado em ${response.next_steps.annotated_will_be_saved_in} e transcrição em ${response.next_steps.transcription_will_be_saved_in}.`
       );
       
       // Limpando o formulário local
@@ -54,7 +54,7 @@ export function useUpload(fetchVideos: () => Promise<void>) {
     } catch (error) {
       console.error(error);
       setMessage(getApiErrorMessage(error, "Erro ao enviar o video."));
-      setHint("Confira a combinacao entre tarefa e modelo e tente novamente.");
+      setHint("Confira a combinação entre tarefa e modelo e tente novamente.");
     } finally {
       setUploading(false);
     }

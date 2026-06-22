@@ -1,5 +1,5 @@
-import { useCatalogStore } from "../../../store/useCatalogStore"
-import type { AiConfigPayload, VideoRecord } from "../types"
+import { useCatalogStore } from "src/stores/useCatalogStore"
+import type { AiConfigPayload, VideoRecord } from "src/pages/Upload/types"
 
 interface VideoConfigPanelProps {
   video: VideoRecord
@@ -10,7 +10,6 @@ interface VideoConfigPanelProps {
   onReprocess: () => void
   onDeleteVideo: () => void
 }
-
 
 export function VideoConfigPanel({
   video,
@@ -34,7 +33,7 @@ export function VideoConfigPanel({
             <div className="section-heading">
                 <div>
                     <span className="eyebrow">IA</span>
-                    <h3>Configuracao do video</h3>
+                    <h3>Configuração do vídeo</h3>
                 </div>
             </div>
 
@@ -68,25 +67,25 @@ export function VideoConfigPanel({
                 </label>
 
                 <label className="field-block">
-                    <span>Confianca minima</span>
+                    <span>Confiança mínima</span>
                     <input type="number" min="0" max="1" step="0.01" value={config.confidence_threshold}
                         onChange={(e) => update("confidence_threshold", e.target.value)} />
                 </label>
 
                 <label className="field-block">
-                    <span>Maximo de frames</span>
+                    <span>Máximo de frames</span>
                     <input type="number" min="1" step="1" value={config.max_frames}
                         onChange={(e) => update("max_frames", e.target.value)} />
                 </label>
 
                 <label className="field-block">
-                    <span>Inicio da analise (s)</span>
+                    <span>Início da análise (s)</span>
                     <input type="number" min="0" step="0.1" value={config.clip_start_sec}
                         onChange={(e) => update("clip_start_sec", e.target.value)} />
                 </label>
 
                 <label className="field-block">
-                    <span>Fim da analise (s)</span>
+                    <span>Fim da análise (s)</span>
                     <input type="number" min="0" step="0.1" value={config.clip_end_sec ?? ""}
                         onChange={(e) => update("clip_end_sec", e.target.value || null)}
                         placeholder="Vazio = ate o fim" />
@@ -94,20 +93,20 @@ export function VideoConfigPanel({
             </div>
 
             <p className="field-help">
-                Ajuste densidade, confianca e recorte para controlar exatamente como a IA vai analisar esse video.
+                Ajuste densidade, confiança e recorte para controlar exatamente como a IA vai analisar esse vídeo.
             </p>
 
             <div className="action-row">
                 <button type="button" className="ghost-button danger-button" onClick={onDeleteVideo}>
-                    Excluir video
+                    Excluir vídeo
                 </button>
                 <button type="button" className="ghost-button" onClick={onSaveConfig} disabled={isBusy}>
-                    Salvar configuracao
+                    Salvar configuração
                 </button>
                 <button type="button" className="primary-button" onClick={onReprocess} disabled={isBusy}>
                     {isBusy
                         ? `Reprocessando... ${video.processing.processing_progress}%`
-                        : "Reprocessar video"}
+                        : "Reprocessar vídeo"}
                 </button>
             </div>
         </section>

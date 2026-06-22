@@ -1,18 +1,18 @@
 // src/pages/Upload/components/VideoWorkbench.tsx
 import { memo } from "react";
-import { useVideoPlayer } from "../hooks/useVideoPlayer";
-import { useWorkbenchStore } from "../../../store/useWorkbenchStore";
+import { useVideoPlayer } from "src/pages/Upload/hooks/useVideoPlayer";
+import { useWorkbenchStore } from "src/stores/useWorkbenchStore";
 
-import { WorkbenchHeader } from "./WorkbenchHeader";
-import { VideoConfigPanel } from "./VideoConfigPanel";
-import { AnalysisEditor } from "./AnalysisEditor";
-import { AnalysisHeader } from "./AnalysisHeader";
-import { AnalysisResults } from "./AnalysisResults";
-import { TranscriptionEditor } from "./TranscriptionEditor";
-import { VideoPreviewPanel } from "./VideoPreviewPanel";
-import { WorkbenchEmptyState } from "./WorkbenchEmptyState";
+import { WorkbenchHeader } from "src/pages/Upload/components/WorkbenchHeader";
+import { VideoConfigPanel } from "src/pages/Upload/components/VideoConfigPanel";
+import { AnalysisEditor } from "src/pages/Upload/components/AnalysisEditor";
+import { AnalysisHeader } from "src/pages/Upload/components/AnalysisHeader";
+import { AnalysisResults } from "src/pages/Upload/components/AnalysisResults";
+import { TranscriptionEditor } from "src/pages/Upload/components/TranscriptionEditor";
+import { VideoPreviewPanel } from "src/pages/Upload/components/VideoPreviewPanel";
+import { WorkbenchEmptyState } from "src/pages/Upload/components/WorkbenchEmptyState";
 
-import type { AiConfigPayload, VideoRecord } from "../types";
+import type { AiConfigPayload, VideoRecord } from "src/pages/Upload/types";
 
 type VideoWorkbenchProps = {
   video: VideoRecord | null;

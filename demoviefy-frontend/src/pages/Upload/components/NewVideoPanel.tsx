@@ -1,10 +1,10 @@
 // src/pages/Upload/components/NewVideoPanel.tsx
-import { useCallback, useRef, useState } from "react";
-import { useUpload } from "../hooks/useUpload";
-import { useUploadStore } from "../../../store/useUploadStore";
-import { useCatalogStore } from "../../../store/useCatalogStore";
+import { useCallback, useRef, useState, useEffect } from "react";
+import { useUpload } from "src/pages/Upload/hooks/useUpload";
+import { useUploadStore } from "src/stores/useUploadStore";
+import { useCatalogStore } from "src/stores/useCatalogStore";
 
-import "../styles/NewVideoPanel.css";
+import "/src/pages/Upload/styles/NewVideoPanel.css";
 
 interface NewVideoPanelProps {
   onRefresh: () => void;
@@ -23,8 +23,13 @@ export function NewVideoPanel({onRefresh, fetchVideos,}: NewVideoPanelProps) {
     uploadModelPath,
     handleUploadTaskChange,
     setUploadModelPath,
+    fetchCatalog,
   } = useCatalogStore();
 
+
+    useEffect(() => {
+    fetchCatalog();
+    }, [fetchCatalog]);
 
   // Estados locais do formulário
   const {

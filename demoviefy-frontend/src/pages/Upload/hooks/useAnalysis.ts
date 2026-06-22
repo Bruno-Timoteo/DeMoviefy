@@ -1,9 +1,9 @@
 // src/pages/Upload/hooks/useAnalysis.ts
 import { useEffect, useRef } from "react";
-import { VideoService } from "../services/videoService";
-import { useWorkbenchStore } from "../../../store/useWorkbenchStore";
-import type { VideoRecord } from "../types";
-import { prettifyJson, buildArtifactSignature } from "../utils/helpers";
+import { VideoService } from "src/pages/Upload/services/videoService";
+import { useWorkbenchStore } from "src/stores/useWorkbenchStore";
+import type { VideoRecord } from "src/pages/Upload/types";
+import { prettifyJson, buildArtifactSignature } from "src/pages/Upload/utils/helpers";
 
 export function useAnalysis(
   selectedVideo: VideoRecord | null,

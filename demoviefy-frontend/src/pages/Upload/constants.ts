@@ -7,10 +7,10 @@ export const DEFAULT_PROCESSING = {
 
 export const DEFAULT_AI_CONFIG = {
   task_type: "object_detection",
-  task_label: "Deteccao de Objetos",
+  task_label: "Detecção de Objetos",
   model_path: "",
   model_relative_path: "",
-  model_name: "Modelo nao informado",
+  model_name: "Modelo não informado",
   frame_stride: 8,
   confidence_threshold: 0.35,
   max_frames: 300,

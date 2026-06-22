@@ -1,6 +1,6 @@
 import { memo } from "react"
-import { formatVariantLabel } from "../utils/helpers"
-import type { VideoAnalysisResponse } from "../types"
+import { formatVariantLabel } from "src/pages/Upload/utils/helpers"
+import type { VideoAnalysisResponse } from "src/pages/Upload/types"
 
 type AnalysisHeaderProps = {
   message: string
@@ -21,7 +21,7 @@ export const AnalysisHeader = memo(function AnalysisHeader({
       <p>{message}</p>
       {variants.length > 0 && (
         <label className="field-block">
-          <span>Versao da analise</span>
+          <span>Versão da análise</span>
           <select
             value={selectedVariantId ?? ""}
             onChange={(e) => onVariantChange(e.target.value || null)}

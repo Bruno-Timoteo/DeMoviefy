@@ -2,14 +2,14 @@ import type {
     VideoRecord,
     VideoAnalysisResponse,
     VideoAnalysisVariant
-} from "../types";
+} from "src/pages/Upload/types";
 
-import { DEFAULT_PROCESSING, DEFAULT_AI_CONFIG } from "../constants";
+import { DEFAULT_PROCESSING, DEFAULT_AI_CONFIG } from "src/pages/Upload/constants";
 
 export function normalizeVideoRecord(video: Partial<VideoRecord>): VideoRecord {
     return {
         id: video.id ?? 0,
-        filename: video.filename ?? "video_sem_nome.mp4",
+        filename: video.filename ?? "vídeo_sem_nome.mp4",
         status: video.status ?? "PROCESSANDO",
         created_at: video.created_at ?? null,
         analysis_ready: Boolean(video.analysis_ready),
@@ -55,8 +55,8 @@ export function normalizeVideoAnalysisResponse(response: VideoAnalysisResponse |
             variant_id: variant.variant_id,
             created_at: variant.created_at ?? null,
             task_type: variant.task_type ?? "object_detection",
-            task_label: variant.task_label ?? variant.task_type ?? "Analise",
-            model_name: variant.model_name ?? "Modelo nao informado",
+            task_label: variant.task_label ?? variant.task_type ?? "Análise",
+            model_name: variant.model_name ?? "Modelo não informado",
             frame_stride: variant.frame_stride ?? 0,
             clip_start_sec: variant.clip_start_sec ?? 0,
             clip_end_sec: variant.clip_end_sec ?? null,

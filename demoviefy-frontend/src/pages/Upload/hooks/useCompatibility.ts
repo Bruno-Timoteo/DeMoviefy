@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react"
-import { VideoService } from "../services/videoService"
-import type { BackendVersionResponse } from "../types"
+import { VideoService } from "src/pages/Upload/services/videoService"
+import type { BackendVersionResponse } from "src/pages/Upload/types"
 
 type CompatibilityState =
   | { status: "checking"; message: string; backendInfo: null }
@@ -24,8 +24,8 @@ export function useCompatibility() {
       message: reason === "compatible"
         ? `Contrato ${backendInfo?.api_contract_version} validado com sucesso.`
         : reason === "mismatch"
-          ? "Frontend e backend estao em versoes de contrato diferentes."
-          : "Nao foi possivel validar a versao do backend.",
+          ? "Frontend e backend estao em versões de contrato diferentes."
+          : "Não foi possível validar a versão do backend.",
     })
 
     return isCompatible

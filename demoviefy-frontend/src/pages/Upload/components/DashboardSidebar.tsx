@@ -1,5 +1,5 @@
-import { VideoLibrary } from "./VideoLibrary"
-import type { VideoRecord } from "../types"
+import { VideoLibrary } from "src/pages/Upload/components/VideoLibrary"
+import type { VideoRecord } from "src/pages/Upload/types"
 
 interface DashboardSidebarProps {
   open: boolean

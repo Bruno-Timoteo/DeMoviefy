@@ -21,13 +21,13 @@ python scripts/train_yolo.py --data ..\datasets\meu_dataset\data.yaml --task obj
 
 ## Exemplos
 
-Deteccao de objetos:
+Detecção de objetos:
 
 ```powershell
 python scripts/train_yolo.py --data ..\datasets\meu_dataset\data.yaml --task object_detection --size s --name detector-spo
 ```
 
-Segmentacao:
+Segmentação:
 
 ```powershell
 python scripts/train_yolo.py --data ..\datasets\meu_dataset\data.yaml --task instance_segmentation --size m --epochs 120
@@ -48,9 +48,9 @@ python scripts/train_yolo.py --data ..\datasets\meu_dataset\data.yaml --model ..
 ## Como preparar o dataset
 
 1. Organize as imagens e labels no formato esperado pelo Ultralytics.
-2. Crie um `data.yaml` com caminhos de treino, validacao e nomes das classes.
+2. Crie um `data.yaml` com caminhos de treino, validação e nomes das classes.
 3. Comece com `--size n` ou `--size s` para validar o pipeline mais rapido.
-4. Quando o treino estabilizar, aumente epocas, resolucao ou tamanho do modelo.
+4. Quando o treino estabilizar, aumente epocas, resolução ou tamanho do modelo.
 
 ## Dica pratica
 

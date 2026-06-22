@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import Home from "../pages/Home";
-import Upload from "../pages/Upload";
+import Home from "src/pages/Home";
+import Upload from "src/pages/Upload";
 
 // Define os títulos das páginas com base nas rotas
 const titlesMap: Record<string, string> = {

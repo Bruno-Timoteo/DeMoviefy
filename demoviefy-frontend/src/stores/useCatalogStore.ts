@@ -1,8 +1,8 @@
 // src/store/useCatalogStore.ts
 import { create } from "zustand";
-import { VideoService } from "../pages/Upload/services/videoService";
-import type { AITaskOption, AIModelOption } from "../pages/Upload/types";
-import { chooseFirstModel, choosePreferredTask } from "../pages/Upload/utils/helpers";
+import { VideoService } from "src/pages/Upload/services/videoService";
+import type { AITaskOption, AIModelOption } from "src/pages/Upload/types";
+import { chooseFirstModel, choosePreferredTask } from "src/pages/Upload/utils/helpers";
 
 interface CatalogState {
   tasks: AITaskOption[];
@@ -17,7 +17,7 @@ interface CatalogState {
 export const useCatalogStore = create<CatalogState>((set, get) => ({
   tasks: [],
   models: [],
-  uploadTask: "object_detection",
+  uploadTask: "",
   uploadModelPath: "",
 
   setUploadModelPath: (uploadModelPath) => set({ uploadModelPath }),

@@ -4,11 +4,11 @@ from app.config.paths import MODEL_DIR, to_repo_relative
 
 
 TASK_DIRECTORY_MAP = {
-    "Object_Detection": ("object_detection", "Deteccao de Objetos"),
-    "Image_Classification": ("image_classification", "Classificacao de Imagem"),
-    "Instance_Segmentation": ("instance_segmentation", "Segmentacao de Instancias"),
+    "Object_Detection": ("object_detection", "Detecção de Objetos"),
+    "Image_Classification": ("image_classification", "Classificação de Imagem"),
+    "Instance_Segmentation": ("instance_segmentation", "Segmentação de Instancias"),
     "Oriented_Bounding_Boxes": ("oriented_bounding_boxes", "Caixas Orientadas"),
-    "Pose_Estimation": ("pose_estimation", "Estimacao de Pose"),
+    "Pose_Estimation": ("pose_estimation", "Estimação de Pose"),
 }
 
 

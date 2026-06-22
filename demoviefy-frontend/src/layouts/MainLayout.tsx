@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 
-import Footer from "../components/Footer";
-import Header from "../components/Header";
+import Footer from "src/components/Footer";
+import Header from "src/components/Header";
 
 type MainLayoutProps = {
   children: ReactNode;
@@ -19,14 +19,16 @@ export default function MainLayout({ children }: MainLayoutProps) {
         return stored;
       }
     } catch (error) {
-      console.warn("Nao foi possivel ler o tema salvo.", error);
+      console.warn("Não foi possível ler o tema salvo.", error);
     }
 
     try {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      // return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      return "dark";
     } catch (error) {
-      console.warn("Nao foi possivel consultar o tema do sistema.", error);
-      return "light";
+      console.warn("Não foi possível consultar o tema do sistema.", error);
+      // return "light";
+      return "dark";
     }
   });
 
@@ -35,7 +37,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     try {
       window.localStorage.setItem("demoviefy-theme", theme);
     } catch (error) {
-      console.warn("Nao foi possivel persistir o tema atual.", error);
+      console.warn("Não foi possível persistir o tema atual.", error);
     }
   }, [theme]);
 

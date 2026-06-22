@@ -1,8 +1,8 @@
 // src/pages/Upload/hooks/useTranscription.ts
 import { useCallback } from "react";
-import { VideoService } from "../services/videoService";
-import { useWorkbenchStore } from "../../../store/useWorkbenchStore";
-import type { VideoRecord } from "../types";
+import { VideoService } from "src/pages/Upload/services/videoService";
+import { useWorkbenchStore } from "src/stores/useWorkbenchStore";
+import type { VideoRecord } from "src/pages/Upload/types";
 
 export function useTranscription() {
   const fetchTranscription = useCallback(async (video: VideoRecord) => {

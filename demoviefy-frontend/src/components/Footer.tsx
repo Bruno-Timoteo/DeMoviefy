@@ -6,7 +6,7 @@ export default function Footer(): JSX.Element {
 
   return (
     <footer className="p-6 mx-auto">
-      &copy; DeMoviefy {year}
+      Copyright &copy; DeMoviefy {year}
     </footer>
   );
 }

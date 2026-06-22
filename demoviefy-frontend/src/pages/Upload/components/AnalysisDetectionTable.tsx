@@ -1,6 +1,6 @@
 import { memo } from "react"
-import { formatPercent } from "../utils/helpers"
-import type { VideoAnalysisResponse } from "../types"
+import { formatPercent } from "src/pages/Upload/utils/helpers"
+import type { VideoAnalysisResponse } from "src/pages/Upload/types"
 
 type AnalysisDetectionTableProps = {
   summary: NonNullable<VideoAnalysisResponse["analysis"]>

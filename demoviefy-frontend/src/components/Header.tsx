@@ -1,13 +1,13 @@
 import { NavLink } from "react-router-dom";
 
-import logoFull from "../assets/LogoFull.png"
+import logoFull from "src/assets/LogoFull.png"
 
 type HeaderProps = {
   themeLabel: string;
   onToggleTheme: () => void;
 };
 
-export default function Header({ themeLabel, onToggleTheme }: HeaderProps) {
+export default function Header({/* themeLabel, onToggleTheme */}: HeaderProps) {
   return (
     <header className="app-header">
       <div className="header-brand">
@@ -22,9 +22,11 @@ export default function Header({ themeLabel, onToggleTheme }: HeaderProps) {
           </NavLink>
         </nav>
       </div>
+        {/*}
       <button type="button" className="ghost-button theme-toggle" onClick={onToggleTheme}>
         {themeLabel}
       </button>
+      {*/}
     </header>
   );
 }

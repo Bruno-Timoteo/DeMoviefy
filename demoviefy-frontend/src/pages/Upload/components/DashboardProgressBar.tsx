@@ -1,5 +1,5 @@
 // components/DashboardProgressBar.tsx
-import type { VideoRecord } from "../types"
+import type { VideoRecord } from "src/pages/Upload/types"
 
 interface DashboardProgressBarProps {
   uploading: boolean

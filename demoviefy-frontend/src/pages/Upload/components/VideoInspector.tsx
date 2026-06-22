@@ -1,6 +1,6 @@
-import { StatusBadge } from "./StatusBadge";
-import type { VideoAnalysisResponse, VideoRecord } from "../types"
-import { toApiUrl } from "../../../services/api";
+import { StatusBadge } from "src/pages/Upload/components/StatusBadge";
+import type { VideoAnalysisResponse, VideoRecord } from "src/pages/Upload/types"
+import { toApiUrl } from "src/services/api"
 
 type VideoInspectorProps = {
   video: VideoRecord | null;
@@ -26,7 +26,7 @@ export function VideoInspector({
     return (
       <section className="surface inspector-panel empty-state">
         <strong>Selecione um video para inspecionar.</strong>
-        <p>Aqui vao aparecer preview, caminhos dos arquivos e o resumo da analise.</p>
+        <p>Aqui vao aparecer preview, caminhos dos arquivos e o resumo da análise.</p>
       </section>
     );
   }
@@ -46,7 +46,7 @@ export function VideoInspector({
       <div className="inspector-grid">
         <div className="media-panel">
           <video className="video-preview" controls preload="metadata" src={toApiUrl(video.video_url)}>
-            Seu navegador nao suporta reproduzir este video.
+            Seu navegador não suporta reproduzir este video.
           </video>
 
           <div className="info-grid">
@@ -96,7 +96,7 @@ export function VideoInspector({
                 </div>
                 {Object.keys(summary.label_counts).length === 0 && (
                   <div className="label-table-row muted-row">
-                    <span>Nenhuma deteccao encontrada</span>
+                    <span>Nenhuma detecção encontrada</span>
                     <span>0</span>
                     <span>-</span>
                   </div>

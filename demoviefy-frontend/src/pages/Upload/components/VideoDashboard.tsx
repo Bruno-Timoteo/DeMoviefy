@@ -1,28 +1,27 @@
 // src/pages/Upload/components/VideoDashboard.tsx
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { useCompatibility } from "../hooks/useCompatibility";
-import { useVideos } from "../hooks/useVideos";
-import { useAnalysis } from "../hooks/useAnalysis";
-import { useTranscription } from "../hooks/useTranscription";
-import { useVideoConfig } from "../hooks/useVideoConfig";
-import { useUploadStore } from "../../../store/useUploadStore";
-import { useCatalogStore } from "../../../store/useCatalogStore";
+import { useCompatibility } from "src/pages/Upload/hooks/useCompatibility";
+import { useVideos } from "src/pages/Upload/hooks/useVideos";
+import { useAnalysis } from "src/pages/Upload/hooks/useAnalysis";
+import { useTranscription } from "src/pages/Upload/hooks/useTranscription";
+import { useVideoConfig } from "src/pages/Upload/hooks/useVideoConfig";
+import { useUploadStore } from "src/stores/useUploadStore";
+import { useCatalogStore } from "src/stores/useCatalogStore";
+import { CompatibilityBanner } from "src/pages/Upload/components/CompatibilityBanner";
+import { DashboardSidebar } from "src/pages/Upload/components/DashboardSidebar";
+import { DashboardHeader } from "src/pages/Upload/components/DashboardHeader";
+import { DashboardProgressBar } from "src/pages/Upload/components/DashboardProgressBar";
 
-import { CompatibilityBanner } from "./CompatibilityBanner";
-import { DashboardSidebar } from "./DashboardSidebar";
-import { DashboardHeader } from "./DashboardHeader";
-import { DashboardProgressBar } from "./DashboardProgressBar";
+import { StatsPanel } from "src/pages/Upload/components/StatsPanel";
+import { NewVideoPanel } from "src/pages/Upload/components/NewVideoPanel";
+import { VideoWorkbench } from "src/pages/Upload/components/VideoWorkbench";
+import { ProcessingQueuePanel } from "src/pages/Upload/components/ProcessingQueuePanel";
 
-import { StatsPanel } from "./StatsPanel";
-import { NewVideoPanel } from "./NewVideoPanel";
-import { VideoWorkbench } from "./VideoWorkbench";
-import { ProcessingQueuePanel } from "./ProcessingQueuePanel";
-
-import "../styles/VideoDashboard.css";
-import "../styles/NewVideoPanel.css";
-import "../styles/ProcessingQueuePanel.css";
-import "../styles/NewDashboardLayout.css";
+import "/src/pages/Upload/styles/VideoDashboard.css";
+import "/src/pages/Upload/styles/NewVideoPanel.css";
+import "/src/pages/Upload/styles/ProcessingQueuePanel.css";
+import "/src/pages/Upload/styles/NewDashboardLayout.css";
 
 export default function VideoDashboard() {
     const [sidebarOpen, setSidebarOpen] = useState(false);

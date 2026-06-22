@@ -98,17 +98,17 @@ def _resolve_ai_config(task_type: str | None, model_reference: str | None) -> di
     if model_reference:
         model = get_model_by_relative_path(model_reference)
         if model is None:
-            raise ValueError("Modelo de IA nao encontrado.")
+            raise ValueError("Modelo de IA não encontrado.")
     else:
         requested_task = task_type or settings.task_type
         model = next((entry for entry in catalog if entry["task_type"] == requested_task), fallback_model)
 
     if model is None:
-        raise ValueError("Nenhum modelo disponivel para a tarefa escolhida.")
+        raise ValueError("Nenhum modelo disponível para a tarefa escolhida.")
 
     resolved_task = task_type or model["task_type"]
     if model["task_type"] != resolved_task:
-        raise ValueError("O modelo selecionado nao pertence a tarefa escolhida.")
+        raise ValueError("O modelo selecionado não pertence a tarefa escolhida.")
 
     return {
         "task_type": resolved_task,
@@ -143,7 +143,7 @@ def _resolve_clip_selection(payload_source) -> dict:
 
     clip_start_sec = 0.0 if clip_start_sec is None else clip_start_sec
     if clip_start_sec < 0:
-        raise ValueError("O inicio do trecho nao pode ser negativo.")
+        raise ValueError("O inicio do trecho não pode ser negativo.")
 
     if clip_end_sec is not None and clip_end_sec <= clip_start_sec:
         raise ValueError("O fim do trecho precisa ser maior que o inicio.")
@@ -210,7 +210,7 @@ def _empty_analysis_payload(video, ai_config: dict, storage: dict) -> dict:
         "filename": video.filename,
         "status": video.status,
         "available": False,
-        "message": "Analise ainda nao disponivel.",
+        "message": "Análise ainda não disponível.",
         "ai_config": ai_config,
         "storage": storage,
         "analysis": {
@@ -266,7 +266,7 @@ def upload_video():
     if not _is_allowed_video(filename):
         current_app.logger.warning("upload_video:invalid_extension filename=%s", filename)
         return (
-            jsonify({"error": "Formato de video nao suportado. Use mp4/mov/avi/mkv/webm"}),
+            jsonify({"error": "Formato de video não suportado. Use mp4/mov/avi/mkv/webm"}),
             400,
         )
 
@@ -303,7 +303,7 @@ def upload_video():
         progress=1,
         stage="queued",
         eta_seconds=None,
-        message="Upload concluido. Aguardando inicio do processamento.",
+        message="Upload concluído. Aguardando inicio do processamento.",
     )
     current_app.logger.info("upload_video:db_saved video_id=%s", new_video.id)
 
@@ -335,7 +335,7 @@ def list_videos():
 def get_video_analysis(video_id: int):
     video = get_video(video_id)
     if not video:
-        return jsonify({"error": "Video nao encontrado"}), 404
+        return jsonify({"error": "Vídeo não encontrado"}), 404
 
     selected_variant = _requested_analysis_variant()
     ai_config = load_ai_config(video.id)
@@ -347,9 +347,9 @@ def get_video_analysis(video_id: int):
         payload["available_variants"] = variants
         payload["selected_variant_id"] = selected_variant
         if video.status in {"PROCESSANDO", "PROCESSANDO_IA"}:
-            payload["message"] = "Analise ainda em processamento."
+            payload["message"] = "Análise ainda em processamento."
             return jsonify(payload), 202
-        payload["message"] = "Analise nao disponivel."
+        payload["message"] = "Análise não disponível."
         return jsonify(payload), 404
 
     return jsonify(
@@ -358,7 +358,7 @@ def get_video_analysis(video_id: int):
             "filename": video.filename,
             "status": video.status,
             "available": True,
-            "message": "Analise carregada com sucesso.",
+            "message": "Análise carregada com sucesso.",
             "analysis": analysis,
             "available_variants": variants,
             "selected_variant_id": analysis.get("analysis_variant_id"),
@@ -371,12 +371,12 @@ def get_video_analysis(video_id: int):
 def update_video_analysis_by_id(video_id: int):
     video = get_video(video_id)
     if not video:
-        return jsonify({"error": "Video nao encontrado"}), 404
+        return jsonify({"error": "Vídeo não encontrado"}), 404
 
     payload = request.get_json(silent=True) or {}
     analysis = payload.get("analysis", payload)
     if not isinstance(analysis, dict):
-        return jsonify({"error": "Payload de analise invalido"}), 400
+        return jsonify({"error": "Payload de análise invalido"}), 400
 
     requested_variant = _requested_analysis_variant()
     if requested_variant:
@@ -385,7 +385,7 @@ def update_video_analysis_by_id(video_id: int):
     update_status(video, "PROCESSADO")
     return jsonify(
         {
-            "message": "Analise atualizada com sucesso",
+            "message": "Análise atualizada com sucesso",
             "video": _serialize_video(video),
             "analysis": analysis,
         }
@@ -395,18 +395,18 @@ def update_video_analysis_by_id(video_id: int):
 def delete_video_analysis_by_id(video_id: int):
     video = get_video(video_id)
     if not video:
-        return jsonify({"error": "Video nao encontrado"}), 404
+        return jsonify({"error": "Vídeo não encontrado"}), 404
 
     requested_variant = _requested_analysis_variant()
     if requested_variant:
         deleted = delete_analysis_variant(video_id, requested_variant)
         if not deleted:
-            return jsonify({"error": "Versao de analise nao encontrada"}), 404
+            return jsonify({"error": "Versão de análise não encontrada"}), 404
         if not has_analysis(video_id):
             update_status(video, "SEM_ANALISE")
         return jsonify(
             {
-                "message": "Versao selecionada removida com sucesso",
+                "message": "Versão selecionada removida com sucesso",
                 "video": _serialize_video(video),
                 "available_variants": list_analysis_variants(video.id),
             }
@@ -415,13 +415,13 @@ def delete_video_analysis_by_id(video_id: int):
     delete_analysis(video_id)
     delete_analysis_artifacts(video_id)
     update_status(video, "SEM_ANALISE")
-    return jsonify({"message": "Analise removida com sucesso", "video": _serialize_video(video)})
+    return jsonify({"message": "Análise removida com sucesso", "video": _serialize_video(video)})
 
 
 def get_video_transcription(video_id: int):
     video = get_video(video_id)
     if not video:
-        return jsonify({"error": "Video nao encontrado"}), 404
+        return jsonify({"error": "Vídeo não encontrado"}), 404
 
     storage = _storage_payload(video.id, video.filename)
     transcription = load_transcription(video_id)
@@ -432,7 +432,7 @@ def get_video_transcription(video_id: int):
                     video,
                     storage,
                     status="pending",
-                    error="A transcricao sera consultada novamente quando o processamento terminar.",
+                    error="A transcrição sera consultada novamente quando o processamento terminar.",
                 )
             ), 202
         return jsonify(
@@ -440,7 +440,7 @@ def get_video_transcription(video_id: int):
                 video,
                 storage,
                 status="missing",
-                error="Transcricao nao disponivel.",
+                error="Transcrição não disponível.",
             )
         ), 404
 
@@ -458,17 +458,17 @@ def get_video_transcription(video_id: int):
 def generate_video_transcription_by_id(video_id: int):
     video = get_video(video_id)
     if not video:
-        return jsonify({"error": "Video nao encontrado"}), 404
+        return jsonify({"error": "Vídeo não encontrado"}), 404
 
     filepath = video_file_path(video.filename)
     if not filepath.exists():
-        return jsonify({"error": "Arquivo de video nao encontrado"}), 404
+        return jsonify({"error": "Arquivo de vídeo não encontrado"}), 404
 
     if not whisper_available():
         return (
             jsonify(
                 {
-                    "error": "Transcricao automatica indisponivel. Instale openai-whisper no ambiente atual ou ative a opcao de transcricao no setup.",
+                    "error": "Transcrição automática indisponível. Instale openai-whisper no ambiente atual ou ative a opção de transcrição no setup.",
                 }
             ),
             503,
@@ -489,7 +489,7 @@ def generate_video_transcription_by_id(video_id: int):
 
     return jsonify(
         {
-            "message": "Transcricao automatica gerada com sucesso",
+            "message": "Transcrição automática gerada com sucesso",
             "video": _serialize_video(video),
             "transcription": saved,
         }
@@ -499,12 +499,12 @@ def generate_video_transcription_by_id(video_id: int):
 def update_video_transcription_by_id(video_id: int):
     video = get_video(video_id)
     if not video:
-        return jsonify({"error": "Video nao encontrado"}), 404
+        return jsonify({"error": "Vídeo não encontrado"}), 404
 
     payload = request.get_json(silent=True) or {}
     content = str(payload.get("content", "")).strip()
     if not content:
-        return jsonify({"error": "Conteudo da transcricao obrigatorio"}), 400
+        return jsonify({"error": "Conteúdo da transcrição obrigatório"}), 400
 
     transcription = save_transcription(
         video_id,
@@ -514,7 +514,7 @@ def update_video_transcription_by_id(video_id: int):
     )
     return jsonify(
         {
-            "message": "Transcricao atualizada com sucesso",
+            "message": "Transcrição atualizada com sucesso",
             "video": _serialize_video(video),
             "transcription": transcription,
         }
@@ -524,27 +524,27 @@ def update_video_transcription_by_id(video_id: int):
 def delete_video_transcription_by_id(video_id: int):
     video = get_video(video_id)
     if not video:
-        return jsonify({"error": "Video nao encontrado"}), 404
+        return jsonify({"error": "Vídeo não encontrado"}), 404
 
     delete_transcription(video_id)
-    return jsonify({"message": "Transcricao removida com sucesso", "video": _serialize_video(video)})
+    return jsonify({"message": "Transcrição removida com sucesso", "video": _serialize_video(video)})
 
 
 def get_video_details(video_id: int):
     video = get_video(video_id)
     if not video:
-        return jsonify({"error": "Video nao encontrado"}), 404
+        return jsonify({"error": "Vídeo não encontrado"}), 404
     return jsonify(_serialize_video(video))
 
 
 def get_video_file(video_id: int):
     video = get_video(video_id)
     if not video:
-        return jsonify({"error": "Video nao encontrado"}), 404
+        return jsonify({"error": "Vídeo não encontrado"}), 404
 
     filepath = video_file_path(video.filename)
     if not filepath.exists():
-        return jsonify({"error": "Arquivo de video nao encontrado"}), 404
+        return jsonify({"error": "Arquivo de video não encontrado"}), 404
 
     mimetype, _ = mimetypes.guess_type(str(filepath))
     return send_file(
@@ -558,15 +558,15 @@ def get_video_file(video_id: int):
 def get_annotated_video_file(video_id: int):
     video = get_video(video_id)
     if not video:
-        return jsonify({"error": "Video nao encontrado"}), 404
+        return jsonify({"error": "Vídeo não encontrado"}), 404
 
     filepath = resolve_annotated_video_for_web(video.id, current_app.logger, _requested_analysis_variant())
     if filepath is None:
         filepath = annotated_video_path(video.id)
     if not filepath.exists():
         if video.status in {"PROCESSANDO", "PROCESSANDO_IA"}:
-            return jsonify({"message": "Video anotado ainda em processamento", "status": video.status}), 202
-        return jsonify({"error": "Video anotado nao disponivel", "status": video.status}), 404
+            return jsonify({"message": "Vídeo anotado ainda em processamento", "status": video.status}), 202
+        return jsonify({"error": "Vídeo anotado não disponível", "status": video.status}), 404
 
     return send_file(
         filepath,
@@ -580,11 +580,11 @@ def update_video_status(video_id: int):
     payload = request.get_json(silent=True) or {}
     status = payload.get("status")
     if not status:
-        return jsonify({"error": "Campo status obrigatorio"}), 400
+        return jsonify({"error": "Campo status obrigatório"}), 400
 
     video = get_video(video_id)
     if not video:
-        return jsonify({"error": "Video nao encontrado"}), 404
+        return jsonify({"error": "Vídeo não encontrado"}), 404
 
     update_status(video, str(status))
     return jsonify(_serialize_video(video))
@@ -593,7 +593,7 @@ def update_video_status(video_id: int):
 def update_video_ai_config(video_id: int):
     video = get_video(video_id)
     if not video:
-        return jsonify({"error": "Video nao encontrado"}), 404
+        return jsonify({"error": "Vídeo não encontrado"}), 404
 
     payload = request.get_json(silent=True) or {}
     try:
@@ -615,13 +615,13 @@ def update_video_ai_config(video_id: int):
         clip_start_sec=clip_config["clip_start_sec"],
         clip_end_sec=clip_config["clip_end_sec"],
     )
-    return jsonify({"message": "Configuracao de IA atualizada", "ai_config": saved, "video": _serialize_video(video)})
+    return jsonify({"message": "Configuração de IA atualizada", "ai_config": saved, "video": _serialize_video(video)})
 
 
 def reprocess_video_by_id(video_id: int):
     video = get_video(video_id)
     if not video:
-        return jsonify({"error": "Video nao encontrado"}), 404
+        return jsonify({"error": "Vídeo não encontrado"}), 404
 
     payload = request.get_json(silent=True) or {}
     if payload:
@@ -651,7 +651,7 @@ def reprocess_video_by_id(video_id: int):
 def delete_video_by_id(video_id: int):
     video = get_video(video_id)
     if not video:
-        return jsonify({"error": "Video nao encontrado"}), 404
+        return jsonify({"error": "Vídeo não encontrado"}), 404
 
     filepath = video_file_path(video.filename)
     delete_video(video)
@@ -661,7 +661,7 @@ def delete_video_by_id(video_id: int):
     delete_analysis_artifacts(video.id)
     delete_transcription(video_id)
     delete_metadata(video_id)
-    return jsonify({"message": "Video removido com sucesso"})
+    return jsonify({"message": "Vídeo removido com sucesso"})
 
 
 def list_ai_models():

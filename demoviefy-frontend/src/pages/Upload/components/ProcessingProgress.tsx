@@ -9,9 +9,9 @@ type ProcessingProgressProps = {
 
 const PIPELINE_STEPS = [
   { id: "queued", label: "Fila" },
-  { id: "preparing", label: "Preparacao" },
-  { id: "analyzing", label: "Analise" },
-  { id: "completed", label: "Concluido" },
+  { id: "preparing", label: "Preparação" },
+  { id: "analyzing", label: "Análise" },
+  { id: "completed", label: "Concluído" },
 ] as const;
 
 const STAGE_INDEX: Record<string, number> = {

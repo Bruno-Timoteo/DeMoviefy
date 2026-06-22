@@ -1,5 +1,5 @@
-import { VideoService } from "../services/videoService"
-import type { BackendVersionResponse } from "../types"
+import { VideoService } from "src/pages/Upload/services/videoService"
+import type { BackendVersionResponse } from "src/pages/Upload/types"
 
 type CompatibilityStatus = "checking" | "compatible" | "mismatch" | "unavailable"
 
@@ -20,8 +20,8 @@ export function CompatibilityBanner({ status, message, backendInfo, onRetry }: C
           <span className="eyebrow">Compatibilidade</span>
           <h2>
             {status === "checking"
-              ? "Validando versoes do sistema"
-              : "Atualizacao necessaria antes de usar o painel"}
+              ? "Validando versões do sistema"
+              : "Atualização necessária antes de usar o painel"}
           </h2>
           <p>{message}</p>
           <p className="compatibility-meta">

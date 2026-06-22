@@ -6,7 +6,7 @@ import type {
     VideoAnalysisResponse, 
     VideoRecord,
     VideoAnalysisVariant
-} from "../types";
+} from "src/pages/Upload/types";
 
 type AnalysisState = "idle" | "loading" | "ready" | "pending" | "error";
 
@@ -31,7 +31,7 @@ export function buildAnalysisMessage(
     analysis: VideoAnalysisResponse | null,
 ) {
     if (!video) {
-        return "Escolha um item da biblioteca para abrir preview, analise e transcricao.";
+        return "Escolha um item da biblioteca para abrir preview, análise e transcrição.";
     }
 
     if (state === "loading") {
@@ -41,19 +41,19 @@ export function buildAnalysisMessage(
     if (state === "pending") {
         return (
             analysis?.message ??
-            `O video ainda esta em processamento (${video.processing.processing_progress}%). ${video.processing.processing_message ?? ""}`.trim()
+            `O vídeo ainda esta em processamento (${video.processing.processing_progress}%). ${video.processing.processing_message ?? ""}`.trim()
         );
     }
 
     if (state === "error") {
-        return analysis?.message ?? "Nao foi possivel carregar a analise agora. Voce ainda pode editar ou recriar o JSON.";
+        return analysis?.message ?? "Não foi possível carregar a análise agora. Voce ainda pode editar ou recriar o JSON.";
     }
 
     if (!analysis) {
-        return "Este video ainda nao possui resumo salvo.";
+        return "Este vídeo ainda não possui resumo salvo.";
     }
 
-    return analysis.message ?? `Analise carregada de ${analysis.storage.analysis_relative_path}.`;
+    return analysis.message ?? `Análise carregada de ${analysis.storage.analysis_relative_path}.`;
 }
 
 // Retorna o caminho relativo do diretório para o primeiro modelo encontrado para uma determinada tarefa.
@@ -106,14 +106,14 @@ export function formatTimecode(seconds: number): string {
 
 export function formatDurationText(value: number | null | undefined) {
   if (typeof value !== "number" || Number.isNaN(value)) {
-    return "Duracao indisponivel";
+    return "Duração indisponível";
   }
 
   if (value < 1) {
-    return `Duracao aproximada: ${value.toFixed(2)}s`;
+    return `Duração aproximada: ${value.toFixed(2)}s`;
   }
 
-  return `Duracao aproximada: ${value.toFixed(1)}s`;
+  return `Duração aproximada: ${value.toFixed(1)}s`;
 }
 
 export function formatPercent(value: number | undefined) {
