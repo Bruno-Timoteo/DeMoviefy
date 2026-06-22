@@ -1,4 +1,4 @@
-// src/stores/useVideoStore.ts
+// src/stores/useVideoStore.ts — versão atualizada
 
 import { create } from "zustand";
 import { VideoService } from "src/pages/Upload/services/videoService";
@@ -16,6 +16,7 @@ interface VideoState {
   loadingVideos: boolean;
   selectedVideoId: number | null;
   selectedVideo: VideoRecord | null;
+  selectedVideoIsBusy: boolean;
   stats: VideoStats;
   hint: string;
 
@@ -26,21 +27,21 @@ interface VideoState {
   stopPolling: () => void;
 }
 
-// Calcula selectedVideo e stats a partir de uma lista de vídeos + id selecionado.
-// Centralizado aqui para não duplicar a lógica em cada action que toca `videos`.
+// Calcula selectedVideo, selectedVideoIsBusy e stats a partir de uma lista de vídeos + id selecionado.
+// Centralizado aqui para não duplicar a lógica em cada action que toca `videos`,
+// nem em cada componente que precisaria recalcular `selectedVideoIsBusy` por conta própria.
 function deriveFromVideos(videos: VideoRecord[], selectedVideoId: number | null) {
   const selectedVideo = videos.find((v) => v.id === selectedVideoId) ?? null;
+  const selectedVideoIsBusy = selectedVideo?.status.startsWith("PROCESSANDO") ?? false;
   const stats: VideoStats = {
     total: videos.length,
     processing: videos.filter((v) => v.status.startsWith("PROCESSANDO")).length,
     processed: videos.filter((v) => v.status === "PROCESSADO").length,
     errors: videos.filter((v) => v.status.startsWith("ERRO")).length,
   };
-  return { selectedVideo, stats };
+  return { selectedVideo, selectedVideoIsBusy, stats };
 }
 
-// Variável de módulo para o timer de polling.
-// Não é state — é um detalhe de implementação do polling, não algo que a UI lê/renderiza.
 let pollingTimer: number | null = null;
 
 export const useVideoStore = create<VideoState>((set, get) => ({
@@ -48,6 +49,7 @@ export const useVideoStore = create<VideoState>((set, get) => ({
   loadingVideos: false,
   selectedVideoId: null,
   selectedVideo: null,
+  selectedVideoIsBusy: false,
   stats: { total: 0, processing: 0, processed: 0, errors: 0 },
   hint: "",
 
@@ -55,8 +57,8 @@ export const useVideoStore = create<VideoState>((set, get) => ({
 
   setSelectedVideoId: (id) => {
     const { videos } = get();
-    const { selectedVideo, stats } = deriveFromVideos(videos, id);
-    set({ selectedVideoId: id, selectedVideo, stats });
+    const { selectedVideo, selectedVideoIsBusy, stats } = deriveFromVideos(videos, id);
+    set({ selectedVideoId: id, selectedVideo, selectedVideoIsBusy, stats });
   },
 
   fetchVideos: async (options) => {
@@ -69,7 +71,6 @@ export const useVideoStore = create<VideoState>((set, get) => ({
       const normalizedVideos = await VideoService.listVideosNormalized();
       const { selectedVideoId: currentId } = get();
 
-      // Mesma regra de antes: se o vídeo selecionado não existe mais na lista, desseleciona.
       const nextSelectedId =
         normalizedVideos.length === 0 || currentId === null
           ? null
@@ -77,17 +78,17 @@ export const useVideoStore = create<VideoState>((set, get) => ({
           ? currentId
           : null;
 
-      const { selectedVideo, stats } = deriveFromVideos(normalizedVideos, nextSelectedId);
+      const { selectedVideo, selectedVideoIsBusy, stats } = deriveFromVideos(normalizedVideos, nextSelectedId);
 
       set({
         videos: normalizedVideos,
         selectedVideoId: nextSelectedId,
         selectedVideo,
+        selectedVideoIsBusy,
         stats,
         ...(!preserveHint && { hint: `Biblioteca atualizada com ${normalizedVideos.length} video(s).` }),
       });
 
-      // Reavalia o polling a cada fetch, já que a necessidade dele depende do status dos vídeos atuais.
       const hasRunningAnalysis = normalizedVideos.some((v) => v.status.startsWith("PROCESSANDO"));
       if (hasRunningAnalysis) {
         get().startPolling();
@@ -103,7 +104,7 @@ export const useVideoStore = create<VideoState>((set, get) => ({
   },
 
   startPolling: () => {
-    if (pollingTimer !== null) return; // já está rodando, evita timers duplicados
+    if (pollingTimer !== null) return;
     pollingTimer = window.setInterval(() => {
       void get().fetchVideos({ silent: true });
     }, 7000);

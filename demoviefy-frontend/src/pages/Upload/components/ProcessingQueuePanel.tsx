@@ -1,11 +1,11 @@
-import type { VideoRecord } from "src/pages/Upload/types"
+// src/pages/Upload/components/ProcessingQueuePanel.tsx
+
+import { useVideoStore } from "src/stores/useVideoStore";
 import "/src/pages/Upload/styles/ProcessingQueuePanel.css";
 
-interface ProcessingQueuePanelProps {
-  videos: VideoRecord[];
-}
-
-export function ProcessingQueuePanel({ videos }: ProcessingQueuePanelProps) {
+export function ProcessingQueuePanel() {
+    
+  const videos = useVideoStore((state) => state.videos);
   const processingVideos = videos.filter(
     (v) => v.status === "PROCESSANDO" || v.status === "PROCESSANDO_IA"
   );

@@ -8,10 +8,9 @@ import "/src/pages/Upload/styles/NewVideoPanel.css";
 
 interface NewVideoPanelProps {
   onRefresh: () => void;
-  fetchVideos: () => Promise<void>;
 }
 
-export function NewVideoPanel({onRefresh, fetchVideos,}: NewVideoPanelProps) {
+export function NewVideoPanel({onRefresh }: NewVideoPanelProps) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -31,13 +30,16 @@ export function NewVideoPanel({onRefresh, fetchVideos,}: NewVideoPanelProps) {
     fetchCatalog();
     }, [fetchCatalog]);
 
-  // Estados locais do formulário
+
+
+    // Estados locais do formulário
+
   const {
     file, setFile, uploadFrameStride, setUploadFrameStride,
     uploadConfidenceThreshold, setUploadConfidenceThreshold,
     uploadMaxFrames, setUploadMaxFrames, uploadClipStart, setUploadClipStart,
     uploadClipEnd, setUploadClipEnd, handleUpload
-  } = useUpload(fetchVideos);
+  } = useUpload();
 
   // Estados globais da UI
   const uploading = useUploadStore((state) => state.uploading);

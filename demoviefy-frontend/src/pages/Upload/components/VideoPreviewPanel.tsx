@@ -1,3 +1,5 @@
+// src/pages/Upload/components/VideoPreviewPanel.tsx
+
 import { useState, type RefObject } from "react"
 import { formatDurationText } from "src/pages/Upload/utils/helpers"
 import type { VideoAnalysisSummary, VideoRecord } from "src/pages/Upload/types"

@@ -1,3 +1,5 @@
+// src/pages/Upload/components/CompatibilityBanner.tsx
+
 import { VideoService } from "src/pages/Upload/services/videoService"
 import type { BackendVersionResponse } from "src/pages/Upload/types"
 

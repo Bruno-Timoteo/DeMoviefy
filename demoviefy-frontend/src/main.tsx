@@ -1,9 +1,12 @@
 import { createRoot, type Root } from "react-dom/client";
+import { registerStoreSubscriptions } from "src/stores/storeSubscriptions";
 
 
 import "src/styles/global.css"
 
 import "src/index.css";
+
+registerStoreSubscriptions();
 
 function StartupScreen({ title, message }: { title: string; message: string }) {
   return (

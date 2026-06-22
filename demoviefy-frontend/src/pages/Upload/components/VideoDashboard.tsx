@@ -2,12 +2,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useCompatibility } from "src/pages/Upload/hooks/useCompatibility";
-import { useVideos } from "src/pages/Upload/hooks/useVideos";
-import { useAnalysis } from "src/pages/Upload/hooks/useAnalysis";
-import { useTranscription } from "src/pages/Upload/hooks/useTranscription";
 import { useVideoConfig } from "src/pages/Upload/hooks/useVideoConfig";
-import { useUploadStore } from "src/stores/useUploadStore";
+import { useVideoStore } from "src/stores/useVideoStore";
 import { useCatalogStore } from "src/stores/useCatalogStore";
+import { selectVideo } from "src/pages/Upload/actions/selectVideo";
 import { CompatibilityBanner } from "src/pages/Upload/components/CompatibilityBanner";
 import { DashboardSidebar } from "src/pages/Upload/components/DashboardSidebar";
 import { DashboardHeader } from "src/pages/Upload/components/DashboardHeader";
@@ -27,36 +25,20 @@ export default function VideoDashboard() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const initializedRef = useRef(false);
 
-    // Zustand globais
-    const uploading = useUploadStore((state) => state.uploading);
-    
-    // Puxando ações e dados da nova store do Catálogo
-    const fetchCatalog = useCatalogStore((state) => state.fetchCatalog);
-
     const { compatibility, checkBackendCompatibility } = useCompatibility();
+    const selectedVideoIsBusy = useVideoStore((state) => state.selectedVideoIsBusy);
 
-    const {
-        videos,
-        loadingVideos,
-        selectedVideoId,
-        selectedVideo,
-        stats,
-        setSelectedVideoId,
-        fetchVideos,
-    } = useVideos(compatibility.status);
-
-    const { fetchTranscription } = useTranscription();
-    
-    const { resetArtifactSignature } = useAnalysis(selectedVideo, fetchTranscription);
-
-    const selectedVideoIsBusy = selectedVideo?.status.startsWith("PROCESSANDO") ?? false;
+    const fetchCatalog = useCatalogStore((state) => state.fetchCatalog);
+    const fetchVideos = useVideoStore((state) => state.fetchVideos);
+    const selectedVideo = useVideoStore((state) => state.selectedVideo);
+    const stats = useVideoStore((state) => state.stats);
 
     const {
         videoConfig,
         setVideoConfig,
         handleSaveConfig,
         handleReprocess,
-    } = useVideoConfig(selectedVideo, fetchVideos);
+    } = useVideoConfig();
 
     useEffect(() => {
         if (initializedRef.current) {
@@ -97,10 +79,6 @@ export default function VideoDashboard() {
             {/* Sidebar */}
             <DashboardSidebar
                 open={sidebarOpen}
-                videos={videos}
-                selectedVideoId={selectedVideoId}
-                loading={loadingVideos}
-                onSelect={setSelectedVideoId}
                 onClose={() => setSidebarOpen(false)}
             />
 
@@ -110,38 +88,24 @@ export default function VideoDashboard() {
                 <DashboardHeader
                     hasSelectedVideo={!!selectedVideo}
                     onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-                    onNewUpload={() => setSelectedVideoId(null)}
+                    onNewUpload={() => selectVideo(null)}
                 />
 
                 {/* Progress Bar */}
-                <DashboardProgressBar
-                    uploading={uploading}
-                    loadingVideos={loadingVideos}
-                    selectedVideo={selectedVideo}
-                    selectedVideoIsBusy={selectedVideoIsBusy}
-                />
+                <DashboardProgressBar />
 
                 {/* Content Area */}
                 <div className="dashboard-content">
                     {selectedVideo ? (
-                        // Video Workbench
-                        <>
-                            <VideoWorkbench
-                                video={selectedVideo}
-                                config={videoConfig}
-                                isBusy={selectedVideoIsBusy}
-                                onConfigChange={setVideoConfig}
-                                onSaveConfig={handleSaveConfig}
-                                onReprocess={handleReprocess}
-                                fetchVideos={fetchVideos}
-                                fetchTranscription={fetchTranscription}
-                                resetArtifactSignature={resetArtifactSignature}
-                            />
-                        </>
+                        <VideoWorkbench
+                            config={videoConfig}
+                            isBusy={selectedVideoIsBusy}
+                            onConfigChange={setVideoConfig}
+                            onSaveConfig={handleSaveConfig}
+                            onReprocess={handleReprocess}
+                        />
                     ) : (
-                        // New Video + Queue
                         <>
-                            {/* Stats */}
                             <StatsPanel
                                 total={stats.total}
                                 processing={stats.processing}
@@ -149,16 +113,12 @@ export default function VideoDashboard() {
                                 errors={stats.errors}
                             />
 
-                            {/* Upload + Queue */}
                             <div className="upload-section">
                                 <NewVideoPanel
-                                    fetchVideos={fetchVideos}
                                     onRefresh={() => void fetchVideos({ preserveHint: false })}
                                 />
 
-                                <ProcessingQueuePanel 
-                                    videos={videos} 
-                                />
+                                <ProcessingQueuePanel />
                             </div>
                         </>
                     )}
