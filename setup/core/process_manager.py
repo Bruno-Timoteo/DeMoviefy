@@ -61,16 +61,12 @@ class ProcessManager:
 
         command_norm = normalize_command(command)
         env_prepared = self._prepare_env(env)
-        
-        use_shell = is_npm_command(command_norm)
-        # CORREÇÃO: Se usar shell, transforma a lista em string
-        popen_args = " ".join(command_norm) if use_shell else command_norm
-        
+
         self.log(f"[process] starting {name}: {' '.join(command_norm)}")
-        
+
         try:
             proc = subprocess.Popen(
-                popen_args,
+                command_norm,
                 cwd=str(cwd),
                 env=env_prepared,
                 stdout=subprocess.PIPE,
@@ -78,7 +74,7 @@ class ProcessManager:
                 text=True,
                 encoding="utf-8",
                 errors="replace",
-                shell=use_shell
+                shell=False
             )
             self.processes[name] = proc
             threading.Thread(target=self._stream_process, args=(name, proc), daemon=True).start()
@@ -95,15 +91,11 @@ class ProcessManager:
         """Roda um comando travando a thread atual (usado no setup)."""
         command_norm = normalize_command(command)
         env_prepared = self._prepare_env(env)
-        
-        use_shell = is_npm_command(command_norm)
-        # CORREÇÃO: Se usar shell, transforma a lista em string
-        popen_args = " ".join(command_norm) if use_shell else command_norm
 
         self.log(f"[{name}] running sync: {' '.join(command_norm)}")
         try:
             proc = subprocess.Popen(
-                popen_args,
+                command_norm,
                 cwd=str(cwd),
                 env=env_prepared,
                 stdout=subprocess.PIPE,
@@ -111,7 +103,7 @@ class ProcessManager:
                 text=True,
                 encoding="utf-8",
                 errors="replace",
-                shell=use_shell
+                shell=False
             )
             assert proc.stdout is not None
             for raw_line in proc.stdout:
