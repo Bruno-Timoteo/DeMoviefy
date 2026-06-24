@@ -26,7 +26,7 @@ export function useCompatibility() {
       message: reason === "compatible"
         ? `Contrato ${backendInfo?.api_contract_version} validado com sucesso.`
         : reason === "mismatch"
-          ? "Frontend e backend estao em versões de contrato diferentes."
+          ? "Frontend e backend estão em versões de contrato diferentes."
           : "Não foi possível validar a versão do backend.",
     })
 
