@@ -1,3 +1,5 @@
+// src/pages/Upload/components/AnalysisResults.tsx
+
 import { AnalysisMetrics } from "src/pages/Upload/components/AnalysisMetrics"
 import { AnalysisDetectionTable } from "src/pages/Upload/components/AnalysisDetectionTable"
 import type { VideoAnalysisResponse } from "src/pages/Upload/types"

@@ -1,17 +1,16 @@
 // src/pages/Upload/components/NewVideoPanel.tsx
 import { useCallback, useRef, useState, useEffect } from "react";
 import { useUpload } from "src/pages/Upload/hooks/useUpload";
-import { useUploadStore } from "src/stores/useUploadStore";
-import { useCatalogStore } from "src/stores/useCatalogStore";
+import { useUploadStore } from "src/core/stores/useUploadStore";
+import { useCatalogStore } from "src/core/stores/useCatalogStore";
 
 import "/src/pages/Upload/styles/NewVideoPanel.css";
 
 interface NewVideoPanelProps {
   onRefresh: () => void;
-  fetchVideos: () => Promise<void>;
 }
 
-export function NewVideoPanel({onRefresh, fetchVideos,}: NewVideoPanelProps) {
+export function NewVideoPanel({onRefresh }: NewVideoPanelProps) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -31,13 +30,16 @@ export function NewVideoPanel({onRefresh, fetchVideos,}: NewVideoPanelProps) {
     fetchCatalog();
     }, [fetchCatalog]);
 
-  // Estados locais do formulário
+
+
+    // Estados locais do formulário
+
   const {
     file, setFile, uploadFrameStride, setUploadFrameStride,
     uploadConfidenceThreshold, setUploadConfidenceThreshold,
     uploadMaxFrames, setUploadMaxFrames, uploadClipStart, setUploadClipStart,
     uploadClipEnd, setUploadClipEnd, handleUpload
-  } = useUpload(fetchVideos);
+  } = useUpload();
 
   // Estados globais da UI
   const uploading = useUploadStore((state) => state.uploading);

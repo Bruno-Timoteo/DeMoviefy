@@ -1,14 +1,13 @@
+// src/pages/Upload/utils/helpers.ts
+
 import type { AxiosError } from "axios";
 
 import type { 
     AIModelOption, 
     AITaskOption, 
-    VideoAnalysisResponse, 
     VideoRecord,
     VideoAnalysisVariant
 } from "src/pages/Upload/types";
-
-type AnalysisState = "idle" | "loading" | "ready" | "pending" | "error";
 
 // Transforma em JSON
 
@@ -21,39 +20,6 @@ export function prettifyJson(value: unknown): string {
 export function getApiErrorMessage(error: unknown, fallback: string) {
     const axiosError = error as AxiosError<{ error?: string; message?: string }>;
     return axiosError.response?.data?.error ?? axiosError.response?.data?.message ?? fallback;
-}
-
-// Constrói a mensagem descritiva sobre o estado atual da análise do vídeo.
-
-export function buildAnalysisMessage(
-    state: AnalysisState,
-    video: VideoRecord | null,
-    analysis: VideoAnalysisResponse | null,
-) {
-    if (!video) {
-        return "Escolha um item da biblioteca para abrir preview, análise e transcrição.";
-    }
-
-    if (state === "loading") {
-        return "Consultando o resumo gerado pelo backend.";
-    }
-
-    if (state === "pending") {
-        return (
-            analysis?.message ??
-            `O vídeo ainda esta em processamento (${video.processing.processing_progress}%). ${video.processing.processing_message ?? ""}`.trim()
-        );
-    }
-
-    if (state === "error") {
-        return analysis?.message ?? "Não foi possível carregar a análise agora. Voce ainda pode editar ou recriar o JSON.";
-    }
-
-    if (!analysis) {
-        return "Este vídeo ainda não possui resumo salvo.";
-    }
-
-    return analysis.message ?? `Análise carregada de ${analysis.storage.analysis_relative_path}.`;
 }
 
 // Retorna o caminho relativo do diretório para o primeiro modelo encontrado para uma determinada tarefa.

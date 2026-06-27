@@ -1,3 +1,5 @@
+//src/pages/Upload/types.ts
+
 export type VideoStorage = {
   video_relative_path: string;
   video_absolute_path: string;
@@ -122,12 +124,6 @@ export type VideoTranscriptionResponse = {
       text: string;
     }>;
   };
-};
-
-export type BackendVersionResponse = {
-  backend_name: string;
-  backend_app_version: string;
-  api_contract_version: string;
 };
 
 export type ModelCatalogResponse = {

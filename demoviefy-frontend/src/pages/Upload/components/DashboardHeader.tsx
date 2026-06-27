@@ -1,3 +1,5 @@
+// src/pages/Upload/components/DashboardHeader.tsx
+
 interface DashboardHeaderProps {
   hasSelectedVideo: boolean;
   onToggleSidebar: () => void;

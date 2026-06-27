@@ -1,7 +1,8 @@
-import { api, frontendAppVersion, frontendApiContractVersion, toApiUrlWithQuery } from "../../../services/api";
+// src/pages/Upload/services/videoService.ts
+
+import { api, toApiUrlWithQuery } from "src/core/services/api";
 import type {
     VideoRecord,
-    BackendVersionResponse,
     ModelCatalogResponse,
     UploadResponse,
     VideoTranscriptionResponse,
@@ -70,59 +71,9 @@ export class VideoService {
         return data;
     }
 
-
-    // Pega dados sobre a versão do backend
-
-    static async getSystemVersion(): Promise<BackendVersionResponse> {
-        const { data } = await api.get<BackendVersionResponse>("/system/version");
-        return data;
-    }
-
-    // Verifica a compatibilidade entre as duas
-
-    static async checkCompatibility(): Promise<{
-        isCompatible: boolean;
-        backendInfo: BackendVersionResponse | null
-        reason: "compatible" | "mismatch" | "unavailable"
-    }> {
-        try {
-            const backendInfo = await VideoService.getSystemVersion();
-            const isCompatible = backendInfo.api_contract_version == frontendApiContractVersion;
-
-            return {
-                isCompatible,
-                backendInfo,
-                reason: isCompatible ? "compatible" : "mismatch",
-            }
-        }
-
-        catch {
-            return { isCompatible: false, backendInfo: null, reason: "unavailable" }
-        }
-    }
-
     static async getModelCatalog(): Promise<ModelCatalogResponse> {
         const { data } = await api.get<ModelCatalogResponse>("/ai/models");
         return data;
-    }
-
-    static async getVideoStats(): Promise<{
-        total: number;
-        processing: number;
-        processed: number;
-        errors: number;
-    }> {
-        try {
-            const videos = await this.listVideos();
-            return {
-                total: videos.length,
-                processing: videos.filter((v) => v.status.startsWith("PROCESSANDO")).length,
-                processed: videos.filter((v) => v.status === "PROCESSADO").length,
-                errors: videos.filter((v) => v.status.startsWith("ERRO")).length,
-            };
-        } catch {
-            return { total: 0, processing: 0, processed: 0, errors: 0 };
-        }
     }
 
     static async getTranscription(transcriptionUrl: string): Promise<{
@@ -201,9 +152,5 @@ export class VideoService {
 
     static getOriginalVideoUrl(video: VideoRecord): string {
         return toApiUrlWithQuery(video.video_url, { v: video.created_at ?? video.id });
-    }
-
-    static getVersionInfo() {
-        return { frontendAppVersion, frontendApiContractVersion }
     }
 }

@@ -1,3 +1,5 @@
+// src/pages/Upload/components/StatsPanel.tsx
+
 interface StatsPanelProps {
   total: number
   processing: number

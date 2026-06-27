@@ -1,40 +1,7 @@
-﻿import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { VideoService } from "src/pages/Upload/services/videoService";
+﻿import { Link } from "react-router-dom";
 import "/src/pages/Home/Home.css";
 
-interface Stats {
-  total: number;
-  processing: number;
-  processed: number;
-  errors: number;
-}
-
 export default function Home() {
-  const [stats, setStats] = useState<Stats>({
-    total: 0,
-    processing: 0,
-    processed: 0,
-    errors: 0,
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadStats = async () => {
-      try {
-        const videoStats = await VideoService.getVideoStats();
-        setStats(videoStats);
-      } catch (error) {
-        console.error("Erro ao carregar estatísticas:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadStats();
-    const interval = setInterval(loadStats, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <section className="home-page">
@@ -57,26 +24,6 @@ export default function Home() {
         </div>
         
         <p className="home-hero-footnote">Nenhum cartão de crédito necessário. Cancele quando quiser.</p>
-      </section>
-
-      {/* Stats Section */}
-      <section className="home-stats">
-        <div className="stat-item">
-          <strong>{loading ? "-" : stats.total}</strong>
-          <p>Vídeos totais</p>
-        </div>
-        <div className="stat-item">
-          <strong>{loading ? "-" : stats.processing}</strong>
-          <p>Em processamento</p>
-        </div>
-        <div className="stat-item">
-          <strong>{loading ? "-" : stats.processed}</strong>
-          <p>Processados</p>
-        </div>
-        <div className="stat-item">
-          <strong>{loading ? "-" : stats.errors}</strong>
-          <p>Erros</p>
-        </div>
       </section>
 
       {/* Feature: Upload */}

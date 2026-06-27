@@ -1,3 +1,5 @@
+// src/pages/Upload/utils/normalizers.ts
+
 import type {
     VideoRecord,
     VideoAnalysisResponse,

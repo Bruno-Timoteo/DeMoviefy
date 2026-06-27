@@ -1,3 +1,5 @@
+// src/pages/Upload/components/TranscriptionEditor.tsx
+
 import { formatTimecode } from "src/pages/Upload/utils/helpers"
 
 interface TranscriptionSegment {

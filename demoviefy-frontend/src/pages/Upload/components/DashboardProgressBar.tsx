@@ -1,25 +1,24 @@
-// components/DashboardProgressBar.tsx
-import type { VideoRecord } from "src/pages/Upload/types"
+// src/pages/Upload/components/DashboardProgressBar.tsx
+import { useVideoStore } from "src/core/stores/useVideoStore";
+import { useUploadStore } from "src/core/stores/useUploadStore";
 
-interface DashboardProgressBarProps {
-  uploading: boolean
-  loadingVideos: boolean
-  selectedVideo: VideoRecord | null
-  selectedVideoIsBusy: boolean
-}
+export function DashboardProgressBar() {
+  const uploading = useUploadStore((state) => state.uploading);
+  const loadingVideos = useVideoStore((state) => state.loadingVideos);
+  const selectedVideo = useVideoStore((state) => state.selectedVideo);
+  const selectedVideoIsBusy = useVideoStore((state) => state.selectedVideoIsBusy);
 
-export function DashboardProgressBar({ uploading, loadingVideos, selectedVideo, selectedVideoIsBusy }: DashboardProgressBarProps) {
   const processState = uploading
     ? { text: "Upload em andamento", progress: null }
     : loadingVideos
-      ? { text: "Atualizando biblioteca", progress: null }
-      : selectedVideoIsBusy && selectedVideo
-        ? { text: `Processando video: ${selectedVideo.filename}`, progress: selectedVideo.processing.processing_progress }
-        : null
+    ? { text: "Atualizando biblioteca", progress: null }
+    : selectedVideoIsBusy && selectedVideo
+    ? { text: `Processando video: ${selectedVideo.filename}`, progress: selectedVideo.processing.processing_progress }
+    : null;
 
-  if (!processState) return null
+  if (!processState) return null;
 
-  const value = processState.progress ?? 0
+  const value = processState.progress ?? 0;
 
   return (
     <section className="surface site-progress-panel">
@@ -31,5 +30,5 @@ export function DashboardProgressBar({ uploading, loadingVideos, selectedVideo, 
         <span style={{ width: `${value}%` }} />
       </div>
     </section>
-  )
+  );
 }

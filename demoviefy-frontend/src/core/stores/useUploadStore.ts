@@ -1,4 +1,5 @@
-// src/store/useUploadStore.ts
+// src/core/stores/useUploadStore.ts
+
 import { create } from "zustand";
 
 interface UploadState {

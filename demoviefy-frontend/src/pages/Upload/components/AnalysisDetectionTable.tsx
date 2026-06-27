@@ -1,3 +1,5 @@
+// src/pages/Upload/components/AnalysisDetectionTable.tsx
+
 import { memo } from "react"
 import { formatPercent } from "src/pages/Upload/utils/helpers"
 import type { VideoAnalysisResponse } from "src/pages/Upload/types"

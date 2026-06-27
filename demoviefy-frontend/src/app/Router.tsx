@@ -6,10 +6,11 @@ import Upload from "src/pages/Upload";
 // Define os títulos das páginas com base nas rotas
 const titlesMap: Record<string, string> = {
     "/": "DeMoviefy",
-    "/upload": "DeMoviefy - Painel de Análise"
+    "/upload": "DeMoviefy - Painel de Envio",
+    "/video": "DeMoviefy - Painel de Análise"
 };
 
-// Aplica o título na página caso ela esteja declarada acima. Caso não, o valor DeMoviefy padrão será vinculado.
+// Aplica o título na página caso ela esteja declarada acima. Caso não, o valor padrão ("DeMoviefy") será vinculado.
 function TitleManager() {
     const { pathname } = useLocation()
 

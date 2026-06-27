@@ -1,3 +1,5 @@
+// src/pages/Upload/hooks/useVideoPlayer.ts
+
 import { useRef } from "react"
 import { VideoService } from "src/pages/Upload/services/videoService"
 import type { VideoRecord } from "src/pages/Upload/types"

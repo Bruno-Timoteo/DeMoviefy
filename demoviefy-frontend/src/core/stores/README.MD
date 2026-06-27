@@ -1,0 +1,1 @@
+Pasta para guardar ("store") os estados (como o estado de upload) globalmente, assim evitando prop drilling.

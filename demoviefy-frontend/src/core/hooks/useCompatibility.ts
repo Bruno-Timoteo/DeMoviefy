@@ -1,6 +1,8 @@
+// src/pages/Upload/hooks/useCompatibility.ts
+
 import { useCallback, useState } from "react"
-import { VideoService } from "src/pages/Upload/services/videoService"
-import type { BackendVersionResponse } from "src/pages/Upload/types"
+import { CompatibilityService } from "src/core/services/compatibilityService";
+import type { BackendVersionResponse } from "src/core/types/compatibility"
 
 type CompatibilityState =
   | { status: "checking"; message: string; backendInfo: null }
@@ -16,7 +18,7 @@ export function useCompatibility() {
   const checkBackendCompatibility = useCallback(async () => {
     setCompatibility({ status: "checking", message: "Verificando compatibilidade...", backendInfo: null })
 
-    const { isCompatible, backendInfo, reason } = await VideoService.checkCompatibility()
+    const { isCompatible, backendInfo, reason } = await CompatibilityService.checkCompatibility()
 
     setCompatibility({
       status: reason,
@@ -24,7 +26,7 @@ export function useCompatibility() {
       message: reason === "compatible"
         ? `Contrato ${backendInfo?.api_contract_version} validado com sucesso.`
         : reason === "mismatch"
-          ? "Frontend e backend estao em versões de contrato diferentes."
+          ? "Frontend e backend estão em versões de contrato diferentes."
           : "Não foi possível validar a versão do backend.",
     })
 

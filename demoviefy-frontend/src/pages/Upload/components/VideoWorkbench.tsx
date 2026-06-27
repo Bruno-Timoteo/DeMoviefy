@@ -1,7 +1,10 @@
 // src/pages/Upload/components/VideoWorkbench.tsx
+
 import { memo } from "react";
 import { useVideoPlayer } from "src/pages/Upload/hooks/useVideoPlayer";
-import { useWorkbenchStore } from "src/stores/useWorkbenchStore";
+import { useVideoStore } from "src/core/stores/useVideoStore";
+import { useAnalysisStore } from "src/core/stores/useAnalysisStore";
+import { useTranscriptionStore } from "src/core/stores/useTranscriptionStore";
 
 import { WorkbenchHeader } from "src/pages/Upload/components/WorkbenchHeader";
 import { VideoConfigPanel } from "src/pages/Upload/components/VideoConfigPanel";
@@ -12,40 +15,37 @@ import { TranscriptionEditor } from "src/pages/Upload/components/TranscriptionEd
 import { VideoPreviewPanel } from "src/pages/Upload/components/VideoPreviewPanel";
 import { WorkbenchEmptyState } from "src/pages/Upload/components/WorkbenchEmptyState";
 
-import type { AiConfigPayload, VideoRecord } from "src/pages/Upload/types";
+import type { AiConfigPayload } from "src/pages/Upload/types";
 
 type VideoWorkbenchProps = {
-  video: VideoRecord | null;
   config: AiConfigPayload;
   isBusy: boolean;
   onConfigChange: (config: AiConfigPayload) => void;
   onSaveConfig: () => void;
   onReprocess: () => void;
-  fetchVideos: () => Promise<void>;
-  fetchTranscription: (video: VideoRecord) => Promise<void>;
-  resetArtifactSignature: () => void;
 };
 
 export const VideoWorkbench = memo(function VideoWorkbench({
-  video,
   config,
   isBusy,
   onConfigChange,
   onSaveConfig,
   onReprocess,
-  fetchVideos,
-  fetchTranscription,
-  resetArtifactSignature,
 }: VideoWorkbenchProps) {
-  
 
-  // Conectando com o Zustand do Workbench
+  const video = useVideoStore((state) => state.selectedVideo);
+
   const {
     analysis, analysisState, analysisMessage, selectedAnalysisVariantId, analysisDraft,
+    setSelectedAnalysisVariantId, setAnalysisDraft,
+    onSaveAnalysis, onDeleteAnalysis,
+  } = useAnalysisStore();
+
+  const {
     transcription, transcriptionDraft, transcriptionMessage,
-    setSelectedAnalysisVariantId, setAnalysisDraft, setTranscriptionDraft,
-    onSaveAnalysis, onDeleteAnalysis, onDeleteVideo, onSaveTranscription, onDeleteTranscription, onGenerateTranscription
-  } = useWorkbenchStore();
+    setTranscriptionDraft,
+    onSaveTranscription, onDeleteTranscription, onGenerateTranscription,
+  } = useTranscriptionStore();
 
   const summary = analysis?.analysis ?? null;
   const analysisVariants = analysis?.available_variants ?? [];
@@ -98,7 +98,6 @@ export const VideoWorkbench = memo(function VideoWorkbench({
               isBusy={isBusy}
               onSaveConfig={onSaveConfig}
               onReprocess={onReprocess}
-              onDeleteVideo={() => onDeleteVideo(video, fetchVideos, resetArtifactSignature)}
             />
 
             <AnalysisEditor
@@ -106,8 +105,8 @@ export const VideoWorkbench = memo(function VideoWorkbench({
               hasMultipleVariants={hasMultipleAnalysisVariants}
               isBusy={isBusy}
               onDraftChange={setAnalysisDraft}
-              onSave={() => onSaveAnalysis(video, fetchVideos)}
-              onDelete={() => onDeleteAnalysis(video, fetchVideos)}
+              onSave={() => onSaveAnalysis()}
+              onDelete={() => onDeleteAnalysis()}
             />
 
             <TranscriptionEditor
@@ -116,9 +115,9 @@ export const VideoWorkbench = memo(function VideoWorkbench({
               segments={transcriptionSegments}
               isBusy={isBusy}
               onDraftChange={setTranscriptionDraft}
-              onSave={() => onSaveTranscription(video, fetchVideos, fetchTranscription)}
-              onDelete={() => onDeleteTranscription(video, fetchVideos)}
-              onGenerate={() => onGenerateTranscription(video, fetchVideos, fetchTranscription)}
+              onSave={() => onSaveTranscription()}
+              onDelete={() => onDeleteTranscription()}
+              onGenerate={() => onGenerateTranscription()}
               onSeek={seekTo}
             />
           </div>
