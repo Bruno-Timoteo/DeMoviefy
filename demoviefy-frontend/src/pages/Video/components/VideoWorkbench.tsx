@@ -10,7 +10,7 @@ import { WorkbenchHeader } from "src/pages/Video/components/WorkbenchHeader";
 import { VideoConfigPanel } from "src/pages/Video/components/VideoConfigPanel";
 import { AnalysisEditor } from "src/pages/Video/components/AnalysisEditor";
 import { AnalysisHeader } from "src/pages/Video/components/AnalysisHeader";
-import { AnalysisResults } from "src/pages/Upload/components/AnalysisResults";
+import { AnalysisResults } from "src/pages/Video/components/AnalysisResults";
 import { TranscriptionEditor } from "src/pages/Video/components/TranscriptionEditor";
 import { VideoPreviewPanel } from "src/pages/Video/components/VideoPreviewPanel";
 import { WorkbenchEmptyState } from "src/pages/Video/components/WorkbenchEmptyState";

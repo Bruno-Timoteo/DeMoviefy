@@ -7,7 +7,6 @@ export default function Home() {
     <section className="home-page">
       {/* Hero Section */}
       <section className="home-hero">
-        <span className="eyebrow">DeMoviefy</span>
         <h1>Analise vídeos com IA. Em um só lugar.</h1>
         <p>
           Upload, processamento, análise e revisão. Tudo integrado em uma plataforma
