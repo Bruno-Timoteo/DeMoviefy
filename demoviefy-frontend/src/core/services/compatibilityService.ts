@@ -1,6 +1,6 @@
 // src/services/compatibilityService.ts
-import { api, frontendAppVersion, frontendApiContractVersion } from "src/services/api";
-import type { BackendVersionResponse } from "src/types/compatibility";
+import { api, frontendAppVersion, frontendApiContractVersion } from "src/core/services/api"
+import type { BackendVersionResponse } from "src/core/types/compatibility";
 
 export class CompatibilityService {
     static async getSystemVersion(): Promise<BackendVersionResponse> {

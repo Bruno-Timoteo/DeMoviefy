@@ -1,6 +1,6 @@
 // src/pages/Upload/components/DashboardProgressBar.tsx
-import { useVideoStore } from "src/stores/useVideoStore";
-import { useUploadStore } from "src/stores/useUploadStore";
+import { useVideoStore } from "src/core/stores/useVideoStore";
+import { useUploadStore } from "src/core/stores/useUploadStore";
 
 export function DashboardProgressBar() {
   const uploading = useUploadStore((state) => state.uploading);

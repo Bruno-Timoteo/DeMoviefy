@@ -1,11 +1,11 @@
-// src/stores/useAnalysisStore.ts
+// src/core/stores/useAnalysisStore.ts
 
 import { create } from "zustand";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import { prettifyJson, getApiErrorMessage, buildArtifactSignature } from "src/pages/Upload/utils/helpers";
-import { useVideoStore } from "src/stores/useVideoStore";
-import { useUploadStore } from "src/stores/useUploadStore";
-import { useTranscriptionStore } from "src/stores/useTranscriptionStore";
+import { useVideoStore } from "src/core/stores/useVideoStore";
+import { useUploadStore } from "src/core/stores/useUploadStore";
+import { useTranscriptionStore } from "src/core/stores/useTranscriptionStore";
 import type { VideoAnalysisResponse } from "src/pages/Upload/types";
 
 type AnalysisStatus = "idle" | "loading" | "ready" | "pending" | "error";

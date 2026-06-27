@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import { useVideoPlayer } from "src/pages/Upload/hooks/useVideoPlayer";
-import { useVideoStore } from "src/stores/useVideoStore";
+import { useVideoStore } from "src/core/stores/useVideoStore";
 import { useAnalysisStore } from "src/stores/useAnalysisStore";
 import { useTranscriptionStore } from "src/stores/useTranscriptionStore";
 

@@ -3,9 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import type { AiConfigPayload } from "src/pages/Upload/types";
 import { getApiErrorMessage, chooseFirstModel } from "src/pages/Upload/utils/helpers";
-import { useUploadStore } from "src/stores/useUploadStore";
-import { useCatalogStore } from "src/stores/useCatalogStore";
-import { useVideoStore } from "src/stores/useVideoStore";
+import { useUploadStore } from "src/core/stores/useUploadStore";
+import { useCatalogStore } from "src/core/stores/useCatalogStore";
+import { useVideoStore } from "src/core/stores/useVideoStore";
 
 export function useVideoConfig() {
   const selectedVideo = useVideoStore((state) => state.selectedVideo);

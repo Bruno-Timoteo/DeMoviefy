@@ -2,8 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 
 import { useVideoConfig } from "src/pages/Upload/hooks/useVideoConfig";
-import { useVideoStore } from "src/stores/useVideoStore";
-import { useCatalogStore } from "src/stores/useCatalogStore";
+import { useVideoStore } from "src/core/stores/useVideoStore";
+import { useCatalogStore } from "src/core/stores/useCatalogStore";
 import { selectVideo } from "src/pages/Upload/actions/selectVideo";
 import { DashboardSidebar } from "src/pages/Upload/components/DashboardSidebar";
 import { DashboardHeader } from "src/pages/Upload/components/DashboardHeader";

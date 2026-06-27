@@ -1,5 +1,5 @@
 import { createRoot, type Root } from "react-dom/client";
-import { registerStoreSubscriptions } from "src/stores/storeSubscriptions";
+import { registerStoreSubscriptions } from "src/core/stores/storeSubscriptions";
 
 
 import "src/styles/global.css"

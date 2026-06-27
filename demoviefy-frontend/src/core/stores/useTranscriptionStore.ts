@@ -1,10 +1,10 @@
-// src/stores/useTranscriptionStore.ts
+// src/core/stores/useTranscriptionStore.ts
 
 import { create } from "zustand";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import { getApiErrorMessage } from "src/pages/Upload/utils/helpers";
-import { useVideoStore } from "src/stores/useVideoStore";
-import { useUploadStore } from "src/stores/useUploadStore";
+import { useVideoStore } from "src/core/stores/useVideoStore";
+import { useUploadStore } from "src/core/stores/useUploadStore";
 import type { VideoRecord, VideoTranscriptionResponse } from "src/pages/Upload/types";
 
 interface TranscriptionState {

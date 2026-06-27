@@ -1,5 +1,5 @@
 import { BrowserRouter } from "react-router-dom";
-import { CompatibilityGate } from "src/components/CompatibilityGate";
+import { CompatibilityGate } from "src/core/components/CompatibilityGate";
 import MainLayout from "src/layouts/MainLayout";
 import Router from "src/app/Router";
 

@@ -1,6 +1,6 @@
 // src/components/CompatibilityGate.tsx
 import { useCallback, useEffect, useRef, type ReactNode } from "react";
-import { useCompatibility } from "src/hooks/useCompatibility";
+import { useCompatibility } from "src/core/hooks/useCompatibility";
 import { CompatibilityBanner } from "src/components/CompatibilityBanner";
 
 interface CompatibilityGateProps {

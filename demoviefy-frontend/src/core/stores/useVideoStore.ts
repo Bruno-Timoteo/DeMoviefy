@@ -1,4 +1,4 @@
-// src/stores/useVideoStore.ts — versão atualizada
+// src/core/stores/useVideoStore.ts — versão atualizada
 
 import { create } from "zustand";
 import { VideoService } from "src/pages/Upload/services/videoService";

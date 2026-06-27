@@ -2,8 +2,8 @@
 import { useCallback, useState } from "react";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import { getApiErrorMessage } from "src/pages/Upload/utils/helpers";
-import { useUploadStore } from "src/stores/useUploadStore";
-import { useVideoStore } from "src/stores/useVideoStore";
+import { useUploadStore } from "src/core/stores/useUploadStore";
+import { useVideoStore } from "src/core/stores/useVideoStore";
 
 export function useUpload() {
   const [file, setFile] = useState<File | null>(null);

@@ -1,6 +1,6 @@
 // src/pages/Upload/components/ProcessingQueuePanel.tsx
 
-import { useVideoStore } from "src/stores/useVideoStore";
+import { useVideoStore } from "src/core/stores/useVideoStore";
 import "/src/pages/Upload/styles/ProcessingQueuePanel.css";
 
 export function ProcessingQueuePanel() {

@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react"
 import { CompatibilityService } from "src/services/compatibilityService";
-import type { BackendVersionResponse } from "src/types/compatibility"
+import type { BackendVersionResponse } from "src/core/types/compatibility"
 
 type CompatibilityState =
   | { status: "checking"; message: string; backendInfo: null }
