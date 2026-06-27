@@ -60,4 +60,4 @@ Para uma melhor experiência de desenvolvimento no VS Code, instale:
 
 ## Setup automático
 
-Caso siga os passos de setup descritos no README principal, o "setup enviroment" irá realizar a configuração do frontend automaticamente, desde que você tenha as [dependências](#pré-requisitos) em seu sistema.
+Caso siga os passos de setup descritos no README principal, o "Setup Environment" irá realizar a configuração do frontend automaticamente, desde que você tenha as [dependências](#pré-requisitos) em seu sistema.
