@@ -1,7 +1,7 @@
 // src/pages/Upload/components/VideoDashboard.tsx
 import { useEffect, useRef, useState } from "react";
 
-import { useVideoConfig } from "src/pages/Upload/hooks/useVideoConfig";
+import { useVideoConfig } from "src/pages/Video/hooks/useVideoConfig";
 import { useVideoStore } from "src/core/stores/useVideoStore";
 import { useCatalogStore } from "src/core/stores/useCatalogStore";
 import { selectVideo } from "src/pages/Upload/actions/selectVideo";
@@ -11,7 +11,7 @@ import { DashboardProgressBar } from "src/pages/Upload/components/DashboardProgr
 
 import { StatsPanel } from "src/pages/Upload/components/StatsPanel";
 import { NewVideoPanel } from "src/pages/Upload/components/NewVideoPanel";
-import { VideoWorkbench } from "src/pages/Upload/components/VideoWorkbench";
+import { VideoWorkbench } from "src/pages/Video/components/VideoWorkbench";
 import { ProcessingQueuePanel } from "src/pages/Upload/components/ProcessingQueuePanel";
 
 import "/src/pages/Upload/styles/VideoDashboard.css";

@@ -1,7 +1,7 @@
 // src/pages/Upload/components/WorkbenchHeader.tsx
 
-import { StatusBadge } from "src/pages/Upload/components/StatusBadge"
-import { ProcessingProgress } from "src/pages/Upload/components/ProcessingProgress"
+import { StatusBadge } from "src/core/components/StatusBadge"
+import { ProcessingProgress } from "src/core/components/ProcessingProgress"
 import type { VideoRecord } from "src/pages/Upload/types"
 
 type WorkbenchHeaderProps = {

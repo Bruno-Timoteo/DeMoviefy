@@ -1,19 +1,19 @@
 // src/pages/Upload/components/VideoWorkbench.tsx
 
 import { memo } from "react";
-import { useVideoPlayer } from "src/pages/Upload/hooks/useVideoPlayer";
+import { useVideoPlayer } from "src/pages/Video/hooks/useVideoPlayer";
 import { useVideoStore } from "src/core/stores/useVideoStore";
 import { useAnalysisStore } from "src/core/stores/useAnalysisStore";
 import { useTranscriptionStore } from "src/core/stores/useTranscriptionStore";
 
-import { WorkbenchHeader } from "src/pages/Upload/components/WorkbenchHeader";
-import { VideoConfigPanel } from "src/pages/Upload/components/VideoConfigPanel";
-import { AnalysisEditor } from "src/pages/Upload/components/AnalysisEditor";
-import { AnalysisHeader } from "src/pages/Upload/components/AnalysisHeader";
+import { WorkbenchHeader } from "src/pages/Video/components/WorkbenchHeader";
+import { VideoConfigPanel } from "src/pages/Video/components/VideoConfigPanel";
+import { AnalysisEditor } from "src/pages/Video/components/AnalysisEditor";
+import { AnalysisHeader } from "src/pages/Video/components/AnalysisHeader";
 import { AnalysisResults } from "src/pages/Upload/components/AnalysisResults";
-import { TranscriptionEditor } from "src/pages/Upload/components/TranscriptionEditor";
-import { VideoPreviewPanel } from "src/pages/Upload/components/VideoPreviewPanel";
-import { WorkbenchEmptyState } from "src/pages/Upload/components/WorkbenchEmptyState";
+import { TranscriptionEditor } from "src/pages/Video/components/TranscriptionEditor";
+import { VideoPreviewPanel } from "src/pages/Video/components/VideoPreviewPanel";
+import { WorkbenchEmptyState } from "src/pages/Video/components/WorkbenchEmptyState";
 
 import type { AiConfigPayload } from "src/pages/Upload/types";
 
