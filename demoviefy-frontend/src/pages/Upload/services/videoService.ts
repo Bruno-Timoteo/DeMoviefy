@@ -1,6 +1,6 @@
 // src/pages/Upload/services/videoService.ts
 
-import { api, toApiUrlWithQuery } from "../../../services/api";
+import { api, toApiUrlWithQuery } from "src/core/services/api";
 import type {
     VideoRecord,
     ModelCatalogResponse,

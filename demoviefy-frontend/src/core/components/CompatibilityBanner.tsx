@@ -1,6 +1,6 @@
 // src/pages/Upload/components/CompatibilityBanner.tsx
 
-import { CompatibilityService } from "src/services/compatibilityService";
+import { CompatibilityService } from "src/core/services/compatibilityService";
 import type { BackendVersionResponse } from "src/core/types/compatibility";
 
 type CompatibilityStatus = "checking" | "compatible" | "mismatch" | "unavailable"

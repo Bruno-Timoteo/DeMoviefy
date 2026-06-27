@@ -1,6 +1,7 @@
 import { createRoot, type Root } from "react-dom/client";
 import { registerStoreSubscriptions } from "src/core/stores/storeSubscriptions";
-
+import { ErrorBoundary } from "src/core/components/ErrorBoundary";
+import  App  from "src/app/App"
 
 import "src/styles/global.css"
 
@@ -70,17 +71,12 @@ root.render(
   />,
 );
 
-void Promise.all([import("./components/ErrorBoundary"), import("./app/App")])
-  .then(([errorBoundaryModule, appModule]) => {
-    const ErrorBoundary = errorBoundaryModule.ErrorBoundary;
-    const App = appModule.default;
-
-    root.render(
-      <ErrorBoundary>
-        <App />
-      </ErrorBoundary>,
-    );
-  })
-  .catch((error) => {
-    renderFatal(root, error);
-  });
+try {
+  root.render(
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>,
+  );
+} catch (error) {
+  renderFatal(root, error);
+}

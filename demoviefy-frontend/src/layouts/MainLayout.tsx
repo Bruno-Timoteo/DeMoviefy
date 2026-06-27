@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 
-import Footer from "src/components/Footer";
-import Header from "src/components/Header";
+import Footer from "src/core/components/Footer";
+import Header from "src/core/components/Header";
 
 type MainLayoutProps = {
   children: ReactNode;

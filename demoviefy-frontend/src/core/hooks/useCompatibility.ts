@@ -1,7 +1,7 @@
 // src/pages/Upload/hooks/useCompatibility.ts
 
 import { useCallback, useState } from "react"
-import { CompatibilityService } from "src/services/compatibilityService";
+import { CompatibilityService } from "src/core/services/compatibilityService";
 import type { BackendVersionResponse } from "src/core/types/compatibility"
 
 type CompatibilityState =
