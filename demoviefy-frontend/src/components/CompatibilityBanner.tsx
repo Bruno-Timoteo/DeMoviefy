@@ -1,7 +1,7 @@
 // src/pages/Upload/components/CompatibilityBanner.tsx
 
-import { VideoService } from "src/pages/Upload/services/videoService"
-import type { BackendVersionResponse } from "src/pages/Upload/types"
+import { CompatibilityService } from "src/services/compatibilityService";
+import type { BackendVersionResponse } from "src/types/compatibility";
 
 type CompatibilityStatus = "checking" | "compatible" | "mismatch" | "unavailable"
 
@@ -13,7 +13,7 @@ interface CompatibilityBannerProps {
 }
 
 export function CompatibilityBanner({ status, message, backendInfo, onRetry }: CompatibilityBannerProps) {
-  const { frontendAppVersion, frontendApiContractVersion } = VideoService.getVersionInfo()
+  const { frontendAppVersion, frontendApiContractVersion } = CompatibilityService.getVersionInfo()
 
   return (
     <div className="workspace">

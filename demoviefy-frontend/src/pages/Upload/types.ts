@@ -126,12 +126,6 @@ export type VideoTranscriptionResponse = {
   };
 };
 
-export type BackendVersionResponse = {
-  backend_name: string;
-  backend_app_version: string;
-  api_contract_version: string;
-};
-
 export type ModelCatalogResponse = {
   models: AIModelOption[];
   tasks: AITaskOption[];

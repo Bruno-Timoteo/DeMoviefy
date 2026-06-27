@@ -1,8 +1,8 @@
 // src/pages/Upload/hooks/useCompatibility.ts
 
 import { useCallback, useState } from "react"
-import { VideoService } from "src/pages/Upload/services/videoService"
-import type { BackendVersionResponse } from "src/pages/Upload/types"
+import { CompatibilityService } from "src/services/compatibilityService";
+import type { BackendVersionResponse } from "src/types/compatibility"
 
 type CompatibilityState =
   | { status: "checking"; message: string; backendInfo: null }
@@ -18,7 +18,7 @@ export function useCompatibility() {
   const checkBackendCompatibility = useCallback(async () => {
     setCompatibility({ status: "checking", message: "Verificando compatibilidade...", backendInfo: null })
 
-    const { isCompatible, backendInfo, reason } = await VideoService.checkCompatibility()
+    const { isCompatible, backendInfo, reason } = await CompatibilityService.checkCompatibility()
 
     setCompatibility({
       status: reason,
