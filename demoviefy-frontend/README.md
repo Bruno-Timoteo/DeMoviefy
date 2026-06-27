@@ -1,78 +1,63 @@
-# 🎬 DeMoviefy Frontend
+# 🎬 DeMoviefy - Frontend
 
-Frontend do projeto **DeMoviefy**, desenvolvido com **React + TypeScript + Vite** e estilizado com **Tailwind CSS**.
+Frontend do projeto **DeMoviefy**, desenvolvido com _React_, _TypeScript_ e _Vite_.
 
----
+## Sumário
 
-## 📋 Pré-requisitos
+- [Pré-requisitos](#pré-requisitos)
+- [Instalação](#instalação)
+- [Executando o projeto](#executando-o-projeto)
+- [Extensões recomendadas](#extensões-recomendadas)
+- [Setup automático](#setup-automático)
 
-Antes de começar, você precisa ter instalado:
+## Pré-requisitos
 
-* **Node.js** (recomendado: versão LTS 20+)
-* **npm**
+Antes de começar, certifique-se de ter instalado:
 
-Verifique:
+| Ferramenta | Versão recomendada |
+|------------|---------------------|
+| Node.js    | LTS 20+             |
+| npm        | Incluso no Node.js  |
 
-```bash
-node -v
-npm -v
-```
 
----
+## Instalação
 
-## 🚀 Como rodar o projeto
-
-### 1️⃣ Clonar o repositório
-
-```bash
-git clone <URL_DO_REPOSITORIO>
-```
-
-Entre na pasta:
+**1. Clone o repositório**
 
 ```bash
+git clone https://github.com/Bruno-Timoteo/DeMoviefy.git
 cd demoviefy-front
 ```
 
----
-
-### 2️⃣ Instalar as dependências
+**2. Instale as dependências**
 
 ```bash
 npm install
 ```
+## Executando o projeto
 
----
-
-### 3️⃣ Instalar Tailwind CSS
-
-O projeto utiliza Tailwind integrado ao Vite:
-
-```bash
-npm install tailwindcss @tailwindcss/vite
-```
-
----
-
-### 4️⃣ Rodar o servidor de desenvolvimento
+Inicie o servidor de desenvolvimento:
 
 ```bash
 npm run dev
 ```
 
-O terminal mostrará algo como:
+O terminal exibirá um endereço local semelhante a:
 
 ```
 Local: http://localhost:5173
 ```
 
-Abra o endereço no navegador.
+Abra o endereço indicado no navegador para visualizar a aplicação.
 
----
+## Extensões recomendadas
 
-### Extensões
+Para uma melhor experiência de desenvolvimento no VS Code, instale:
 
-O projeto pode ser melhor utilizado com as seguintes extensões do VS Code:
+- **[Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)** — autocomplete e validação de classes do Tailwind.
+- **[Pretty TypeScript Errors](https://marketplace.visualstudio.com/items?itemName=yoavbls.pretty-ts-errors)** — mensagens de erro do TypeScript mais legíveis.
 
-- Tailwind CSS IntelliSense
-- Pretty TypeScript Errors
+
+## Setup automático
+
+Caso siga os passos de setup descritos no README principal, o "setup enviroment" irá realizar a configuração do frontend automaticamente, desde que você tenha as [dependências](#pré-requisitos) em seu sistema.
