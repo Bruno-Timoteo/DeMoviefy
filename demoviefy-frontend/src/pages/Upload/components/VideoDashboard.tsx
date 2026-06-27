@@ -85,9 +85,7 @@ export default function VideoDashboard() {
                             />
 
                             <div className="upload-section">
-                                <NewVideoPanel
-                                    onRefresh={() => void fetchVideos({ preserveHint: false })}
-                                />
+                                <NewVideoPanel onRefresh={() => void fetchVideos({ preserveHint: false })} />
 
                                 <ProcessingQueuePanel />
                             </div>
