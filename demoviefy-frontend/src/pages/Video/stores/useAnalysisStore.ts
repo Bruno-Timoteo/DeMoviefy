@@ -1,9 +1,9 @@
-// src/core/stores/useAnalysisStore.ts
+// src/pages/Video/stores/useAnalysisStore.ts
 
 import { create } from "zustand";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import { prettifyJson, getApiErrorMessage, buildArtifactSignature } from "src/pages/Upload/utils/helpers";
-import { useVideoDetailStore } from "src/core/stores/useVideoDetailStore";
+import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore";
 import { useUploadStore } from "src/core/stores/useUploadStore";
 import { useTranscriptionStore } from "src/core/stores/useTranscriptionStore";
 import type { VideoAnalysisResponse } from "src/pages/Upload/types";

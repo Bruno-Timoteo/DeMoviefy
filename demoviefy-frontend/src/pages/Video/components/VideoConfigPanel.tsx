@@ -1,7 +1,7 @@
 // src/pages/Upload/components/VideoConfigPanel.tsx
 
 import { useCatalogStore } from "src/core/stores/useCatalogStore"
-import { useAnalysisStore } from "src/core/stores/useAnalysisStore"
+import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore"
 import type { AiConfigPayload, VideoRecord } from "src/pages/Upload/types"
 
 interface VideoConfigPanelProps {

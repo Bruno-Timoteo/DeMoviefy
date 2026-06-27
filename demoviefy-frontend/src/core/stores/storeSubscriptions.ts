@@ -1,7 +1,7 @@
 // src/core/stores/storeSubscriptions.ts
 
 import { useVideoStore } from "src/core/stores/useVideoStore";
-import { useAnalysisStore } from "src/core/stores/useAnalysisStore"
+import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore"
 
 export function registerStoreSubscriptions() {
   useVideoStore.subscribe((state, prevState) => {
