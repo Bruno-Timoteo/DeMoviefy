@@ -6,6 +6,7 @@ import  App  from "src/app/App"
 import "src/styles/global.css"
 
 import "src/index.css";
+import { StrictMode } from "react";
 
 registerStoreSubscriptions();
 
@@ -73,9 +74,12 @@ root.render(
 
 try {
   root.render(
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>,
+    <StrictMode>
+        <ErrorBoundary>
+        <App />
+        </ErrorBoundary>
+    </StrictMode>,
+
   );
 } catch (error) {
   renderFatal(root, error);

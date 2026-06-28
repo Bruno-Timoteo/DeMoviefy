@@ -5,13 +5,13 @@ import Router from "src/app/Router";
 
 function App() {
     return (
-        <BrowserRouter>
-            <CompatibilityGate>
-                <MainLayout>
-                    <Router />
-                </MainLayout>
-            </CompatibilityGate>
-        </BrowserRouter>
+            <BrowserRouter>
+                <CompatibilityGate>
+                    <MainLayout>
+                        <Router />
+                    </MainLayout>
+                </CompatibilityGate>
+            </BrowserRouter>
     );
 }
 
