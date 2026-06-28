@@ -1,4 +1,4 @@
-// src/pages/Upload/actions/selectVideo.ts
+// src/pages/Video/actions/selectVideo.ts
 import { useVideoStore } from "src/core/stores/useVideoStore";
 
 export function selectVideo(id: number | null) {

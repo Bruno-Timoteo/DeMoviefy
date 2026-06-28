@@ -1,7 +1,7 @@
 // src/pages/Video/index.tsx
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { selectVideo } from "src/pages/Upload/actions/selectVideo";
+import { selectVideo } from "src/pages/Video/actions/selectVideo";
 import { useVideoStore } from "src/core/stores/useVideoStore";
 import { useVideoConfig } from "src/pages/Video/hooks/useVideoConfig";
 import { VideoWorkbench } from "src/pages/Video/components/VideoWorkbench";

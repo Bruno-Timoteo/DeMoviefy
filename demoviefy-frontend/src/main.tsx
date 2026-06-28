@@ -1,5 +1,5 @@
 import { createRoot, type Root } from "react-dom/client";
-import { registerStoreSubscriptions } from "src/core/stores/storeSubscriptions";
+import { registerStoreSubscriptions } from "src/pages/Video/stores/storeSubscriptions";
 import { ErrorBoundary } from "src/core/components/ErrorBoundary";
 import  App  from "src/app/App"
 
