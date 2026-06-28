@@ -1,5 +1,6 @@
 // src/pages/Upload/components/VideoConfigPanel.tsx
 
+import { useNavigate } from "react-router-dom"
 import { useCatalogStore } from "src/core/stores/useCatalogStore"
 import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore"
 import type { AiConfigPayload, VideoRecord } from "src/pages/Upload/types"
@@ -22,6 +23,7 @@ export function VideoConfigPanel({
   onReprocess,
 }: VideoConfigPanelProps) {
 
+    const navigate = useNavigate();
   const { tasks, models } = useCatalogStore()
   const onDeleteVideo = useAnalysisStore((state) => state.onDeleteVideo)
 
@@ -100,7 +102,13 @@ export function VideoConfigPanel({
             </p>
 
             <div className="action-row">
-                <button type="button" className="ghost-button danger-button" onClick={onDeleteVideo}>
+                <button type="button" className="ghost-button danger-button" onClick={async () => 
+                    {const deleted = await onDeleteVideo();
+                        if (deleted){
+                            navigate("/upload");
+                        }
+                    }
+                    }>
                     Excluir vídeo
                 </button>
                 <button type="button" className="ghost-button" onClick={onSaveConfig} disabled={isBusy}>

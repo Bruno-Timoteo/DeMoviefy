@@ -26,7 +26,7 @@ interface AnalysisState {
 
   onSaveAnalysis: () => Promise<void>;
   onDeleteAnalysis: () => Promise<void>;
-  onDeleteVideo: () => Promise<void>;
+  onDeleteVideo: () => Promise<boolean>;
 
   resetArtifactSignature: () => void;
 }
@@ -158,7 +158,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
 
   onDeleteVideo: async () => {
     const selectedVideo = useVideoDetailStore.getState().video;
-    if (!selectedVideo) return;
+    if (!selectedVideo) return false;
 
     const { setMessage, setHint } = useUploadStore.getState();
 
@@ -173,10 +173,12 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
 
       get().resetArtifactSignature();
       useVideoDetailStore.getState().reset();
+      return true;
       
     } catch (error) {
       console.error(error);
       setMessage(getApiErrorMessage(error, "Não foi possível excluir o vídeo."));
+      return false;
     }
   },
 
