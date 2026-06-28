@@ -5,7 +5,7 @@ import { VideoService } from "src/pages/Upload/services/videoService";
 import { prettifyJson, getApiErrorMessage, buildArtifactSignature } from "src/pages/Upload/utils/helpers";
 import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore";
 import { useUploadStore } from "src/core/stores/useUploadStore";
-import { useTranscriptionStore } from "src/core/stores/useTranscriptionStore";
+import { useTranscriptionStore } from "src/pages/Video/stores/useTranscriptionStore";
 import type { VideoAnalysisResponse } from "src/pages/Upload/types";
 
 type AnalysisStatus = "idle" | "loading" | "ready" | "pending" | "error";
@@ -126,7 +126,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         analysisState: "ready",
       });
       setMessage("Análise salva com sucesso.");
-      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id);
+      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, {force: true});
     } catch (error) {
       console.error(error);
       setMessage(getApiErrorMessage(error, "JSON inválido ou erro ao salvar a análise."));
@@ -149,7 +149,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         analysisState: "error",
       });
       setMessage(selectedAnalysisVariantId ? "Versão da análise excluída." : "Análise excluída.");
-      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id);
+      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true });
     } catch (error) {
       console.error(error);
       setMessage(getApiErrorMessage(error, "Não foi possível excluir a análise."));

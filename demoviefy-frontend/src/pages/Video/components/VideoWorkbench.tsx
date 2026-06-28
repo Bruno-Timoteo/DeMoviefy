@@ -4,7 +4,7 @@ import { memo } from "react";
 import { useVideoPlayer } from "src/pages/Video/hooks/useVideoPlayer";
 import { useVideoStore } from "src/core/stores/useVideoStore";
 import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore";
-import { useTranscriptionStore } from "src/core/stores/useTranscriptionStore";
+import { useTranscriptionStore } from "src/pages/Video/stores/useTranscriptionStore";
 
 import { WorkbenchHeader } from "src/pages/Video/components/WorkbenchHeader";
 import { VideoConfigPanel } from "src/pages/Video/components/VideoConfigPanel";

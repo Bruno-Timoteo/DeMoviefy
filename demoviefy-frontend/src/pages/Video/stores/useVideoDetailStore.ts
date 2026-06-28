@@ -9,7 +9,7 @@ interface VideoDetailState {
   video: VideoRecord | null;
   loading: boolean;
   error: string | null;
-  fetchVideoById: (id: number) => Promise<void>;
+  fetchVideoById: (id: number, options?: { force?: boolean}) => Promise<void>;
   reset: () => void;
 }
 
@@ -19,12 +19,10 @@ export const useVideoDetailStore = create<VideoDetailState>((set, get) => ({
   loading: false,
   error: null,
 
-  fetchVideoById: async (id) => {
-    // Evita refetch se já estamos olhando para o mesmo vídeo e ele já carregou.
-    // Sem essa guarda, qualquer chamador que dispare fetchVideoById de novo
-    // (ex: um futuro polling) recriaria a busca do zero a cada chamada.
+  fetchVideoById: async (id, options) => {
+    const force = options?.force ?? false;
     const current = get().video;
-    if (current?.id === id && !get().loading) {
+    if (!force && current?.id === id && !get().loading) {
       return;
     }
 
