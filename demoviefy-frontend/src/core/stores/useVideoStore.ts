@@ -14,32 +14,23 @@ interface VideoStats {
 interface VideoState {
   videos: VideoRecord[];
   loadingVideos: boolean;
-  selectedVideoId: number | null;
-  selectedVideo: VideoRecord | null;
-  selectedVideoIsBusy: boolean;
   stats: VideoStats;
   hint: string;
 
   setHint: (hint: string) => void;
-  setSelectedVideoId: (id: number | null) => void;
   fetchVideos: (options?: { preserveHint?: boolean; silent?: boolean }) => Promise<void>;
   startPolling: () => void;
   stopPolling: () => void;
 }
 
-// Calcula selectedVideo, selectedVideoIsBusy e stats a partir de uma lista de vídeos + id selecionado.
-// Centralizado aqui para não duplicar a lógica em cada action que toca `videos`,
-// nem em cada componente que precisaria recalcular `selectedVideoIsBusy` por conta própria.
-function deriveFromVideos(videos: VideoRecord[], selectedVideoId: number | null) {
-  const selectedVideo = videos.find((v) => v.id === selectedVideoId) ?? null;
-  const selectedVideoIsBusy = selectedVideo?.status.startsWith("PROCESSANDO") ?? false;
+function deriveFromVideos(videos: VideoRecord[]) {
   const stats: VideoStats = {
     total: videos.length,
     processing: videos.filter((v) => v.status.startsWith("PROCESSANDO")).length,
     processed: videos.filter((v) => v.status === "PROCESSADO").length,
     errors: videos.filter((v) => v.status.startsWith("ERRO")).length,
   };
-  return { selectedVideo, selectedVideoIsBusy, stats };
+  return { stats };
 }
 
 let pollingTimer: number | null = null;
@@ -47,19 +38,10 @@ let pollingTimer: number | null = null;
 export const useVideoStore = create<VideoState>((set, get) => ({
   videos: [],
   loadingVideos: false,
-  selectedVideoId: null,
-  selectedVideo: null,
-  selectedVideoIsBusy: false,
   stats: { total: 0, processing: 0, processed: 0, errors: 0 },
   hint: "",
 
   setHint: (hint) => set({ hint }),
-
-  setSelectedVideoId: (id) => {
-    const { videos } = get();
-    const { selectedVideo, selectedVideoIsBusy, stats } = deriveFromVideos(videos, id);
-    set({ selectedVideoId: id, selectedVideo, selectedVideoIsBusy, stats });
-  },
 
   fetchVideos: async (options) => {
     const preserveHint = options?.preserveHint ?? true;
@@ -69,22 +51,12 @@ export const useVideoStore = create<VideoState>((set, get) => ({
 
     try {
       const normalizedVideos = await VideoService.listVideosNormalized();
-      const { selectedVideoId: currentId } = get();
 
-      const nextSelectedId =
-        normalizedVideos.length === 0 || currentId === null
-          ? null
-          : normalizedVideos.some((v) => v.id === currentId)
-          ? currentId
-          : null;
 
-      const { selectedVideo, selectedVideoIsBusy, stats } = deriveFromVideos(normalizedVideos, nextSelectedId);
+      const { stats } = deriveFromVideos(normalizedVideos);
 
       set({
         videos: normalizedVideos,
-        selectedVideoId: nextSelectedId,
-        selectedVideo,
-        selectedVideoIsBusy,
         stats,
         ...(!preserveHint && { hint: `Biblioteca atualizada com ${normalizedVideos.length} video(s).` }),
       });
