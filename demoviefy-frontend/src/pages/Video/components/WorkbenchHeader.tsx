@@ -3,6 +3,7 @@
 import { StatusBadge } from "src/core/components/StatusBadge"
 import { ProcessingProgress } from "src/core/components/ProcessingProgress"
 import type { VideoRecord } from "src/pages/Upload/types"
+import { Link } from "react-router-dom"
 
 type WorkbenchHeaderProps = {
   video: VideoRecord
@@ -11,13 +12,17 @@ type WorkbenchHeaderProps = {
 export function WorkbenchHeader({ video }: WorkbenchHeaderProps) {
   return (
     <>
+
       <div className="section-heading">
+
         <div>
           <span className="eyebrow">Workbench</span>
           <h2>{video.filename}</h2>
         </div>
-        <StatusBadge status={video.status} />
+        <StatusBadge status={video.status} /> 
+        <Link to="/upload" className="ghost-button">Voltar para biblioteca</Link>
       </div>
+
 
       {video.status.startsWith("PROCESSANDO") && (
         <ProcessingProgress

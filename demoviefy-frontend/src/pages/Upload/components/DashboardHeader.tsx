@@ -13,7 +13,7 @@ export function DashboardHeader({ onToggleSidebar }: DashboardHeaderProps) {
         aria-label="Abrir menu"
         title="Biblioteca de vídeos"
       >
-        
+        ☰  
       </button>
       <h1 className="dashboard-title">DeMoviefy</h1>
       <div style={{ flex: 1 }} />
