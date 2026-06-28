@@ -1,42 +1,52 @@
 // src/pages/Video/index.tsx
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { selectVideo } from "src/pages/Video/actions/selectVideo";
-import { useVideoStore } from "src/core/stores/useVideoStore";
+import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore";
 import { useVideoConfig } from "src/pages/Video/hooks/useVideoConfig";
 import { VideoWorkbench } from "src/pages/Video/components/VideoWorkbench";
 
 export default function Video() {
-  const { id } = useParams<{ id: string }>();
-  const parsedId = id ? Number(id) : NaN;
-  const isValidId = !Number.isNaN(parsedId);
+    const { id } = useParams<{ id: string }>();
+    const parsedId = id ? Number(id) : NaN;
+    const isValidId = !Number.isNaN(parsedId);
 
-  useEffect(() => {
-    selectVideo(isValidId ? parsedId : null);
-  }, [parsedId, isValidId]);
+    useEffect(() => {
+        if (isValidId) {
+            void useVideoDetailStore.getState().fetchVideoById(parsedId);
+        }
+    }, [parsedId, isValidId]);
 
-  const {
-    videoConfig,
-    setVideoConfig,
-    handleSaveConfig,
-    handleReprocess,
-  } = useVideoConfig();
+    const {
+        videoConfig,
+        setVideoConfig,
+        handleSaveConfig,
+        handleReprocess,
+    } = useVideoConfig();
 
-    const selectedVideoIsBusy = useVideoStore((state) => state.selectedVideoIsBusy);
+    const video = useVideoDetailStore((state) => state.video);
+    const selectedVideoIsBusy = video?.status.startsWith("PROCESSANDO") ?? false;
 
+    const loading = useVideoDetailStore((state) => state.loading);
+    const error = useVideoDetailStore((state) => state.error);
 
+    if (!isValidId) {
+        return <p>ID de vídeo inválido.</p>;
+    }
 
-  if (!isValidId) {
-    return <p>ID de vídeo inválido.</p>;
-  }
+    if (loading) {
+        return <p>Carregando vídeo...</p>;
+    }
 
-  return (
-    <VideoWorkbench
-      config={videoConfig}
-      isBusy={selectedVideoIsBusy}
-      onConfigChange={setVideoConfig}
-      onSaveConfig={handleSaveConfig}
-      onReprocess={handleReprocess}
-    />
-  );
+    if (error) {
+        return <p>{error}</p>;
+    }
+    return (
+        <VideoWorkbench
+            config={videoConfig}
+            isBusy={selectedVideoIsBusy}
+            onConfigChange={setVideoConfig}
+            onSaveConfig={handleSaveConfig}
+            onReprocess={handleReprocess}
+        />
+    );
 }

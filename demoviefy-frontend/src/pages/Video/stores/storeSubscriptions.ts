@@ -1,11 +1,11 @@
-// src/core/stores/storeSubscriptions.ts
+// src/pages/Video/stores/storeSubscriptions.ts
 
-import { useVideoStore } from "src/core/stores/useVideoStore";
+import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore";
 import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore"
 
 export function registerStoreSubscriptions() {
-  useVideoStore.subscribe((state, prevState) => {
-    if (state.selectedVideoId !== prevState.selectedVideoId) {
+  useVideoDetailStore.subscribe((state, prevState) => {
+    if (state.video?.id !== prevState.video?.id ) {
       void useAnalysisStore.getState().syncAnalysisWithSelectedVideo();
     }
   });

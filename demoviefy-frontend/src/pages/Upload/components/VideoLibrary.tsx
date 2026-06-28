@@ -8,7 +8,6 @@ import type { VideoRecord } from "src/pages/Upload/types"
 
 type VideoLibraryProps = {
   videos: VideoRecord[];
-  selectedVideoId: number | null;
   loading: boolean;
   onSelect: (videoId: number) => void;
 };
@@ -33,7 +32,6 @@ function formatSeconds(value: number | null | undefined) {
 
 export const VideoLibrary = memo(function VideoLibrary({
   videos,
-  selectedVideoId,
   loading,
   onSelect,
 }: VideoLibraryProps) {
@@ -58,7 +56,7 @@ export const VideoLibrary = memo(function VideoLibrary({
             <button
               key={video.id}
               type="button"
-              className={`video-card ${selectedVideoId === video.id ? "is-selected" : ""}`}
+              className="video-card"              
               onClick={() => onSelect(video.id)}
             >
               <div className="video-card-header">

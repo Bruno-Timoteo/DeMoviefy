@@ -1,8 +1,8 @@
-// src/pages/Upload/components/VideoWorkbench.tsx
+// src/pages/Video/components/VideoWorkbench.tsx
 
 import { memo } from "react";
 import { useVideoPlayer } from "src/pages/Video/hooks/useVideoPlayer";
-import { useVideoStore } from "src/core/stores/useVideoStore";
+import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore";
 import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore";
 import { useTranscriptionStore } from "src/pages/Video/stores/useTranscriptionStore";
 
@@ -33,7 +33,7 @@ export const VideoWorkbench = memo(function VideoWorkbench({
   onReprocess,
 }: VideoWorkbenchProps) {
 
-  const video = useVideoStore((state) => state.selectedVideo);
+  const video = useVideoDetailStore((state) => state.video);
 
   const {
     analysis, analysisState, analysisMessage, selectedAnalysisVariantId, analysisDraft,
