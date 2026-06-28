@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore";
 import { useVideoConfig } from "src/pages/Video/hooks/useVideoConfig";
+import { useCatalogStore } from "src/core/stores/useCatalogStore";
 import { VideoWorkbench } from "src/pages/Video/components/VideoWorkbench";
 
 export default function Video() {
@@ -13,6 +14,9 @@ export default function Video() {
     useEffect(() => {
         if (isValidId) {
             void useVideoDetailStore.getState().fetchVideoById(parsedId);
+        }
+          if (useCatalogStore.getState().tasks.length === 0) {
+            void useCatalogStore.getState().fetchCatalog();
         }
     }, [parsedId, isValidId]);
 
