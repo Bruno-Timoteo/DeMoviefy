@@ -1,6 +1,7 @@
 // src/core/stores/useVideoDetailStore.ts
 
 import { create } from "zustand";
+import { createPoller } from "src/core/utils/createPoller";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import { normalizeVideoRecord } from "src/pages/Upload/utils/normalizers";
 import type { VideoRecord } from "src/pages/Upload/types";
@@ -12,6 +13,8 @@ interface VideoDetailState {
   fetchVideoById: (id: number, options?: { force?: boolean}) => Promise<void>;
   reset: () => void;
 }
+
+const poller = createPoller(7000);
 
 export const useVideoDetailStore = create<VideoDetailState>((set, get) => ({
   video: null, // Ou seja, enquanto o vídeo não terminar de carregar será null. Para verificar se houve
@@ -30,6 +33,14 @@ export const useVideoDetailStore = create<VideoDetailState>((set, get) => ({
     try {
       const data = await VideoService.getVideoById(id);
       set({ video: normalizeVideoRecord(data), loading: false });
+
+        // aqui — decide se o polling deve continuar ou parar, a cada fetch
+        if (data.status.startsWith("PROCESSANDO")) {
+            poller.start(() => void get().fetchVideoById(id, { force: true }));
+        } else {
+            poller.stop();
+        }
+
     } catch (error) {
       console.error(error);
       set({ video: null, loading: false, error: "Não foi possível carregar este vídeo." });

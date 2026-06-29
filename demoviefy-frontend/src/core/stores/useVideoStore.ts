@@ -1,6 +1,7 @@
 // src/core/stores/useVideoStore.ts — versão atualizada
 
 import { create } from "zustand";
+import { createPoller } from "src/core/utils/createPoller";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import type { VideoRecord } from "src/pages/Upload/types";
 
@@ -19,8 +20,6 @@ interface VideoState {
 
   setHint: (hint: string) => void;
   fetchVideos: (options?: { preserveHint?: boolean; silent?: boolean }) => Promise<void>;
-  startPolling: () => void;
-  stopPolling: () => void;
 }
 
 function deriveFromVideos(videos: VideoRecord[]) {
@@ -33,7 +32,7 @@ function deriveFromVideos(videos: VideoRecord[]) {
   return { stats };
 }
 
-let pollingTimer: number | null = null;
+const poller = createPoller(7000); // No caso, irá atualizar a cada 7 segundos.
 
 export const useVideoStore = create<VideoState>((set, get) => ({
   videos: [],
@@ -62,29 +61,16 @@ export const useVideoStore = create<VideoState>((set, get) => ({
       });
 
       const hasRunningAnalysis = normalizedVideos.some((v) => v.status.startsWith("PROCESSANDO"));
-      if (hasRunningAnalysis) {
-        get().startPolling();
-      } else {
-        get().stopPolling();
-      }
+        if (hasRunningAnalysis) {
+            poller.start(() => void get().fetchVideos({ silent: true }));
+        } else {
+            poller.stop();
+        }
     } catch (error) {
       console.error(error);
       set({ hint: "Não foi possível atualizar a biblioteca." });
     } finally {
       if (!silent) set({ loadingVideos: false });
     }
-  },
-
-  startPolling: () => {
-    if (pollingTimer !== null) return;
-    pollingTimer = window.setInterval(() => {
-      void get().fetchVideos({ silent: true });
-    }, 7000);
-  },
-
-  stopPolling: () => {
-    if (pollingTimer === null) return;
-    window.clearInterval(pollingTimer);
-    pollingTimer = null;
   },
 }));
