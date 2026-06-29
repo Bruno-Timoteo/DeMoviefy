@@ -5,7 +5,12 @@ import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore"
 
 export function registerStoreSubscriptions() {
     useVideoDetailStore.subscribe((state, prevState) => {
-        if (state.video?.id !== prevState.video?.id) {
+        const idChanged = state.video?.id !== prevState.video?.id;
+        const finishedProcessing =
+            prevState.video?.status.startsWith("PROCESSANDO") &&
+            state.video?.status === "PROCESSADO";
+            
+        if (idChanged || finishedProcessing) {
             useAnalysisStore.setState({ selectedAnalysisVariantId: null });
             void useAnalysisStore.getState().syncAnalysisWithSelectedVideo();
         }
