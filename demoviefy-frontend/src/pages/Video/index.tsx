@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore";
 import { useVideoConfig } from "src/pages/Video/hooks/useVideoConfig";
-import { useCatalogStore } from "src/core/stores/useCatalogStore";
+import { useCatalogStore } from "src/core/stores/useAICatalogStore";
 import { VideoWorkbench } from "src/pages/Video/components/VideoWorkbench";
 
 export default function Video() {

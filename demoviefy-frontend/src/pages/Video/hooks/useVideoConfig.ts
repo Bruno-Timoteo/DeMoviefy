@@ -4,7 +4,7 @@ import { VideoService } from "src/pages/Upload/services/videoService";
 import type { AiConfigPayload } from "src/pages/Upload/types";
 import { getApiErrorMessage, chooseFirstModel } from "src/pages/Upload/utils/helpers";
 import { useUploadStore } from "src/core/stores/useUploadStore";
-import { useCatalogStore } from "src/core/stores/useCatalogStore";
+import { useCatalogStore } from "src/core/stores/useAICatalogStore";
 import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore";
 
 export function useVideoConfig() {

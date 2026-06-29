@@ -1,6 +1,6 @@
 // src/pages/Upload/components/DashboardSidebar.tsx
 
-import { useVideoStore } from "src/core/stores/useVideoStore"
+import { useVideoStore } from "src/pages/Upload/stores/useVideoListStore"
 import { VideoLibrary } from "src/pages/Upload/components/VideoLibrary"
 
 interface DashboardSidebarProps {

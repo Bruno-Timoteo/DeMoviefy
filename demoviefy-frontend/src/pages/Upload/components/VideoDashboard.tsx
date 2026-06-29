@@ -1,7 +1,7 @@
 // VideoDashboard.tsx, versão ajustada
 import { useEffect, useRef, useState } from "react";
-import { useVideoStore } from "src/core/stores/useVideoStore";
-import { useCatalogStore } from "src/core/stores/useCatalogStore";
+import { useVideoStore } from "src/pages/Upload/stores/useVideoListStore";
+import { useCatalogStore } from "src/core/stores/useAICatalogStore";
 import { DashboardSidebar } from "src/pages/Upload/components/DashboardSidebar";
 import { DashboardHeader } from "src/pages/Upload/components/DashboardHeader";
 import { DashboardProgressBar } from "src/pages/Upload/components/DashboardProgressBar";

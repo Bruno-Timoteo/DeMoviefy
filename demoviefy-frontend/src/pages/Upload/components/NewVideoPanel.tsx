@@ -2,7 +2,7 @@
 import { useCallback, useRef, useState, useEffect } from "react";
 import { useUpload } from "src/pages/Upload/hooks/useUpload";
 import { useUploadStore } from "src/core/stores/useUploadStore";
-import { useCatalogStore } from "src/core/stores/useCatalogStore";
+import { useCatalogStore } from "src/core/stores/useAICatalogStore";
 
 import "/src/pages/Upload/styles/NewVideoPanel.css";
 

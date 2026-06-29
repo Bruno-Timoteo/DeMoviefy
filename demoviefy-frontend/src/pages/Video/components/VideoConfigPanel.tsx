@@ -1,7 +1,7 @@
 // src/pages/Upload/components/VideoConfigPanel.tsx
 
 import { useNavigate } from "react-router-dom"
-import { useCatalogStore } from "src/core/stores/useCatalogStore"
+import { useCatalogStore } from "src/core/stores/useAICatalogStore"
 import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore"
 import type { AiConfigPayload, VideoRecord } from "src/pages/Upload/types"
 
