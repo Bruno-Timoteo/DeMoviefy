@@ -1,4 +1,4 @@
-// src/core/stores/useVideoDetailStore.ts
+// src/pages/Video/stores/useVideoDetailStore.ts
 
 import { create } from "zustand";
 import { createPoller } from "src/core/utils/createPoller";
@@ -12,6 +12,7 @@ interface VideoDetailState {
   error: string | null;
   fetchVideoById: (id: number, options?: { force?: boolean}) => Promise<void>;
   reset: () => void;
+  stopPolling: () => void;
 }
 
 const poller = createPoller(7000);
@@ -48,4 +49,5 @@ export const useVideoDetailStore = create<VideoDetailState>((set, get) => ({
   },
 
   reset: () => set({ video: null, loading: false, error: null }),
+  stopPolling: () => poller.stop(),
 }));

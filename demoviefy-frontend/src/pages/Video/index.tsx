@@ -15,9 +15,12 @@ export default function Video() {
         if (isValidId) {
             void useVideoDetailStore.getState().fetchVideoById(parsedId);
         }
-          if (useCatalogStore.getState().tasks.length === 0) {
+        if (useCatalogStore.getState().tasks.length === 0) {
             void useCatalogStore.getState().fetchCatalog();
         }
+        return () => {
+            useVideoDetailStore.getState().stopPolling();
+        };
     }, [parsedId, isValidId]);
 
     const {
@@ -37,7 +40,7 @@ export default function Video() {
         return <p>ID de vídeo inválido.</p>;
     }
 
-    if (loading) {
+    if (loading && !video) {
         return <p>Carregando vídeo...</p>;
     }
 

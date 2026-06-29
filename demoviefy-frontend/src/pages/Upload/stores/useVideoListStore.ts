@@ -1,4 +1,4 @@
-// src/core/stores/useVideoStore.ts — versão atualizada
+// src/pages/Upload/stores/useVideoListStore.ts
 
 import { create } from "zustand";
 import { createPoller } from "src/core/utils/createPoller";
