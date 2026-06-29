@@ -32,7 +32,7 @@ function deriveFromVideos(videos: VideoRecord[]) {
   return { stats };
 }
 
-const poller = createPoller(7000); // No caso, irá atualizar a cada 7 segundos.
+const poller = createPoller(500); // No caso, irá atualizar a cada 0,5 segundos.
 
 export const useVideoStore = create<VideoState>((set, get) => ({
   videos: [],

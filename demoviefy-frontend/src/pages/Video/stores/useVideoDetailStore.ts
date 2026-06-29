@@ -15,7 +15,7 @@ interface VideoDetailState {
   stopPolling: () => void;
 }
 
-const poller = createPoller(7000);
+const poller = createPoller(500); // No caso, irá atualizar a cada 0,5 segundos.
 
 export const useVideoDetailStore = create<VideoDetailState>((set, get) => ({
   video: null, // Ou seja, enquanto o vídeo não terminar de carregar será null. Para verificar se houve

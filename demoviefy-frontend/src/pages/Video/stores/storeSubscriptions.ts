@@ -9,9 +9,10 @@ export function registerStoreSubscriptions() {
         const finishedProcessing =
             prevState.video?.status.startsWith("PROCESSANDO") &&
             state.video?.status === "PROCESSADO";
-            
+
         if (idChanged || finishedProcessing) {
             useAnalysisStore.setState({ selectedAnalysisVariantId: null });
+            useAnalysisStore.getState().resetArtifactSignature();
             void useAnalysisStore.getState().syncAnalysisWithSelectedVideo();
         }
     });
