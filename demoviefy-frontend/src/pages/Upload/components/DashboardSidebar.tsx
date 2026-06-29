@@ -1,7 +1,6 @@
 // src/pages/Upload/components/DashboardSidebar.tsx
 
 import { useVideoStore } from "src/core/stores/useVideoStore"
-import { useNavigate } from "react-router-dom";
 import { VideoLibrary } from "src/pages/Upload/components/VideoLibrary"
 
 interface DashboardSidebarProps {
@@ -13,7 +12,6 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
 
   const videos = useVideoStore((state) => state.videos);
   const loading = useVideoStore((state) => state.loadingVideos);
-  const navigate = useNavigate();
 
   return (
     <>
@@ -36,10 +34,7 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
         <VideoLibrary
             videos={videos}
             loading={loading}
-            onSelect={(id) => {
-                navigate(`/video/${id}`);
-                onClose();
-            }}
+            onNavigate={onClose}
         />
       </aside>
     </>
