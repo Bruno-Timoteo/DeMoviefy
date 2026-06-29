@@ -1,19 +1,15 @@
 // src/pages/Upload/components/DashboardProgressBar.tsx
-import { useVideoStore } from "src/core/stores/useVideoStore";
+import { useVideoStore } from "src/pages/Upload/stores/useVideoListStore";
 import { useUploadStore } from "src/core/stores/useUploadStore";
 
 export function DashboardProgressBar() {
   const uploading = useUploadStore((state) => state.uploading);
   const loadingVideos = useVideoStore((state) => state.loadingVideos);
-  const selectedVideo = useVideoStore((state) => state.selectedVideo);
-  const selectedVideoIsBusy = useVideoStore((state) => state.selectedVideoIsBusy);
 
   const processState = uploading
     ? { text: "Upload em andamento", progress: null }
     : loadingVideos
     ? { text: "Atualizando biblioteca", progress: null }
-    : selectedVideoIsBusy && selectedVideo
-    ? { text: `Processando video: ${selectedVideo.filename}`, progress: selectedVideo.processing.processing_progress }
     : null;
 
   if (!processState) return null;

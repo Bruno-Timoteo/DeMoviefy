@@ -1,7 +1,6 @@
 // src/pages/Upload/components/DashboardSidebar.tsx
 
-import { useVideoStore } from "src/core/stores/useVideoStore"
-import { selectVideo } from "src/pages/Upload/actions/selectVideo"
+import { useVideoStore } from "src/pages/Upload/stores/useVideoListStore"
 import { VideoLibrary } from "src/pages/Upload/components/VideoLibrary"
 
 interface DashboardSidebarProps {
@@ -12,7 +11,6 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
 
   const videos = useVideoStore((state) => state.videos);
-  const selectedVideoId = useVideoStore((state) => state.selectedVideoId);
   const loading = useVideoStore((state) => state.loadingVideos);
 
   return (
@@ -34,13 +32,9 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
           </button>
         </div>
         <VideoLibrary
-          videos={videos}
-          selectedVideoId={selectedVideoId}
-          loading={loading}
-          onSelect={(id) => {
-            selectVideo(id)
-            onClose()
-          }}
+            videos={videos}
+            loading={loading}
+            onNavigate={onClose}
         />
       </aside>
     </>

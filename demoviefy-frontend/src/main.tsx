@@ -1,11 +1,12 @@
 import { createRoot, type Root } from "react-dom/client";
-import { registerStoreSubscriptions } from "src/core/stores/storeSubscriptions";
+import { registerStoreSubscriptions } from "src/pages/Video/stores/storeSubscriptions";
 import { ErrorBoundary } from "src/core/components/ErrorBoundary";
 import  App  from "src/app/App"
 
 import "src/styles/global.css"
 
 import "src/index.css";
+import { StrictMode } from "react";
 
 registerStoreSubscriptions();
 
@@ -73,9 +74,12 @@ root.render(
 
 try {
   root.render(
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>,
+    <StrictMode>
+        <ErrorBoundary>
+        <App />
+        </ErrorBoundary>
+    </StrictMode>,
+
   );
 } catch (error) {
   renderFatal(root, error);

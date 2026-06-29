@@ -1,5 +1,7 @@
 // src/pages/Upload/hooks/useCompatibility.ts
 
+// Remover a mensagem de verificando compatibilidade de gerar texto na tela, somente quando houver mismatch
+
 import { useCallback, useState } from "react"
 import { CompatibilityService } from "src/core/services/compatibilityService";
 import type { BackendVersionResponse } from "src/core/types/compatibility"

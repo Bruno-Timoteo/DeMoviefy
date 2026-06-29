@@ -1,7 +1,7 @@
 // src/pages/Upload/components/WorkbenchHeader.tsx
 
-import { StatusBadge } from "src/pages/Upload/components/StatusBadge"
-import { ProcessingProgress } from "src/pages/Upload/components/ProcessingProgress"
+import { StatusBadge } from "src/core/components/StatusBadge"
+import { ProcessingProgress } from "src/core/components/ProcessingProgress"
 import type { VideoRecord } from "src/pages/Upload/types"
 
 type WorkbenchHeaderProps = {
@@ -11,13 +11,16 @@ type WorkbenchHeaderProps = {
 export function WorkbenchHeader({ video }: WorkbenchHeaderProps) {
   return (
     <>
+
       <div className="section-heading">
+
         <div>
           <span className="eyebrow">Workbench</span>
           <h2>{video.filename}</h2>
         </div>
-        <StatusBadge status={video.status} />
+        <StatusBadge status={video.status} /> 
       </div>
+
 
       {video.status.startsWith("PROCESSANDO") && (
         <ProcessingProgress

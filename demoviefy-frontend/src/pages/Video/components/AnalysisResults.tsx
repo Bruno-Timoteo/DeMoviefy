@@ -1,7 +1,7 @@
 // src/pages/Upload/components/AnalysisResults.tsx
 
-import { AnalysisMetrics } from "src/pages/Upload/components/AnalysisMetrics"
-import { AnalysisDetectionTable } from "src/pages/Upload/components/AnalysisDetectionTable"
+import { AnalysisMetrics } from "src/pages/Video/components/AnalysisMetrics"
+import { AnalysisDetectionTable } from "src/pages/Video/components/AnalysisDetectionTable"
 import type { VideoAnalysisResponse } from "src/pages/Upload/types"
 type AnalysisResultsProps = {
   state: "idle" | "loading" | "ready" | "pending" | "error"

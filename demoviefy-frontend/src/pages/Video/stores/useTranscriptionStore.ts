@@ -1,9 +1,9 @@
-// src/core/stores/useTranscriptionStore.ts
+// src/pages/Video/stores/useTranscriptionStore.ts
 
 import { create } from "zustand";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import { getApiErrorMessage } from "src/pages/Upload/utils/helpers";
-import { useVideoStore } from "src/core/stores/useVideoStore";
+import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore";
 import { useUploadStore } from "src/core/stores/useUploadStore";
 import type { VideoRecord, VideoTranscriptionResponse } from "src/pages/Upload/types";
 
@@ -64,17 +64,16 @@ export const useTranscriptionStore = create<TranscriptionState>((set, get) => ({
   },
 
   onSaveTranscription: async () => {
-    const selectedVideo = useVideoStore.getState().selectedVideo;
+    const selectedVideo = useVideoDetailStore.getState().video;
     if (!selectedVideo) return;
 
     const { transcriptionDraft, fetchTranscription } = get();
     const { setMessage } = useUploadStore.getState();
-    const { fetchVideos } = useVideoStore.getState();
 
     try {
       await VideoService.saveTranscription(selectedVideo.id, transcriptionDraft);
       setMessage("Transcrição salva com sucesso.");
-      await fetchVideos();
+      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true});
       await fetchTranscription(selectedVideo);
     } catch (error) {
       console.error(error);
@@ -83,11 +82,10 @@ export const useTranscriptionStore = create<TranscriptionState>((set, get) => ({
   },
 
   onDeleteTranscription: async () => {
-    const selectedVideo = useVideoStore.getState().selectedVideo;
+    const selectedVideo = useVideoDetailStore.getState().video;
     if (!selectedVideo) return;
 
     const { setMessage } = useUploadStore.getState();
-    const { fetchVideos } = useVideoStore.getState();
 
     try {
       await VideoService.deleteTranscription(selectedVideo.id);
@@ -97,7 +95,7 @@ export const useTranscriptionStore = create<TranscriptionState>((set, get) => ({
         transcriptionMessage: "Transcrição removida. Você pode criar uma nova quando quiser.",
       });
       setMessage("Transcrição excluída.");
-      await fetchVideos();
+      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true});
     } catch (error) {
       console.error(error);
       setMessage(getApiErrorMessage(error, "Não foi possível excluir a transcrição."));
@@ -105,18 +103,17 @@ export const useTranscriptionStore = create<TranscriptionState>((set, get) => ({
   },
 
   onGenerateTranscription: async () => {
-    const selectedVideo = useVideoStore.getState().selectedVideo;
+    const selectedVideo = useVideoDetailStore.getState().video;
     if (!selectedVideo) return;
 
     const { fetchTranscription } = get();
     const { setMessage } = useUploadStore.getState();
-    const { fetchVideos } = useVideoStore.getState();
 
     try {
       set({ transcriptionMessage: "Gerando transcrição automática. Isso pode levar alguns instantes." });
       const { message: apiMessage } = await VideoService.generateTranscription(selectedVideo.id);
       setMessage(apiMessage);
-      await fetchVideos();
+      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true});
       await fetchTranscription(selectedVideo);
     } catch (error) {
       console.error(error);

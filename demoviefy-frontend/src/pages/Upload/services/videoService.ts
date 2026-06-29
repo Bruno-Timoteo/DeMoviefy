@@ -81,7 +81,7 @@ export class VideoService {
         status: number;
     }> {
         const response = await api.get<VideoTranscriptionResponse>(transcriptionUrl, {
-            validateStatus: (status) => status === 200 || status === 204 || status === 404,
+            validateStatus: (status) => status === 200 || status === 202 || status === 204 || status === 404,
         })
         return { data: response.data, status: response.status }
     }

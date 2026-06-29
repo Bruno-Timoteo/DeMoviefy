@@ -1,11 +1,11 @@
-// src/core/stores/useAnalysisStore.ts
+// src/pages/Video/stores/useAnalysisStore.ts
 
 import { create } from "zustand";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import { prettifyJson, getApiErrorMessage, buildArtifactSignature } from "src/pages/Upload/utils/helpers";
-import { useVideoStore } from "src/core/stores/useVideoStore";
+import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore";
 import { useUploadStore } from "src/core/stores/useUploadStore";
-import { useTranscriptionStore } from "src/core/stores/useTranscriptionStore";
+import { useTranscriptionStore } from "src/pages/Video/stores/useTranscriptionStore";
 import type { VideoAnalysisResponse } from "src/pages/Upload/types";
 
 type AnalysisStatus = "idle" | "loading" | "ready" | "pending" | "error";
@@ -26,7 +26,7 @@ interface AnalysisState {
 
   onSaveAnalysis: () => Promise<void>;
   onDeleteAnalysis: () => Promise<void>;
-  onDeleteVideo: () => Promise<void>;
+  onDeleteVideo: () => Promise<boolean>;
 
   resetArtifactSignature: () => void;
 }
@@ -53,7 +53,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   },
 
   syncAnalysisWithSelectedVideo: async () => {
-    const selectedVideo = useVideoStore.getState().selectedVideo;
+    const selectedVideo = useVideoDetailStore.getState().video;
     const { selectedAnalysisVariantId } = get();
 
     if (!selectedVideo) {
@@ -101,12 +101,11 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   },
 
   onSaveAnalysis: async () => {
-    const selectedVideo = useVideoStore.getState().selectedVideo;
+    const selectedVideo = useVideoDetailStore.getState().video;
     if (!selectedVideo) return;
 
     const { analysisDraft, selectedAnalysisVariantId, analysis } = get();
     const { setMessage } = useUploadStore.getState();
-    const { fetchVideos } = useVideoStore.getState();
 
     try {
       const parsed = JSON.parse(analysisDraft);
@@ -127,7 +126,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         analysisState: "ready",
       });
       setMessage("Análise salva com sucesso.");
-      await fetchVideos();
+      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, {force: true});
     } catch (error) {
       console.error(error);
       setMessage(getApiErrorMessage(error, "JSON inválido ou erro ao salvar a análise."));
@@ -135,12 +134,11 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   },
 
   onDeleteAnalysis: async () => {
-    const selectedVideo = useVideoStore.getState().selectedVideo;
+    const selectedVideo = useVideoDetailStore.getState().video;
     if (!selectedVideo) return;
 
     const { selectedAnalysisVariantId } = get();
     const { setMessage } = useUploadStore.getState();
-    const { fetchVideos } = useVideoStore.getState();
 
     try {
       await VideoService.deleteAnalysis(selectedVideo.id, selectedAnalysisVariantId);
@@ -151,7 +149,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         analysisState: "error",
       });
       setMessage(selectedAnalysisVariantId ? "Versão da análise excluída." : "Análise excluída.");
-      await fetchVideos();
+      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true });
     } catch (error) {
       console.error(error);
       setMessage(getApiErrorMessage(error, "Não foi possível excluir a análise."));
@@ -159,11 +157,10 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   },
 
   onDeleteVideo: async () => {
-    const selectedVideo = useVideoStore.getState().selectedVideo;
-    if (!selectedVideo) return;
+    const selectedVideo = useVideoDetailStore.getState().video;
+    if (!selectedVideo) return false;
 
     const { setMessage, setHint } = useUploadStore.getState();
-    const { fetchVideos } = useVideoStore.getState();
 
     try {
       await VideoService.deleteVideo(selectedVideo.id);
@@ -175,10 +172,13 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
       useTranscriptionStore.setState({ transcriptionMessage: "Transcrição removida." });
 
       get().resetArtifactSignature();
-      await fetchVideos();
+      useVideoDetailStore.getState().reset();
+      return true;
+      
     } catch (error) {
       console.error(error);
       setMessage(getApiErrorMessage(error, "Não foi possível excluir o vídeo."));
+      return false;
     }
   },
 
