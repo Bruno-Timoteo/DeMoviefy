@@ -1,6 +1,6 @@
 // VideoDashboard.tsx, versão ajustada
 import { useEffect, useRef, useState } from "react";
-import { useVideoStore } from "src/pages/Upload/stores/useVideoListStore";
+import { useVideoListStore } from "src/pages/Upload/stores/useVideoListStore";
 import { useCatalogStore } from "src/core/stores/useAICatalogStore";
 import { DashboardSidebar } from "src/pages/Upload/components/DashboardSidebar";
 import { DashboardHeader } from "src/pages/Upload/components/DashboardHeader";
@@ -18,8 +18,8 @@ export default function VideoDashboard() {
     const initializedRef = useRef(false);
 
     const fetchCatalog = useCatalogStore((state) => state.fetchCatalog);
-    const fetchVideos = useVideoStore((state) => state.fetchVideos);
-    const stats = useVideoStore((state) => state.stats);
+    const fetchVideos = useVideoListStore((state) => state.fetchVideos);
+    const stats = useVideoListStore((state) => state.stats);
 
     useEffect(() => {
         if (initializedRef.current) {

@@ -1,6 +1,6 @@
 // src/pages/Upload/components/DashboardSidebar.tsx
 
-import { useVideoStore } from "src/pages/Upload/stores/useVideoListStore"
+import { useVideoListStore } from "src/pages/Upload/stores/useVideoListStore"
 import { VideoLibrary } from "src/pages/Upload/components/VideoLibrary"
 
 interface DashboardSidebarProps {
@@ -10,8 +10,8 @@ interface DashboardSidebarProps {
 
 export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
 
-  const videos = useVideoStore((state) => state.videos);
-  const loading = useVideoStore((state) => state.loadingVideos);
+  const videos = useVideoListStore((state) => state.videos);
+  const loading = useVideoListStore((state) => state.loadingVideos);
 
   return (
     <>

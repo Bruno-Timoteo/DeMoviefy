@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import { getApiErrorMessage } from "src/pages/Upload/utils/helpers";
 import { useUploadStore } from "src/core/stores/useUploadStore";
-import { useVideoStore } from "src/pages/Upload/stores/useVideoListStore";
+import { useVideoListStore } from "src/pages/Upload/stores/useVideoListStore";
 
 export function useUpload() {
   const [file, setFile] = useState<File | null>(null);
@@ -48,7 +48,7 @@ export function useUpload() {
       setUploadClipStart("0");
       setUploadClipEnd("");
 
-      await useVideoStore.getState().fetchVideos();
+      await useVideoListStore.getState().fetchVideos();
     } catch (error) {
       console.error(error);
       setMessage(getApiErrorMessage(error, "Erro ao enviar o video."));

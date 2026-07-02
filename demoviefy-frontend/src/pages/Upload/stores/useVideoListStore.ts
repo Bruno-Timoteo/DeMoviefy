@@ -34,7 +34,7 @@ function deriveFromVideos(videos: VideoRecord[]) {
 
 const poller = createPoller(500); // No caso, irá atualizar a cada 0,5 segundos.
 
-export const useVideoStore = create<VideoState>((set, get) => ({
+export const useVideoListStore = create<VideoState>((set, get) => ({
   videos: [],
   loadingVideos: false,
   stats: { total: 0, processing: 0, processed: 0, errors: 0 },
