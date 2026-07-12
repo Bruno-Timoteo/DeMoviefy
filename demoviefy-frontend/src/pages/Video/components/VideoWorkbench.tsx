@@ -67,7 +67,6 @@ export const VideoWorkbench = memo(function VideoWorkbench({
         <div className="media-panel">
           <VideoPreviewPanel
             video={video}
-            summary={summary}
             analysisState={analysisState}
             originalVideoSrc={originalVideoSrc}
             annotatedVideoSrc={annotatedVideoSrc}

@@ -15,7 +15,7 @@ export function WorkbenchHeader({ video }: WorkbenchHeaderProps) {
       <div className="section-heading">
 
         <div>
-          <span className="eyebrow">Workbench</span>
+          <span className="eyebrow">Análise do vídeo:</span>
           <h2>{video.filename}</h2>
         </div>
         <StatusBadge status={video.status} /> 

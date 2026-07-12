@@ -70,18 +70,6 @@ export function formatTimecode(seconds: number): string {
     : `${minutes.toString().padStart(2, "0")}:${remaining.toString().padStart(2, "0")}`
 }
 
-export function formatDurationText(value: number | null | undefined) {
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    return "Duração indisponível";
-  }
-
-  if (value < 1) {
-    return `Duração aproximada: ${value.toFixed(2)}s`;
-  }
-
-  return `Duração aproximada: ${value.toFixed(1)}s`;
-}
-
 export function formatPercent(value: number | undefined) {
   if (typeof value !== "number") {
     return "-";
