@@ -1,12 +1,10 @@
 // src/pages/Upload/components/VideoPreviewPanel.tsx
 
 import { useState, type RefObject } from "react"
-import { formatDurationText } from "src/pages/Upload/utils/helpers"
-import type { VideoAnalysisSummary, VideoRecord } from "src/pages/Upload/types"
+import type { VideoRecord } from "src/pages/Upload/types"
 
 interface VideoPreviewPanelProps {
   video: VideoRecord
-  summary: VideoAnalysisSummary | null
   analysisState: "idle" | "loading" | "ready" | "pending" | "error"
   originalVideoSrc: string
   annotatedVideoSrc: string
@@ -15,41 +13,16 @@ interface VideoPreviewPanelProps {
 
 export function VideoPreviewPanel({
   video,
-  summary,
   analysisState,
-  originalVideoSrc,
   annotatedVideoSrc,
-  videoRef,
 }: VideoPreviewPanelProps) {
   const [annotatedPlaybackError, setAnnotatedPlaybackError] = useState(false)
 
   return (
     <>
       <div className="preview-grid">
-        <article className="preview-card">
-          <div className="preview-card-header">
-            <span className="eyebrow">Original</span>
-            <strong>Vídeo enviado</strong>
-            <small>{formatDurationText(summary?.video_duration_sec)}</small>
-          </div>
-          {video.storage.video_exists ? (
-            <video ref={videoRef} className="video-preview" controls preload="metadata" src={originalVideoSrc}>
-              Seu navegador não suporta reproduzir este vídeo.
-            </video>
-          ) : (
-            <div className="empty-preview">
-              <strong>Arquivo de vídeo não encontrado.</strong>
-              <p>O registro ainda existe no banco, mas o arquivo não esta mais em uploads/.</p>
-            </div>
-          )}
-        </article>
 
         <article className="preview-card">
-          <div className="preview-card-header">
-            <span className="eyebrow">Marcações</span>
-            <strong>Vídeo anotado pela IA</strong>
-            <small>{formatDurationText(summary?.video_duration_sec)}</small>
-          </div>
           {video.storage.annotated_exists && !annotatedPlaybackError ? (
             <video
               key={annotatedVideoSrc}
