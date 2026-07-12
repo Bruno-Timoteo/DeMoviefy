@@ -59,7 +59,6 @@ export const VideoWorkbench = memo(function VideoWorkbench({
   );
 
   if (!video) return <WorkbenchEmptyState />;
-
   return (
     <section className="surface inspector-panel">
       <WorkbenchHeader video={video} />

@@ -46,7 +46,7 @@ export function normalizeVideoRecord(video: Partial<VideoRecord>): VideoRecord {
 }
 
 export function normalizeVideoAnalysisResponse(response: VideoAnalysisResponse | null): VideoAnalysisResponse | null {
-    if (!response) {
+    if (!response || response.available === false) {
         return null;
     }
 
