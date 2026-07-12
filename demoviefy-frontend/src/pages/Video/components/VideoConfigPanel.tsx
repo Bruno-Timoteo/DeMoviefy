@@ -116,7 +116,7 @@ export function VideoConfigPanel({
                 </button>
                 <button type="button" className="primary-button" onClick={onReprocess} disabled={isBusy}>
                     {isBusy
-                        ? `Reprocessando... ${video.processing.processing_progress}%`
+                        ? `Processando... ${video.processing.processing_progress}%`
                         : "Reprocessar vídeo"}
                 </button>
             </div>

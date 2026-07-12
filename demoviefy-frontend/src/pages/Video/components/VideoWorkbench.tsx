@@ -51,6 +51,7 @@ export const VideoWorkbench = memo(function VideoWorkbench({
   const analysisVariants = analysis?.available_variants ?? [];
   const hasMultipleAnalysisVariants = analysisVariants.length > 1;
   const transcriptionSegments = transcription?.transcription.segments ?? [];
+  const hasSelectedAnalysis = analysis !== null;
 
   const { videoRef, annotatedVideoSrc, originalVideoSrc, seekTo } = useVideoPlayer(
     video,
@@ -68,6 +69,7 @@ export const VideoWorkbench = memo(function VideoWorkbench({
           <VideoPreviewPanel
             video={video}
             analysisState={analysisState}
+            hasSelectedAnalysis={hasSelectedAnalysis}
             originalVideoSrc={originalVideoSrc}
             annotatedVideoSrc={annotatedVideoSrc}
             videoRef={videoRef}
