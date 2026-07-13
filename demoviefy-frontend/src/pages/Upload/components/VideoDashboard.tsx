@@ -26,7 +26,7 @@ export default function VideoDashboard() {
             return;
         }
         initializedRef.current = true;
-        void Promise.all([fetchCatalog(), fetchVideos({ preserveHint: false })]);
+        void Promise.all([fetchCatalog(), fetchVideos()]);
     }, [fetchCatalog, fetchVideos]);
 
     return (
@@ -51,7 +51,7 @@ export default function VideoDashboard() {
                         errors={stats.errors}
                     />
                     <div className="upload-section">
-                        <NewVideoPanel onRefresh={() => void fetchVideos({ preserveHint: false })} />
+                        <NewVideoPanel onRefresh={() => void fetchVideos()} />
                         <ProcessingQueuePanel />
                     </div>
                 </div>

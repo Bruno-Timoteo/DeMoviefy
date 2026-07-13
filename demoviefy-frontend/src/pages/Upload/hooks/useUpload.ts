@@ -1,5 +1,6 @@
 // src/pages/Upload/hooks/useUpload.ts
 import { useCallback, useState } from "react";
+import { toast } from "src/core/utils/toast";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import { getApiErrorMessage } from "src/pages/Upload/utils/helpers";
 import { useUploadStore } from "src/core/stores/useUploadStore";
@@ -14,13 +15,10 @@ export function useUpload() {
   const [uploadClipEnd, setUploadClipEnd] = useState("");
 
   const setUploading = useUploadStore((state) => state.setUploading);
-  const setMessage = useUploadStore((state) => state.setMessage);
-  const setHint = useUploadStore((state) => state.setHint);
 
   const handleUpload = useCallback(async (uploadTask: string, uploadModelPath: string) => {
     if (!file) {
-      setMessage("Selecione um arquivo antes de enviar.");
-      setHint("");
+      toast.show("Selecione um arquivo antes de enviar.");
       return;
     }
 
@@ -36,10 +34,7 @@ export function useUpload() {
         parseInt(uploadClipStart) || 0,
         uploadClipEnd.trim() ? parseInt(uploadClipEnd) : null
       );
-      setMessage(response.message);
-      setHint(
-        `Video salvo em ${response.next_steps.video_saved_in}. Análise em ${response.next_steps.analysis_will_be_saved_in}, video anotado em ${response.next_steps.annotated_will_be_saved_in} e transcrição em ${response.next_steps.transcription_will_be_saved_in}.`
-      );
+      toast.show(response.message);
 
       setFile(null);
       setUploadFrameStride("8");
@@ -51,12 +46,11 @@ export function useUpload() {
       await useVideoListStore.getState().fetchVideos();
     } catch (error) {
       console.error(error);
-      setMessage(getApiErrorMessage(error, "Erro ao enviar o video."));
-      setHint("Confira a combinação entre tarefa e modelo e tente novamente.");
+      toast.show(getApiErrorMessage(error, "Erro ao enviar o video."));
     } finally {
       setUploading(false);
     }
-  }, [file, uploadFrameStride, uploadConfidenceThreshold, uploadMaxFrames, uploadClipStart, uploadClipEnd, setUploading, setMessage, setHint]);
+  }, [file, uploadFrameStride, uploadConfidenceThreshold, uploadMaxFrames, uploadClipStart, uploadClipEnd, setUploading]);
 
   return {
     file, setFile, uploadFrameStride, setUploadFrameStride,

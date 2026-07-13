@@ -1,9 +1,9 @@
-// src/pages/Upload/hooks/useVideoConfig.ts
+// src/pages/Upload/Video/useVideoConfig.ts
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "src/core/utils/toast";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import type { AiConfigPayload } from "src/pages/Upload/types";
 import { getApiErrorMessage, chooseFirstModel } from "src/pages/Upload/utils/helpers";
-import { useUploadStore } from "src/core/stores/useUploadStore";
 import { useCatalogStore } from "src/core/stores/useAICatalogStore";
 import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore";
 
@@ -50,14 +50,13 @@ export function useVideoConfig() {
         const selectedVideo = useVideoDetailStore.getState().video;
         if (!selectedVideo) return;
 
-        const setMessage = useUploadStore.getState().setMessage;
         try {
             await VideoService.saveAiConfig(selectedVideo.id, videoConfig);
-            setMessage("Configuração de IA salva para o vídeo selecionado.");
+            toast.show("Configuração de IA salva para o vídeo selecionado.");
             await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true });
         } catch (error) {
             console.error(error);
-            setMessage(getApiErrorMessage(error, "Não foi possível salvar a configuração de IA."));
+            toast.show(getApiErrorMessage(error, "Não foi possível salvar a configuração de IA."));
         }
     }, [videoConfig]);
 
@@ -65,15 +64,13 @@ export function useVideoConfig() {
         const selectedVideo = useVideoDetailStore.getState().video;
         if (!selectedVideo) return;
 
-        const { setMessage, setHint } = useUploadStore.getState();
         try {
             await VideoService.reprocessVideo(selectedVideo.id, videoConfig);
-            setMessage("Reprocessamento iniciado.");
-            setHint("O vídeo será analisado novamente com a configuração escolhida.");
+            toast.show("Reprocessamento iniciado.");
             await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true });
         } catch (error) {
             console.error(error);
-            setMessage(getApiErrorMessage(error, "Não foi possível iniciar o reprocessamento."));
+            toast.show(getApiErrorMessage(error, "Não foi possível iniciar o reprocessamento."));
         }
     }, [videoConfig]);
 

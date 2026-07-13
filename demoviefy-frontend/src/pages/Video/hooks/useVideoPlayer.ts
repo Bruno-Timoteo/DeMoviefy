@@ -1,4 +1,4 @@
-// src/pages/Upload/hooks/useVideoPlayer.ts
+// src/pages/Video/hooks/useVideoPlayer.ts
 
 import { useRef } from "react"
 import { VideoService } from "src/pages/Upload/services/videoService"

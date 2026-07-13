@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import { prettifyJson, getApiErrorMessage, buildArtifactSignature } from "src/pages/Upload/utils/helpers";
 import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore";
-import { useUploadStore } from "src/core/stores/useUploadStore";
+import { toast } from "src/core/utils/toast";
 import { useTranscriptionStore } from "src/pages/Video/stores/useTranscriptionStore";
 import type { VideoAnalysisResponse } from "src/pages/Upload/types";
 
@@ -105,7 +105,6 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     if (!selectedVideo) return;
 
     const { analysisDraft, selectedAnalysisVariantId, analysis } = get();
-    const { setMessage } = useUploadStore.getState();
 
     try {
       const parsed = JSON.parse(analysisDraft);
@@ -125,11 +124,11 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         analysisDraft: prettifyJson(parsed),
         analysisState: "ready",
       });
-      setMessage("Análise salva com sucesso.");
+      toast.show("Análise salva com sucesso.");
       await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, {force: true});
     } catch (error) {
       console.error(error);
-      setMessage(getApiErrorMessage(error, "JSON inválido ou erro ao salvar a análise."));
+      toast.show(getApiErrorMessage(error, "JSON inválido ou erro ao salvar a análise."));
     }
   },
 
@@ -138,7 +137,6 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     if (!selectedVideo) return;
 
     const { selectedAnalysisVariantId } = get();
-    const { setMessage } = useUploadStore.getState();
 
     try {
       await VideoService.deleteAnalysis(selectedVideo.id, selectedAnalysisVariantId);
@@ -148,11 +146,11 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         analysisDraft: "{}",
         analysisState: "error",
       });
-      setMessage(selectedAnalysisVariantId ? "Versão da análise excluída." : "Análise excluída.");
+      toast.show(selectedAnalysisVariantId ? "Versão da análise excluída." : "Análise excluída.");
       await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true });
     } catch (error) {
       console.error(error);
-      setMessage(getApiErrorMessage(error, "Não foi possível excluir a análise."));
+      toast.show(getApiErrorMessage(error, "Não foi possível excluir a análise."));
     }
   },
 
@@ -160,12 +158,9 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     const selectedVideo = useVideoDetailStore.getState().video;
     if (!selectedVideo) return false;
 
-    const { setMessage, setHint } = useUploadStore.getState();
-
     try {
       await VideoService.deleteVideo(selectedVideo.id);
-      setMessage("Vídeo removido com sucesso.");
-      setHint("O arquivo enviado e os artefatos associados foram removidos.");
+      toast.show("Vídeo removido com sucesso.");
 
       set({ analysis: null, analysisDraft: "{}" });
       useTranscriptionStore.getState().resetTranscription();
@@ -177,7 +172,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
       
     } catch (error) {
       console.error(error);
-      setMessage(getApiErrorMessage(error, "Não foi possível excluir o vídeo."));
+      toast.show(getApiErrorMessage(error, "Não foi possível excluir o vídeo."));
       return false;
     }
   },

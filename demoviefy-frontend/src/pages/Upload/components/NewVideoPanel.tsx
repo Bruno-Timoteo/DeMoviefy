@@ -43,8 +43,6 @@ export function NewVideoPanel({onRefresh }: NewVideoPanelProps) {
 
   // Estados globais da UI
   const uploading = useUploadStore((state) => state.uploading);
-  const message = useUploadStore((state) => state.message);
-  const hint = useUploadStore((state) => state.hint);
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
@@ -127,17 +125,6 @@ export function NewVideoPanel({onRefresh }: NewVideoPanelProps) {
           </div>
         )}
       </div>
-
-      {/* Status Message */}
-      {message && (
-        <div
-          className={`status-message ${
-            message.includes("Erro") ? "error" : "success"
-          }`}
-        >
-          {message}
-        </div>
-      )}
 
       {/* Configuration Section */}
       {file && (
@@ -259,7 +246,6 @@ export function NewVideoPanel({onRefresh }: NewVideoPanelProps) {
             {uploading ? "Enviando..." : "Enviar Vídeo"}
           </button>
 
-          {hint && <div className="hint-text">{hint}</div>}
         </div>
       )}
     </div>
