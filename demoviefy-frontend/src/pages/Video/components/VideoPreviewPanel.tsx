@@ -1,6 +1,6 @@
 // src/pages/Upload/components/VideoPreviewPanel.tsx
 
-import { useState, type RefObject } from "react"
+import { useState, useEffect, type RefObject } from "react"
 import type { VideoRecord } from "src/pages/Upload/types"
 
 interface VideoPreviewPanelProps {
@@ -9,21 +9,65 @@ interface VideoPreviewPanelProps {
   originalVideoSrc: string
   annotatedVideoSrc: string
   videoRef: RefObject<HTMLVideoElement | null>
+  hasSelectedAnalysis: boolean
+}
+
+function getAnnotatedPreviewState(
+  annotatedPlaybackError: boolean,
+  isReprocessing: boolean,
+  analysisState: string,
+  hasSelectedAnalysis: boolean,
+) {
+  if (isReprocessing) {
+    return {
+      title: "Vídeo sendo processado.",
+      message: "O vídeo está sendo processado com uma nova configuração. O preview anotado estará disponível quando terminar.",
+    };
+  }
+  if (annotatedPlaybackError && hasSelectedAnalysis) {
+    return {
+      title: "Não foi possível reproduzir o vídeo anotado.",
+      message: "O preview anotado foi gerado, mas falhou ao abrir no navegador. Reprocesse o vídeo para regenerar um MP4 compatível ou abra o arquivo salvo em uma nova guia.",
+    };
+  }
+  if (analysisState === "pending") {
+    return {
+      title: "Vídeo anotado ainda não disponível.",
+      message: "A IA ainda está processando o arquivo. Quando terminar, o preview anotado aparece aqui.",
+    };
+  }
+  return {
+    title: "Vídeo anotado ainda não disponível.",
+    message: "Ainda não existe um preview anotado finalizado para este vídeo. Reprocesse para gerar um MP4 anotado pronto para o navegador.",
+  };
 }
 
 export function VideoPreviewPanel({
   video,
   analysisState,
   annotatedVideoSrc,
+  hasSelectedAnalysis
 }: VideoPreviewPanelProps) {
   const [annotatedPlaybackError, setAnnotatedPlaybackError] = useState(false)
 
-  return (
+  useEffect(() => {
+    setAnnotatedPlaybackError(false);
+    }, [annotatedVideoSrc, video?.id, video?.status]);
+    const isReprocessing = video.status.startsWith("PROCESSANDO");
+    const canTryAnnotated = (hasSelectedAnalysis || video.storage.annotated_exists) && !annotatedPlaybackError;
+    const previewState = getAnnotatedPreviewState(
+        annotatedPlaybackError,
+        isReprocessing,
+        analysisState,
+        hasSelectedAnalysis,
+    );
+
+    return (
     <>
       <div className="preview-grid">
 
         <article className="preview-card">
-          {video.storage.annotated_exists && !annotatedPlaybackError ? (
+          {canTryAnnotated ? (
             <video
               key={annotatedVideoSrc}
               className="video-preview"
@@ -36,23 +80,13 @@ export function VideoPreviewPanel({
             </video>
           ) : (
             <div className="empty-preview">
-              <strong>
-                {annotatedPlaybackError
-                  ? "Não foi possível reproduzir o vídeo anotado."
-                  : "Vídeo anotado ainda não disponível."}
-              </strong>
-              <p>
-                {annotatedPlaybackError
-                  ? "O preview anotado foi gerado, mas falhou ao abrir no navegador. Reprocesse o vídeo para regenerar um MP4 compatível ou abra o arquivo salvo em uma nova guia."
-                  : analysisState === "pending"
-                    ? "A IA ainda esta processando o arquivo. Quando terminar, o preview anotado aparece aqui."
-                    : "Ainda não existe um preview anotado finalizado para este vídeo. Reprocesse para gerar um MP4 anotado pronto para o navegador."}
-              </p>
-              {video.storage.annotated_exists && (
+            <strong>{previewState.title}</strong>
+            <p>{previewState.message}</p>
+            {video.storage.annotated_exists && (
                 <a className="ghost-button inline-link-button" href={annotatedVideoSrc} target="_blank" rel="noreferrer">
-                  Abrir vídeo anotado
+                Abrir vídeo anotado
                 </a>
-              )}
+            )}
             </div>
           )}
         </article>

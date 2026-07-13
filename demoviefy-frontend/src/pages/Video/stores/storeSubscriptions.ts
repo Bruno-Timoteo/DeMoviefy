@@ -22,9 +22,13 @@ export function registerStoreSubscriptions() {
         // ou então quando o vídeo começa e termina de processar.
 
         // Essas funções são limpas para que os dados antigos do vídeo não sejam exibidos.
-        if (idChanged || startedProcessing || finishedProcessing) {
+        if (idChanged || finishedProcessing) {
             useAnalysisStore.setState({ selectedAnalysisVariantId: null });
-            useAnalysisStore.getState().resetArtifactSignature();
+        }
+
+        useAnalysisStore.getState().resetArtifactSignature();
+
+        if (idChanged || startedProcessing || finishedProcessing) {
             void useAnalysisStore.getState().syncAnalysisWithSelectedVideo();
         }
     });
