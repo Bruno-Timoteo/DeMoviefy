@@ -6,11 +6,7 @@ import { useCatalogStore } from "src/core/stores/useAICatalogStore";
 
 import "/src/pages/Upload/styles/NewVideoPanel.css";
 
-interface NewVideoPanelProps {
-  onRefresh: () => void;
-}
-
-export function NewVideoPanel({onRefresh }: NewVideoPanelProps) {
+export function NewVideoPanel() {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -69,14 +65,6 @@ export function NewVideoPanel({onRefresh }: NewVideoPanelProps) {
       {/* Header */}
       <div className="panel-header">
         <h3>+ Novo Vídeo</h3>
-        <button
-          onClick={onRefresh}
-          className="ghost-button"
-          title="Atualizar lista"
-          aria-label="Atualizar lista de vídeos"
-        >
-          ↻
-        </button>
       </div>
 
       {/* Dropzone */}

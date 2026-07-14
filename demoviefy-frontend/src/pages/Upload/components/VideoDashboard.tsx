@@ -51,7 +51,7 @@ export default function VideoDashboard() {
                         errors={stats.errors}
                     />
                     <div className="upload-section">
-                        <NewVideoPanel onRefresh={() => void fetchVideos()} />
+                        <NewVideoPanel />
                         <ProcessingQueuePanel />
                     </div>
                 </div>

@@ -12,7 +12,7 @@ export function DashboardProgressBar() {
     ? { text: "Atualizando biblioteca", progress: null }
     : null;
 
-  if (!processState) return null;
+  if (!processState || processState.progress === null) return null;
 
   const value = processState.progress ?? 0;
 

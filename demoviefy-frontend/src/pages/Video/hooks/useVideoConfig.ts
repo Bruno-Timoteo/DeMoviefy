@@ -66,7 +66,7 @@ export function useVideoConfig() {
 
         try {
             await VideoService.reprocessVideo(selectedVideo.id, videoConfig);
-            toast.success("Reprocessamento iniciado.");
+            toast("Reprocessamento iniciado.");
             await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true });
         } catch (error) {
             console.error(error);
