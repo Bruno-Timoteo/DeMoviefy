@@ -3,8 +3,8 @@
 import { create } from "zustand";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import { prettifyJson, getApiErrorMessage, buildArtifactSignature } from "src/pages/Upload/utils/helpers";
+import { toast } from "sonner";
 import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore";
-import { toast } from "src/core/utils/toast";
 import { useTranscriptionStore } from "src/pages/Video/stores/useTranscriptionStore";
 import type { VideoAnalysisResponse } from "src/pages/Upload/types";
 
@@ -124,11 +124,11 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         analysisDraft: prettifyJson(parsed),
         analysisState: "ready",
       });
-      toast.show("Análise salva com sucesso.");
+      toast.success("Análise salva com sucesso.");
       await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, {force: true});
     } catch (error) {
       console.error(error);
-      toast.show(getApiErrorMessage(error, "JSON inválido ou erro ao salvar a análise."));
+      toast.error(getApiErrorMessage(error, "JSON inválido ou erro ao salvar a análise."));
     }
   },
 
@@ -146,7 +146,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         analysisDraft: "{}",
         analysisState: "error",
       });
-      toast.show(selectedAnalysisVariantId ? "Versão da análise excluída." : "Análise excluída.");
+      toast.success(selectedAnalysisVariantId ? "Versão da análise excluída." : "Análise excluída.");
       await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true });
 
         const sync = get().syncAnalysisWithSelectedVideo;
@@ -154,7 +154,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
 
     } catch (error) {
       console.error(error);
-      toast.show(getApiErrorMessage(error, "Não foi possível excluir a análise."));
+      toast.error(getApiErrorMessage(error, "Não foi possível excluir a análise."));
     }
   },
 
@@ -164,7 +164,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
 
     try {
       await VideoService.deleteVideo(selectedVideo.id);
-      toast.show("Vídeo removido com sucesso.");
+      toast.success("Vídeo removido com sucesso.");
 
       set({ analysis: null, analysisDraft: "{}" });
       useTranscriptionStore.getState().resetTranscription();
@@ -176,7 +176,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
       
     } catch (error) {
       console.error(error);
-      toast.show(getApiErrorMessage(error, "Não foi possível excluir o vídeo."));
+      toast.error(getApiErrorMessage(error, "Não foi possível excluir o vídeo."));
       return false;
     }
   },

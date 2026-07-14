@@ -1,5 +1,5 @@
 import { BrowserRouter } from "react-router-dom";
-import { Toast } from "src/core/components/Toast";
+import { Toaster } from "sonner";
 import { CompatibilityGate } from "src/core/components/CompatibilityGate";
 import MainLayout from "src/layouts/MainLayout";
 import Router from "src/app/Router";
@@ -9,8 +9,8 @@ function App() {
             <BrowserRouter>
                 <CompatibilityGate>
                     <MainLayout>
-                        <Toast />
                         <Router />
+                        <Toaster richColors position="top-right" />
                     </MainLayout>
                 </CompatibilityGate>
             </BrowserRouter>

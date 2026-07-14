@@ -4,8 +4,8 @@ import { create } from "zustand";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import { getApiErrorMessage } from "src/pages/Upload/utils/helpers";
 import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore";
-import { toast } from "src/core/utils/toast";
 import type { VideoRecord, VideoTranscriptionResponse } from "src/pages/Upload/types";
+import { toast } from "sonner";
 
 interface TranscriptionState {
   transcription: VideoTranscriptionResponse | null;
@@ -71,12 +71,12 @@ export const useTranscriptionStore = create<TranscriptionState>((set, get) => ({
 
     try {
       await VideoService.saveTranscription(selectedVideo.id, transcriptionDraft);
-      toast.show("Transcrição salva com sucesso.");
+      toast.success("Transcrição salva com sucesso.");
       await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true});
       await fetchTranscription(selectedVideo);
     } catch (error) {
       console.error(error);
-      toast.show(getApiErrorMessage(error, "Não foi possível salvar a transcrição."));
+      toast.error(getApiErrorMessage(error, "Não foi possível salvar a transcrição."));
     }
   },
 
@@ -92,11 +92,11 @@ export const useTranscriptionStore = create<TranscriptionState>((set, get) => ({
         transcriptionDraft: "",
         transcriptionMessage: "Transcrição removida. Você pode criar uma nova quando quiser.",
       });
-      toast.show("Transcrição excluída.");
+      toast.success("Transcrição excluída.");
       await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true});
     } catch (error) {
       console.error(error);
-      toast.show(getApiErrorMessage(error, "Não foi possível excluir a transcrição."));
+      toast.error(getApiErrorMessage(error, "Não foi possível excluir a transcrição."));
     }
   },
 
@@ -109,12 +109,12 @@ export const useTranscriptionStore = create<TranscriptionState>((set, get) => ({
     try {
       set({ transcriptionMessage: "Gerando transcrição automática. Isso pode levar alguns instantes." });
       const { message: apiMessage } = await VideoService.generateTranscription(selectedVideo.id);
-      toast.show(apiMessage);
+      toast(apiMessage);
       await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true});
       await fetchTranscription(selectedVideo);
     } catch (error) {
       console.error(error);
-      toast.show(getApiErrorMessage(error, "Não foi possível gerar a transcrição automática. Verifique o Whisper e o ffmpeg."));
+      toast.error(getApiErrorMessage(error, "Não foi possível gerar a transcrição automática. Verifique o Whisper e o ffmpeg."));
     }
   },
 }));

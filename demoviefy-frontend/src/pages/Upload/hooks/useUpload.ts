@@ -1,6 +1,6 @@
 // src/pages/Upload/hooks/useUpload.ts
 import { useCallback, useState } from "react";
-import { toast } from "src/core/utils/toast";
+import { toast } from "sonner";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import { getApiErrorMessage } from "src/pages/Upload/utils/helpers";
 import { useUploadStore } from "src/core/stores/useUploadStore";
@@ -18,7 +18,7 @@ export function useUpload() {
 
   const handleUpload = useCallback(async (uploadTask: string, uploadModelPath: string) => {
     if (!file) {
-      toast.show("Selecione um arquivo antes de enviar.");
+      toast("Selecione um arquivo antes de enviar.");
       return;
     }
 
@@ -34,7 +34,7 @@ export function useUpload() {
         parseInt(uploadClipStart) || 0,
         uploadClipEnd.trim() ? parseInt(uploadClipEnd) : null
       );
-      toast.show(response.message);
+      toast(response.message);
 
       setFile(null);
       setUploadFrameStride("8");
@@ -46,7 +46,7 @@ export function useUpload() {
       await useVideoListStore.getState().fetchVideos();
     } catch (error) {
       console.error(error);
-      toast.show(getApiErrorMessage(error, "Erro ao enviar o video."));
+      toast.error(getApiErrorMessage(error, "Erro ao enviar o video."));
     } finally {
       setUploading(false);
     }

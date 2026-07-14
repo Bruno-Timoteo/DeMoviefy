@@ -1,7 +1,7 @@
 // src/pages/Upload/Video/useVideoConfig.ts
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "src/core/utils/toast";
 import { VideoService } from "src/pages/Upload/services/videoService";
+import { toast } from "sonner";
 import type { AiConfigPayload } from "src/pages/Upload/types";
 import { getApiErrorMessage, chooseFirstModel } from "src/pages/Upload/utils/helpers";
 import { useCatalogStore } from "src/core/stores/useAICatalogStore";
@@ -52,11 +52,11 @@ export function useVideoConfig() {
 
         try {
             await VideoService.saveAiConfig(selectedVideo.id, videoConfig);
-            toast.show("Configuração de IA salva para o vídeo selecionado.");
+            toast.success("Configuração de IA salva para o vídeo selecionado.");
             await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true });
         } catch (error) {
             console.error(error);
-            toast.show(getApiErrorMessage(error, "Não foi possível salvar a configuração de IA."));
+            toast.error(getApiErrorMessage(error, "Não foi possível salvar a configuração de IA."));
         }
     }, [videoConfig]);
 
@@ -66,11 +66,11 @@ export function useVideoConfig() {
 
         try {
             await VideoService.reprocessVideo(selectedVideo.id, videoConfig);
-            toast.show("Reprocessamento iniciado.");
+            toast.success("Reprocessamento iniciado.");
             await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true });
         } catch (error) {
             console.error(error);
-            toast.show(getApiErrorMessage(error, "Não foi possível iniciar o reprocessamento."));
+            toast.error(getApiErrorMessage(error, "Não foi possível iniciar o reprocessamento."));
         }
     }, [videoConfig]);
 
