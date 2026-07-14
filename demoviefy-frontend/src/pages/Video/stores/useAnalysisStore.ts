@@ -148,6 +148,10 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
       });
       toast.show(selectedAnalysisVariantId ? "Versão da análise excluída." : "Análise excluída.");
       await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true });
+
+        const sync = get().syncAnalysisWithSelectedVideo;
+        void sync();
+
     } catch (error) {
       console.error(error);
       toast.show(getApiErrorMessage(error, "Não foi possível excluir a análise."));
