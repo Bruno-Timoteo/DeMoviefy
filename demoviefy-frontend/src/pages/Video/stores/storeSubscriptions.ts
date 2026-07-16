@@ -6,15 +6,19 @@ import { toast } from "sonner";
 
 export function registerStoreSubscriptions() {
     useVideoDetailStore.subscribe((state, prevState) => {
+
+        const previousStatus = prevState.video?.status;
+        const currentStatus = state.video?.status;
+
         const idChanged = state.video?.id !== prevState.video?.id;
-        const startedProcessing =
-            !prevState.video?.status.startsWith("PROCESSANDO") &&
-            state.video?.status.startsWith("PROCESSANDO");
 
+        const wasProcessing = previousStatus?.startsWith("PROCESSANDO") ?? false;
 
-        const finishedProcessing =
-            prevState.video?.status.startsWith("PROCESSANDO") &&
-            state.video?.status === "PROCESSADO";
+        const isProcessing = currentStatus?.startsWith("PROCESSANDO") ?? false;
+
+        const startedProcessing = !wasProcessing && isProcessing;
+
+        const finishedProcessing = wasProcessing && currentStatus === "PROCESSADO";
 
         // Resetar dados do vídeo.
         // 
@@ -33,8 +37,12 @@ export function registerStoreSubscriptions() {
             void useAnalysisStore.getState().syncAnalysisWithSelectedVideo();
         }
 
+        if (startedProcessing) {
+            toast("Reprocessamento iniciado.");
+        }
+
         if (finishedProcessing) {
-            toast.success("Reprocessamento concluído")
+            toast.success("Reprocessamento concluído.");
         }
     });
 }

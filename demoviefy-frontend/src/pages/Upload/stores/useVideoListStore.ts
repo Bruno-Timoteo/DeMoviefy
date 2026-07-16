@@ -1,9 +1,11 @@
 // src/pages/Upload/stores/useVideoListStore.ts
 
 import { create } from "zustand";
+import { toast } from "sonner";
 import { createPoller } from "src/core/utils/createPoller";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import type { VideoRecord } from "src/pages/Upload/types";
+import { getApiErrorMessage, sleep } from "src/pages/Upload/utils/helpers";
 
 interface VideoStats {
   total: number;
@@ -16,7 +18,7 @@ interface VideoState {
   videos: VideoRecord[];
   loadingVideos: boolean;
   stats: VideoStats;
-  fetchVideos: (options?: { silent?: boolean }) => Promise<void>;
+  fetchVideos: () => Promise<void>;
 }
 
 function deriveFromVideos(videos: VideoRecord[]) {
@@ -37,10 +39,8 @@ export const useVideoListStore = create<VideoState>((set, get) => ({
   stats: { total: 0, processing: 0, processed: 0, errors: 0 },
 
 
-  fetchVideos: async (options) => {
-    const silent = options?.silent ?? false;
-
-    if (!silent) set({ loadingVideos: true });
+  fetchVideos: async () => {
+    set({ loadingVideos: true });
 
     try {
       const normalizedVideos = await VideoService.listVideosNormalized();
@@ -54,15 +54,23 @@ export const useVideoListStore = create<VideoState>((set, get) => ({
     });
 
       const hasRunningAnalysis = normalizedVideos.some((v) => v.status.startsWith("PROCESSANDO"));
+
         if (hasRunningAnalysis) {
-            poller.start(() => void get().fetchVideos({ silent: true }));
+            const started = poller.start(() => void get().fetchVideos());
+
+            if (started) {
+                toast("Processamento iniciado."); // Não funciona pois o poller começa já no upload.
+            }
+
         } else {
             poller.stop();
+
         }
     } catch (error) {
       console.error(error);
+      toast.error(getApiErrorMessage(error, "Erro ao buscar vídeos."))
     } finally {
-      if (!silent) set({ loadingVideos: false });
+      set({ loadingVideos: false });
     }
   },
 }));

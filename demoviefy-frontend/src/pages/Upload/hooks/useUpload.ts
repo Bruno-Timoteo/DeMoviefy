@@ -5,6 +5,7 @@ import { VideoService } from "src/pages/Upload/services/videoService";
 import { getApiErrorMessage } from "src/pages/Upload/utils/helpers";
 import { useUploadStore } from "src/core/stores/useUploadStore";
 import { useVideoListStore } from "src/pages/Upload/stores/useVideoListStore";
+import { sleep } from "src/pages/Upload/utils/helpers";
 
 export function useUpload() {
   const [file, setFile] = useState<File | null>(null);
@@ -24,6 +25,8 @@ export function useUpload() {
 
     setUploading(true);
     try {
+        toast("Upload iniciado")
+        sleep(2000)
       const response = await VideoService.uploadVideo(
         file,
         uploadTask,
@@ -34,7 +37,6 @@ export function useUpload() {
         parseInt(uploadClipStart) || 0,
         uploadClipEnd.trim() ? parseInt(uploadClipEnd) : null
       );
-      toast(response.message);
 
       setFile(null);
       setUploadFrameStride("8");
@@ -44,9 +46,11 @@ export function useUpload() {
       setUploadClipEnd("");
 
       await useVideoListStore.getState().fetchVideos();
+        toast.success(response.message);
+
     } catch (error) {
       console.error(error);
-      toast.error(getApiErrorMessage(error, "Erro ao enviar o video."));
+      toast.error(getApiErrorMessage(error, "Erro no upload do video."));
     } finally {
       setUploading(false);
     }
