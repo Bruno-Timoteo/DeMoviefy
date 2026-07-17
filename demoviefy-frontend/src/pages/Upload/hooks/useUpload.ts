@@ -2,10 +2,9 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { VideoService } from "src/pages/Upload/services/videoService";
-import { getApiErrorMessage } from "src/pages/Upload/utils/helpers";
+import { getApiErrorMessage, sleep } from "src/pages/Upload/utils/helpers";
 import { useUploadStore } from "src/core/stores/useUploadStore";
 import { useVideoListStore } from "src/pages/Upload/stores/useVideoListStore";
-import { sleep } from "src/pages/Upload/utils/helpers";
 
 export function useUpload() {
   const [file, setFile] = useState<File | null>(null);
@@ -46,7 +45,8 @@ export function useUpload() {
       setUploadClipEnd("");
 
       await useVideoListStore.getState().fetchVideos();
-        toast.success(response.message);
+      
+      toast.success(response.message);
 
     } catch (error) {
       console.error(error);

@@ -43,7 +43,7 @@ export const VideoLibrary = memo(function VideoLibrary({
                     <span className="eyebrow">Biblioteca</span>
                     <h2>Vídeos analisados</h2>
                 </div>
-                {loading && <span className="panel-state">Atualizando...</span>}
+                {loading}
             </div>
 
             {videos.length === 0 ? (

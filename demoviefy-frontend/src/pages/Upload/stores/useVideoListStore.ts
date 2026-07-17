@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { createPoller } from "src/core/utils/createPoller";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import type { VideoRecord } from "src/pages/Upload/types";
-import { getApiErrorMessage, sleep } from "src/pages/Upload/utils/helpers";
+import { getApiErrorMessage } from "src/pages/Upload/utils/helpers";
 
 interface VideoStats {
   total: number;
@@ -56,15 +56,10 @@ export const useVideoListStore = create<VideoState>((set, get) => ({
       const hasRunningAnalysis = normalizedVideos.some((v) => v.status.startsWith("PROCESSANDO"));
 
         if (hasRunningAnalysis) {
-            const started = poller.start(() => void get().fetchVideos());
-
-            if (started) {
-                toast("Processamento iniciado."); // Não funciona pois o poller começa já no upload.
-            }
+            poller.start(() => void get().fetchVideos());
 
         } else {
             poller.stop();
-
         }
     } catch (error) {
       console.error(error);

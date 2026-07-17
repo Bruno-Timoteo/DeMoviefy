@@ -4,7 +4,7 @@ import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore"
 import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore"
 import { toast } from "sonner";
 
-export function registerStoreSubscriptions() {
+export function registerVideoDetailSubscriptions() {
     useVideoDetailStore.subscribe((state, prevState) => {
 
         const previousStatus = prevState.video?.status;
@@ -37,12 +37,9 @@ export function registerStoreSubscriptions() {
             void useAnalysisStore.getState().syncAnalysisWithSelectedVideo();
         }
 
-        if (startedProcessing) {
-            toast("Reprocessamento iniciado.");
+        if (finishedProcessing) {
+            toast.success("Reprocessamento concluído.")
         }
 
-        if (finishedProcessing) {
-            toast.success("Reprocessamento concluído.");
-        }
     });
 }

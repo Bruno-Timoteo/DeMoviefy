@@ -59,6 +59,7 @@ export class VideoService {
         const { data } = await api.post<UploadResponse>("/videos", formData, {
             headers: { "Content-Type": "multipart/form-data" },
         });
+        console.log(data);
         return data;
     }
 
