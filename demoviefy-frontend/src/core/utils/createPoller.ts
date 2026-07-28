@@ -8,13 +8,18 @@ export function createPoller(intervalMs: number) {
 
   return {
     start(callback: () => void) {
-      if (timer !== null) return;
+      if (timer !== null) return false;
+
       timer = window.setInterval(callback, intervalMs);
+      return true;
     },
     stop() {
-      if (timer === null) return;
+      if (timer === null) return false;
+
       window.clearInterval(timer);
       timer = null;
+
+      return true;
     },
   };
 }

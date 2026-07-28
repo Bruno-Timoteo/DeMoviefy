@@ -1,5 +1,5 @@
 import { createRoot, type Root } from "react-dom/client";
-import { registerStoreSubscriptions } from "src/pages/Video/stores/storeSubscriptions";
+import { registerVideoDetailSubscriptions } from "src/pages/Video/stores/videoDetailSubscriptions";
 import { ErrorBoundary } from "src/core/components/ErrorBoundary";
 import  App  from "src/app/App"
 
@@ -8,7 +8,7 @@ import "src/styles/global.css"
 import "src/index.css";
 import { StrictMode } from "react";
 
-registerStoreSubscriptions();
+registerVideoDetailSubscriptions();
 
 function StartupScreen({ title, message }: { title: string; message: string }) {
   return (

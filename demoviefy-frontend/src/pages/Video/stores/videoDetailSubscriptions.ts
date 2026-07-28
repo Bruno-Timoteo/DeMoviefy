@@ -2,18 +2,31 @@
 
 import { useVideoDetailStore } from "src/pages/Video/stores/useVideoDetailStore";
 import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore"
+import { toast } from "sonner";
 
-export function registerStoreSubscriptions() {
+export function registerVideoDetailSubscriptions() {
+
+    let hasProcessedInThisSession = false;
+
+
     useVideoDetailStore.subscribe((state, prevState) => {
+
+        const previousStatus = prevState.video?.status;
+        const currentStatus = state.video?.status;
+
         const idChanged = state.video?.id !== prevState.video?.id;
-        const startedProcessing =
-            !prevState.video?.status.startsWith("PROCESSANDO") &&
-            state.video?.status.startsWith("PROCESSANDO");
 
+        const wasProcessing = previousStatus?.startsWith("PROCESSANDO") ?? false;
 
-        const finishedProcessing =
-            prevState.video?.status.startsWith("PROCESSANDO") &&
-            state.video?.status === "PROCESSADO";
+        const isProcessing = currentStatus?.startsWith("PROCESSANDO") ?? false;
+
+        const startedProcessing = !wasProcessing && isProcessing;
+
+        if (startedProcessing) {
+            hasProcessedInThisSession = true;
+        }
+
+        const finishedProcessing = hasProcessedInThisSession && wasProcessing && currentStatus === "PROCESSADO";
 
         // Resetar dados do vídeo.
         // 
@@ -31,5 +44,11 @@ export function registerStoreSubscriptions() {
         if (idChanged || startedProcessing || finishedProcessing) {
             void useAnalysisStore.getState().syncAnalysisWithSelectedVideo();
         }
+
+        if (finishedProcessing) {
+            hasProcessedInThisSession = false;
+            toast.success("Reprocessamento concluído")
+        }
+
     });
 }

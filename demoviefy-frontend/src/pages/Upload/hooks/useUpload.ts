@@ -1,7 +1,8 @@
 // src/pages/Upload/hooks/useUpload.ts
 import { useCallback, useState } from "react";
+import { toast } from "sonner";
 import { VideoService } from "src/pages/Upload/services/videoService";
-import { getApiErrorMessage } from "src/pages/Upload/utils/helpers";
+import { getApiErrorMessage, sleep } from "src/pages/Upload/utils/helpers";
 import { useUploadStore } from "src/core/stores/useUploadStore";
 import { useVideoListStore } from "src/pages/Upload/stores/useVideoListStore";
 
@@ -14,18 +15,17 @@ export function useUpload() {
   const [uploadClipEnd, setUploadClipEnd] = useState("");
 
   const setUploading = useUploadStore((state) => state.setUploading);
-  const setMessage = useUploadStore((state) => state.setMessage);
-  const setHint = useUploadStore((state) => state.setHint);
 
   const handleUpload = useCallback(async (uploadTask: string, uploadModelPath: string) => {
     if (!file) {
-      setMessage("Selecione um arquivo antes de enviar.");
-      setHint("");
+      toast("Selecione um arquivo antes de enviar.");
       return;
     }
 
     setUploading(true);
     try {
+        toast("Upload iniciado")
+        sleep(2000)
       const response = await VideoService.uploadVideo(
         file,
         uploadTask,
@@ -36,10 +36,6 @@ export function useUpload() {
         parseInt(uploadClipStart) || 0,
         uploadClipEnd.trim() ? parseInt(uploadClipEnd) : null
       );
-      setMessage(response.message);
-      setHint(
-        `Video salvo em ${response.next_steps.video_saved_in}. Análise em ${response.next_steps.analysis_will_be_saved_in}, video anotado em ${response.next_steps.annotated_will_be_saved_in} e transcrição em ${response.next_steps.transcription_will_be_saved_in}.`
-      );
 
       setFile(null);
       setUploadFrameStride("8");
@@ -49,14 +45,16 @@ export function useUpload() {
       setUploadClipEnd("");
 
       await useVideoListStore.getState().fetchVideos();
+      
+      toast.success(response.message);
+
     } catch (error) {
       console.error(error);
-      setMessage(getApiErrorMessage(error, "Erro ao enviar o video."));
-      setHint("Confira a combinação entre tarefa e modelo e tente novamente.");
+      toast.error(getApiErrorMessage(error, "Erro no upload do video."));
     } finally {
       setUploading(false);
     }
-  }, [file, uploadFrameStride, uploadConfidenceThreshold, uploadMaxFrames, uploadClipStart, uploadClipEnd, setUploading, setMessage, setHint]);
+  }, [file, uploadFrameStride, uploadConfidenceThreshold, uploadMaxFrames, uploadClipStart, uploadClipEnd, setUploading]);
 
   return {
     file, setFile, uploadFrameStride, setUploadFrameStride,

@@ -6,11 +6,7 @@ import { useCatalogStore } from "src/core/stores/useAICatalogStore";
 
 import "/src/pages/Upload/styles/NewVideoPanel.css";
 
-interface NewVideoPanelProps {
-  onRefresh: () => void;
-}
-
-export function NewVideoPanel({onRefresh }: NewVideoPanelProps) {
+export function NewVideoPanel() {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,8 +39,6 @@ export function NewVideoPanel({onRefresh }: NewVideoPanelProps) {
 
   // Estados globais da UI
   const uploading = useUploadStore((state) => state.uploading);
-  const message = useUploadStore((state) => state.message);
-  const hint = useUploadStore((state) => state.hint);
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
@@ -71,14 +65,6 @@ export function NewVideoPanel({onRefresh }: NewVideoPanelProps) {
       {/* Header */}
       <div className="panel-header">
         <h3>+ Novo Vídeo</h3>
-        <button
-          onClick={onRefresh}
-          className="ghost-button"
-          title="Atualizar lista"
-          aria-label="Atualizar lista de vídeos"
-        >
-          ↻
-        </button>
       </div>
 
       {/* Dropzone */}
@@ -127,17 +113,6 @@ export function NewVideoPanel({onRefresh }: NewVideoPanelProps) {
           </div>
         )}
       </div>
-
-      {/* Status Message */}
-      {message && (
-        <div
-          className={`status-message ${
-            message.includes("Erro") ? "error" : "success"
-          }`}
-        >
-          {message}
-        </div>
-      )}
 
       {/* Configuration Section */}
       {file && (
@@ -259,7 +234,6 @@ export function NewVideoPanel({onRefresh }: NewVideoPanelProps) {
             {uploading ? "Enviando..." : "Enviar Vídeo"}
           </button>
 
-          {hint && <div className="hint-text">{hint}</div>}
         </div>
       )}
     </div>

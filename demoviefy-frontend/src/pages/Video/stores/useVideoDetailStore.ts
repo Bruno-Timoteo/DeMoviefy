@@ -34,7 +34,7 @@ export const useVideoDetailStore = create<VideoDetailState>((set, get) => ({
     try {
       const data = await VideoService.getVideoById(id);
       set({ video: normalizeVideoRecord(data), loading: false });
-
+        
         // aqui — decide se o polling deve continuar ou parar, a cada fetch
         if (data.status.startsWith("PROCESSANDO")) {
             poller.start(() => void get().fetchVideoById(id, { force: true }));

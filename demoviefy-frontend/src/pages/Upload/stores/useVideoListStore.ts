@@ -1,9 +1,11 @@
 // src/pages/Upload/stores/useVideoListStore.ts
 
 import { create } from "zustand";
+import { toast } from "sonner";
 import { createPoller } from "src/core/utils/createPoller";
 import { VideoService } from "src/pages/Upload/services/videoService";
 import type { VideoRecord } from "src/pages/Upload/types";
+import { getApiErrorMessage } from "src/pages/Upload/utils/helpers";
 
 interface VideoStats {
   total: number;
@@ -16,10 +18,7 @@ interface VideoState {
   videos: VideoRecord[];
   loadingVideos: boolean;
   stats: VideoStats;
-  hint: string;
-
-  setHint: (hint: string) => void;
-  fetchVideos: (options?: { preserveHint?: boolean; silent?: boolean }) => Promise<void>;
+  fetchVideos: () => Promise<void>;
 }
 
 function deriveFromVideos(videos: VideoRecord[]) {
@@ -38,39 +37,48 @@ export const useVideoListStore = create<VideoState>((set, get) => ({
   videos: [],
   loadingVideos: false,
   stats: { total: 0, processing: 0, processed: 0, errors: 0 },
-  hint: "",
 
-  setHint: (hint) => set({ hint }),
 
-  fetchVideos: async (options) => {
-    const preserveHint = options?.preserveHint ?? true;
-    const silent = options?.silent ?? false;
-
-    if (!silent) set({ loadingVideos: true });
+  fetchVideos: async () => {
+    set({ loadingVideos: true });
 
     try {
       const normalizedVideos = await VideoService.listVideosNormalized();
 
+      const oldStats = get().stats;
 
       const { stats } = deriveFromVideos(normalizedVideos);
 
+      const isFirstLoad = oldStats.total === 0;
+
       set({
         videos: normalizedVideos,
-        stats,
-        ...(!preserveHint && { hint: `Biblioteca atualizada com ${normalizedVideos.length} video(s).` }),
+        stats
       });
 
-      const hasRunningAnalysis = normalizedVideos.some((v) => v.status.startsWith("PROCESSANDO"));
-        if (hasRunningAnalysis) {
-            poller.start(() => void get().fetchVideos({ silent: true }));
-        } else {
-            poller.stop();
+      if (!isFirstLoad) {
+        if (stats.processed > oldStats.processed) {
+          toast.success("Processamento concluído");
         }
+
+        if (stats.errors > oldStats.errors) {
+          toast.error("Erro no processamento")
+        }
+      }
+
+      const hasRunningAnalysis = normalizedVideos.some((v) => v.status.startsWith("PROCESSANDO"));
+
+      if (hasRunningAnalysis) {
+        poller.start(() => void get().fetchVideos());
+
+      } else {
+        poller.stop();
+      }
     } catch (error) {
       console.error(error);
-      set({ hint: "Não foi possível atualizar a biblioteca." });
+      toast.error(getApiErrorMessage(error, "Erro ao buscar vídeos."))
     } finally {
-      if (!silent) set({ loadingVideos: false });
+      set({ loadingVideos: false });
     }
   },
 }));
