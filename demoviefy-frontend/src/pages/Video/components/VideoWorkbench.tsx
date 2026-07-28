@@ -37,19 +37,15 @@ export const VideoWorkbench = memo(function VideoWorkbench({
 
   const {
     analysis, analysisState, analysisMessage, selectedAnalysisVariantId, analysisDraft,
-    setSelectedAnalysisVariantId, setAnalysisDraft,
-    onSaveAnalysis, onDeleteAnalysis,
+    setSelectedAnalysisVariantId,
   } = useAnalysisStore();
 
   const {
     transcription, transcriptionDraft, transcriptionMessage,
-    setTranscriptionDraft,
-    onSaveTranscription, onDeleteTranscription, onGenerateTranscription,
   } = useTranscriptionStore();
 
   const summary = analysis?.analysis ?? null;
   const analysisVariants = analysis?.available_variants ?? [];
-  const hasMultipleAnalysisVariants = analysisVariants.length > 1;
   const transcriptionSegments = transcription?.transcription.segments ?? [];
   const hasSelectedAnalysis = analysis !== null;
 
@@ -102,22 +98,12 @@ export const VideoWorkbench = memo(function VideoWorkbench({
 
             <AnalysisEditor
               analysisDraft={analysisDraft}
-              hasMultipleVariants={hasMultipleAnalysisVariants}
-              isBusy={isBusy}
-              onDraftChange={setAnalysisDraft}
-              onSave={() => onSaveAnalysis()}
-              onDelete={() => onDeleteAnalysis()}
             />
 
             <TranscriptionEditor
               transcriptionDraft={transcriptionDraft}
               transcriptionMessage={transcriptionMessage}
               segments={transcriptionSegments}
-              isBusy={isBusy}
-              onDraftChange={setTranscriptionDraft}
-              onSave={() => onSaveTranscription()}
-              onDelete={() => onDeleteTranscription()}
-              onGenerate={() => onGenerateTranscription()}
               onSeek={seekTo}
             />
           </div>

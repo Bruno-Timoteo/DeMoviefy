@@ -1,44 +1,24 @@
-// src/pages/Upload/components/AnalysisEditor.tsx
-
 interface AnalysisEditorProps {
   analysisDraft: string
-  hasMultipleVariants: boolean
-  isBusy: boolean
-  onDraftChange: (value: string) => void
-  onSave: () => void
-  onDelete: () => void
 }
 
-export function AnalysisEditor({
-  analysisDraft,
-  hasMultipleVariants,
-  isBusy,
-  onDraftChange,
-  onSave,
-  onDelete,
-}: AnalysisEditorProps) {
+/** Displays the raw AI payload without exposing a manual editing path. */
+export function AnalysisEditor({ analysisDraft }: AnalysisEditorProps) {
   return (
     <section className="editor-card">
       <div className="section-heading">
         <div>
-          <span className="eyebrow">Análise</span>
-          <h3>JSON da análise</h3>
+          <span className="eyebrow">Analise</span>
+          <h3>JSON gerado pela IA</h3>
         </div>
       </div>
       <textarea
         className="editor-area"
         value={analysisDraft}
-        onChange={(e) => onDraftChange(e.target.value)}
+        readOnly
         spellCheck={false}
+        aria-label="Resultado da analise gerada pela IA (somente leitura)"
       />
-      <div className="action-row">
-        <button type="button" className="ghost-button danger-button" onClick={onDelete}>
-          {hasMultipleVariants ? "Excluir versão selecionada" : "Excluir análise"}
-        </button>
-        <button type="button" className="primary-button" onClick={onSave} disabled={isBusy}>
-          Salvar análise
-        </button>
-      </div>
     </section>
   )
 }

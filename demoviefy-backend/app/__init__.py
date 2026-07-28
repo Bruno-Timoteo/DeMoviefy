@@ -19,7 +19,8 @@ from app.services.metadata_migration_service import migrate_metadata_files
 db = SQLAlchemy()
 
 
-def create_app():
+def create_app(test_config: dict | None = None):
+    """Create the Flask application, optionally with isolated test settings."""
     app = Flask(__name__)
     ai_settings = load_frame_ai_settings()
 
@@ -39,6 +40,9 @@ def create_app():
     app.config["TRANSCRIPTION_PYTHON"] = os.environ.get("DEMOVIEFY_TRANSCRIPTION_PYTHON")
     app.config["BACKEND_APP_VERSION"] = BACKEND_APP_VERSION
     app.config["API_CONTRACT_VERSION"] = API_CONTRACT_VERSION
+
+    if test_config:
+        app.config.update(test_config)
 
     CORS(app)
     db.init_app(app)
