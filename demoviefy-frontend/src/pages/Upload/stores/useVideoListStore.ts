@@ -45,22 +45,35 @@ export const useVideoListStore = create<VideoState>((set, get) => ({
     try {
       const normalizedVideos = await VideoService.listVideosNormalized();
 
+      const oldStats = get().stats;
 
       const { stats } = deriveFromVideos(normalizedVideos);
 
+      const isFirstLoad = oldStats.total === 0;
+
       set({
         videos: normalizedVideos,
-        stats      
-    });
+        stats
+      });
+
+      if (!isFirstLoad) {
+        if (stats.processed > oldStats.processed) {
+          toast.success("Processamento concluído");
+        }
+
+        if (stats.errors > oldStats.errors) {
+          toast.error("Erro no processamento")
+        }
+      }
 
       const hasRunningAnalysis = normalizedVideos.some((v) => v.status.startsWith("PROCESSANDO"));
 
-        if (hasRunningAnalysis) {
-            poller.start(() => void get().fetchVideos());
+      if (hasRunningAnalysis) {
+        poller.start(() => void get().fetchVideos());
 
-        } else {
-            poller.stop();
-        }
+      } else {
+        poller.stop();
+      }
     } catch (error) {
       console.error(error);
       toast.error(getApiErrorMessage(error, "Erro ao buscar vídeos."))

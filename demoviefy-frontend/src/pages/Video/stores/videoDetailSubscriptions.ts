@@ -5,6 +5,10 @@ import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore"
 import { toast } from "sonner";
 
 export function registerVideoDetailSubscriptions() {
+
+    let hasProcessedInThisSession = false;
+
+
     useVideoDetailStore.subscribe((state, prevState) => {
 
         const previousStatus = prevState.video?.status;
@@ -18,7 +22,11 @@ export function registerVideoDetailSubscriptions() {
 
         const startedProcessing = !wasProcessing && isProcessing;
 
-        const finishedProcessing = wasProcessing && currentStatus === "PROCESSADO";
+        if (startedProcessing) {
+            hasProcessedInThisSession = true;
+        }
+
+        const finishedProcessing = hasProcessedInThisSession && wasProcessing && currentStatus === "PROCESSADO";
 
         // Resetar dados do vídeo.
         // 
@@ -38,7 +46,8 @@ export function registerVideoDetailSubscriptions() {
         }
 
         if (finishedProcessing) {
-            toast.success("Reprocessamento concluído.")
+            hasProcessedInThisSession = false;
+            toast.success("Reprocessamento concluído")
         }
 
     });
