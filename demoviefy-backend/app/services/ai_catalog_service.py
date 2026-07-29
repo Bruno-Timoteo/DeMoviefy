@@ -12,9 +12,27 @@ TASK_DIRECTORY_MAP = {
 }
 
 
+def _task_metadata(task_dir: str) -> tuple[str, str]:
+    """Return a stable API key and a readable label for a model directory.
+
+    Known folders keep their existing API keys. Any new folder placed in
+    ``ai_model/model`` becomes its own selectable task automatically, instead
+    of being merged into a generic ``custom`` option.
+    """
+    known_task = TASK_DIRECTORY_MAP.get(task_dir)
+    if known_task:
+        return known_task
+
+    task_type = "_".join(
+        part.lower() for part in task_dir.replace("-", "_").replace(" ", "_").split("_") if part
+    )
+    task_label = task_dir.replace("_", " ").replace("-", " ").title()
+    return task_type or "custom", task_label or "Custom"
+
+
 def _build_model_entry(path: Path) -> dict:
     task_dir = path.parent.name
-    task_type, task_label = TASK_DIRECTORY_MAP.get(task_dir, ("custom", task_dir))
+    task_type, task_label = _task_metadata(task_dir)
     return {
         "id": to_repo_relative(path),
         "name": path.name,

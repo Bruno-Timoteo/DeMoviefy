@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom"
 import { useCatalogStore } from "src/core/stores/useAICatalogStore"
 import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore"
 import type { AiConfigPayload, VideoRecord } from "src/pages/Upload/types"
+import { chooseFirstModel } from "src/pages/Upload/utils/helpers"
 
 interface VideoConfigPanelProps {
   video: VideoRecord
@@ -45,7 +46,7 @@ export function VideoConfigPanel({
             <div className="config-grid">
                 <label className="field-block">
                     <span>Tarefa</span>
-                    <select value={config.task_type} onChange={(e) => update("task_type", e.target.value)}>
+                    <select value={config.task_type} onChange={(e) => changeTask(e.target.value)}>
                         {tasks.map((task) => (
                             <option key={task.task_type} value={task.task_type}>
                                 {task.task_label}

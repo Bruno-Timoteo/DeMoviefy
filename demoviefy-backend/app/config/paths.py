@@ -1,3 +1,4 @@
+import os
 import shutil
 from pathlib import Path
 
@@ -9,7 +10,17 @@ ANALYSIS_DIR = UPLOADS_DIR / "analysis"
 ANNOTATED_DIR = UPLOADS_DIR / "annotated"
 TRANSCRIPTIONS_DIR = UPLOADS_DIR / "transcriptions"
 METADATA_DIR = UPLOADS_DIR / "metadata"
-MODEL_DIR = REPO_ROOT / "ai_model" / "model"
+# Some model packages are extracted as ``ai_model/model`` while others keep
+# their archive root and become ``ai_model/ai_model/model``. Accept both so the
+# catalog can expose every installed mode and model size (including *x.pt).
+# Set DEMOVIEFY_MODEL_DIR when models live in a custom external location.
+_configured_model_dir = os.getenv("DEMOVIEFY_MODEL_DIR")
+_model_dir_candidates = [
+    Path(_configured_model_dir) if _configured_model_dir else None,
+    REPO_ROOT / "ai_model" / "model",
+    REPO_ROOT / "ai_model" / "ai_model" / "model",
+]
+MODEL_DIR = next((path for path in _model_dir_candidates if path is not None and path.exists()), _model_dir_candidates[1])
 TRANSCRIPTION_ENV_DIR = REPO_ROOT / ".venv-transcription"
 SCRIPTS_DIR = BACKEND_ROOT / "scripts"
 TRANSCRIPTION_SCRIPT_PATH = SCRIPTS_DIR / "transcribe_with_whisper.py"
