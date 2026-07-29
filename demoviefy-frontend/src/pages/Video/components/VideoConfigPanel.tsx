@@ -33,6 +33,15 @@ export function VideoConfigPanel({
   const update = (field: keyof AiConfigPayload, value: string | null) =>
     onConfigChange({ ...config, [field]: value })
 
+  // A model belongs to one AI mode. Reset it when the mode changes so a
+  // detection model is never submitted together with, for example, pose mode.
+  const changeTask = (taskType: string) =>
+    onConfigChange({
+      ...config,
+      task_type: taskType,
+      model_path: chooseFirstModel(models, taskType),
+    })
+
 
     return (
         <section className="editor-card">
