@@ -2,6 +2,8 @@
 
 import { useNavigate } from "react-router-dom"
 import { useCatalogStore } from "src/core/stores/useAICatalogStore"
+import { ConfirmAction } from "src/core/components/ConfirmAction"
+
 import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore"
 import type { AiConfigPayload, VideoRecord } from "src/pages/Upload/types"
 
@@ -102,15 +104,27 @@ export function VideoConfigPanel({
             </p>
 
             <div className="action-row">
-                <button type="button" className="ghost-button danger-button" onClick={async () => 
-                    {const deleted = await onDeleteVideo();
-                        if (deleted){
+                <ConfirmAction
+                    title="Excluir vídeo"
+                    message="Tem certeza que deseja excluir este vídeo? Esta ação não poderá ser desfeita."
+                    confirmText="Excluir"
+                    cancelText="Cancelar"
+                    onConfirm={async () => {
+                        const deleted = await onDeleteVideo();
+
+                        if (deleted) {
                             navigate("/upload");
                         }
-                    }
-                    }>
-                    Excluir vídeo
-                </button>
+                    }}
+                >
+                    <button
+                        type="button"
+                        className="ghost-button danger-button"
+                    >
+                        Excluir vídeo
+                    </button>
+                </ConfirmAction>
+
                 <button type="button" className="ghost-button" onClick={onSaveConfig} disabled={isBusy}>
                     Salvar configuração
                 </button>
