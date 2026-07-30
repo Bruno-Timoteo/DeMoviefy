@@ -29,6 +29,14 @@ export function VideoConfigPanel({
   const { tasks, models } = useCatalogStore()
   const onDeleteVideo = useAnalysisStore((state) => state.onDeleteVideo)
 
+  const handleDeleteVideo = async () => {
+    const deleted = await onDeleteVideo();
+
+    if (deleted) {
+        navigate("/upload");
+    }
+  }
+
   const filteredModels = models.filter((m) => m.task_type === config.task_type)
 
   const update = (field: keyof AiConfigPayload, value: string | null) =>
@@ -107,22 +115,12 @@ export function VideoConfigPanel({
                 <ConfirmAction
                     title="Excluir vídeo"
                     message="Tem certeza que deseja excluir este vídeo? Esta ação não poderá ser desfeita."
-                    confirmText="Excluir"
-                    cancelText="Cancelar"
-                    onConfirm={async () => {
-                        const deleted = await onDeleteVideo();
+                    onConfirm={handleDeleteVideo}>
 
-                        if (deleted) {
-                            navigate("/upload");
-                        }
-                    }}
-                >
-                    <button
-                        type="button"
-                        className="ghost-button danger-button"
-                    >
-                        Excluir vídeo
-                    </button>
+                        <button type="button" className="ghost-button danger-button">
+                            Excluir vídeo
+                        </button>
+
                 </ConfirmAction>
 
                 <button type="button" className="ghost-button" onClick={onSaveConfig} disabled={isBusy}>
