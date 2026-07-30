@@ -59,7 +59,6 @@ export function NewVideoPanel() {
   const filteredModels = uploadTask
     ? models.filter((m) => m.task_type === uploadTask)
     : [];
-  const selectedTask = tasks.find((task) => task.task_type === uploadTask);
 
   return (
     <div className="new-video-panel">
@@ -133,11 +132,6 @@ export function NewVideoPanel() {
                 </option>
               ))}
             </select>
-            {selectedTask && (
-              <small className="field-help">
-                Escolha o modelo desta modalidade de IA abaixo. Novos modelos adicionados ao catÃ¡logo aparecem aqui automaticamente.
-              </small>
-            )}
           </div>
 
           {uploadTask && (
