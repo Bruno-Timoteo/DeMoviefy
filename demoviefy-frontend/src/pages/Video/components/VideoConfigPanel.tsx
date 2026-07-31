@@ -2,9 +2,14 @@
 
 import { useNavigate } from "react-router-dom"
 import { useCatalogStore } from "src/core/stores/useAICatalogStore"
+
+import { ConfirmationDialog } from "src/core/components/ConfirmationDialog"
+
 import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore"
 import type { AiConfigPayload, VideoRecord } from "src/pages/Upload/types"
 import { chooseFirstModel } from "src/pages/Upload/utils/helpers"
+
+
 
 interface VideoConfigPanelProps {
   video: VideoRecord
@@ -27,6 +32,14 @@ export function VideoConfigPanel({
     const navigate = useNavigate();
   const { tasks, models } = useCatalogStore()
   const onDeleteVideo = useAnalysisStore((state) => state.onDeleteVideo)
+
+  const handleDeleteVideo = async () => {
+    const deleted = await onDeleteVideo();
+
+    if (deleted) {
+        navigate("/upload");
+    }
+  }
 
   const filteredModels = models.filter((m) => m.task_type === config.task_type)
 
@@ -112,15 +125,23 @@ export function VideoConfigPanel({
             </p>
 
             <div className="action-row">
-                <button type="button" className="ghost-button danger-button" onClick={async () => 
-                    {const deleted = await onDeleteVideo();
-                        if (deleted){
-                            navigate("/upload");
-                        }
-                    }
-                    }>
+
+            <ConfirmationDialog
+                title="Excluir vídeo"
+                message="Tem certeza de que deseja excluir o vídeo? Esta ação é irreversível."
+                onConfirm={handleDeleteVideo}
+                >
+                {(open) => (
+                    <button
+                    type="button"
+                    className="ghost-button danger-button"
+                    onClick={open}
+                    >
                     Excluir vídeo
-                </button>
+                    </button>
+                )}
+                </ConfirmationDialog>
+                        
                 <button type="button" className="ghost-button" onClick={onSaveConfig} disabled={isBusy}>
                     Salvar configuração
                 </button>
