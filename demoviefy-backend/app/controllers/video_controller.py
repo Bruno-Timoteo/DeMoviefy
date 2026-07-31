@@ -369,6 +369,8 @@ def get_video_analysis(video_id: int):
 
 
 def update_video_analysis_by_id(video_id: int):
+    return jsonify({"error": "Resultados gerados pela IA sao somente leitura."}), 403
+
     video = get_video(video_id)
     if not video:
         return jsonify({"error": "Vídeo não encontrado"}), 404
@@ -497,6 +499,8 @@ def generate_video_transcription_by_id(video_id: int):
 
 
 def update_video_transcription_by_id(video_id: int):
+    return jsonify({"error": "Resultados gerados pela IA sao somente leitura."}), 403
+
     video = get_video(video_id)
     if not video:
         return jsonify({"error": "Vídeo não encontrado"}), 404
