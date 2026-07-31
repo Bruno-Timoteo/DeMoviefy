@@ -7,8 +7,6 @@ import { ConfirmationDialog } from "src/core/components/ConfirmationDialog"
 
 import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore"
 import type { AiConfigPayload, VideoRecord } from "src/pages/Upload/types"
-import { chooseFirstModel } from "src/pages/Upload/utils/helpers"
-
 
 
 interface VideoConfigPanelProps {
@@ -46,15 +44,6 @@ export function VideoConfigPanel({
   const update = (field: keyof AiConfigPayload, value: string | null) =>
     onConfigChange({ ...config, [field]: value })
 
-  // A model belongs to one AI mode. Reset it when the mode changes so a
-  // detection model is never submitted together with, for example, pose mode.
-  const changeTask = (taskType: string) =>
-    onConfigChange({
-      ...config,
-      task_type: taskType,
-      model_path: chooseFirstModel(models, taskType),
-    })
-
 
     return (
         <section className="editor-card">
@@ -68,7 +57,7 @@ export function VideoConfigPanel({
             <div className="config-grid">
                 <label className="field-block">
                     <span>Tarefa</span>
-                    <select value={config.task_type} onChange={(e) => changeTask(e.target.value)}>
+                    <select value={config.task_type} onChange={(e) => update("task_type", e.target.value)}>
                         {tasks.map((task) => (
                             <option key={task.task_type} value={task.task_type}>
                                 {task.task_label}
