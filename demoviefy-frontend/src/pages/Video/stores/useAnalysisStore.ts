@@ -146,7 +146,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         analysisDraft: "{}",
         analysisState: "error",
       });
-      toast.success("Versão da análise excluída.");
+      toast.success("Análise excluída.");
       await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true });
 
         const sync = get().syncAnalysisWithSelectedVideo;
