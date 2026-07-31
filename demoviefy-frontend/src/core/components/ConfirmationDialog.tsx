@@ -1,3 +1,5 @@
+// src/core/components/ConfirmationDialog.tsx
+
 import { useState } from "react"
 import 'src/core/styles/ConfirmationDialog.css'
 import { Warning } from 'src/assets/Warning'
