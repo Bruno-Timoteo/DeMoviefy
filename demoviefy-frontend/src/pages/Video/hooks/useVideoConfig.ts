@@ -53,7 +53,7 @@ export function useVideoConfig() {
         try {
             await VideoService.saveAiConfig(selectedVideo.id, videoConfig);
             toast.success("Configuração de IA salva para o vídeo selecionado.");
-            await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true });
+            await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id);
         } catch (error) {
             console.error(error);
             toast.error(getApiErrorMessage(error, "Não foi possível salvar a configuração de IA."));
@@ -67,7 +67,7 @@ export function useVideoConfig() {
         try {
             await VideoService.reprocessVideo(selectedVideo.id, videoConfig);
             toast("Reprocessamento iniciado.");
-            await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true });
+            await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id);
         } catch (error) {
             console.error(error);
             toast.error(getApiErrorMessage(error, "Não foi possível iniciar o reprocessamento."));

@@ -125,7 +125,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         analysisState: "ready",
       });
       toast.success("Análise salva com sucesso.");
-      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, {force: true});
+      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id);
     } catch (error) {
       console.error(error);
       toast.error(getApiErrorMessage(error, "JSON inválido ou erro ao salvar a análise."));
@@ -147,7 +147,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         analysisState: "error",
       });
       toast.success("Análise excluída.");
-      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true });
+      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id);
 
         const sync = get().syncAnalysisWithSelectedVideo;
         void sync();

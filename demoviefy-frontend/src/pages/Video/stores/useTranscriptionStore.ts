@@ -72,7 +72,7 @@ export const useTranscriptionStore = create<TranscriptionState>((set, get) => ({
     try {
       await VideoService.saveTranscription(selectedVideo.id, transcriptionDraft);
       toast.success("Transcrição salva com sucesso.");
-      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true});
+      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id);
       await fetchTranscription(selectedVideo);
     } catch (error) {
       console.error(error);
@@ -93,7 +93,7 @@ export const useTranscriptionStore = create<TranscriptionState>((set, get) => ({
         transcriptionMessage: "Transcrição removida. Você pode criar uma nova quando quiser.",
       });
       toast.success("Transcrição excluída.");
-      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true});
+      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id);
     } catch (error) {
       console.error(error);
       toast.error(getApiErrorMessage(error, "Não foi possível excluir a transcrição."));
@@ -110,7 +110,7 @@ export const useTranscriptionStore = create<TranscriptionState>((set, get) => ({
       set({ transcriptionMessage: "Gerando transcrição automática. Isso pode levar alguns instantes." });
       const { message: apiMessage } = await VideoService.generateTranscription(selectedVideo.id);
       toast(apiMessage);
-      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id, { force: true});
+      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id);
       await fetchTranscription(selectedVideo);
     } catch (error) {
       console.error(error);

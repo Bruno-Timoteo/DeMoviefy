@@ -10,7 +10,7 @@ interface VideoDetailState {
   video: VideoRecord | null;
   loading: boolean;
   error: string | null;
-  fetchVideoById: (id: number, options?: { force?: boolean}) => Promise<void>;
+  fetchVideoById: (id: number) => Promise<void>;
   reset: () => void;
   stopPolling: () => void;
 }
@@ -23,12 +23,7 @@ export const useVideoDetailStore = create<VideoDetailState>((set, get) => ({
   loading: false,
   error: null,
 
-  fetchVideoById: async (id, options) => {
-    const force = options?.force ?? false;
-    const current = get().video;
-    if (!force && current?.id === id && !get().loading) {
-      return;
-    }
+  fetchVideoById: async (id) => {
 
     set({ loading: true, error: null });
     try {
@@ -37,7 +32,7 @@ export const useVideoDetailStore = create<VideoDetailState>((set, get) => ({
         
         // aqui — decide se o polling deve continuar ou parar, a cada fetch
         if (data.status.startsWith("PROCESSANDO")) {
-            poller.start(() => void get().fetchVideoById(id, { force: true }));
+            poller.start(() => void get().fetchVideoById(id));
         } else {
             poller.stop();
         }
