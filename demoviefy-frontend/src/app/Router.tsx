@@ -7,7 +7,7 @@ import Video from "src/pages/Video";
 // Define os títulos das páginas com base nas rotas
 const titlesMap: Record<string, string> = {
     "/": "DeMoviefy",
-    "/upload": "DeMoviefy - Painel de Envio",
+    "/upload": "DeMoviefy - Painel",
 };
 
 // Aplica o título na página caso ela esteja declarada acima. Caso não, o valor padrão ("DeMoviefy") será vinculado.
@@ -18,7 +18,7 @@ function TitleManager() {
 
         // Workaround para o map acima, pois video/{id} nunca é uma rota fixa.
         if (pathname.startsWith("/video/")) {
-            document.title = "DeMoviefy - Painel de Análise";
+            document.title = "DeMoviefy - Análise";
             return;
         }
         document.title =  titlesMap[pathname] ?? "DeMoviefy";
