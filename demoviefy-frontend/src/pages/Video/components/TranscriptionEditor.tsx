@@ -1,5 +1,6 @@
 // src/pages/Upload/components/TranscriptionEditor.tsx
 
+import { ConfirmationDialog } from "src/core/components/ConfirmationDialog"
 import { formatTimecode } from "src/pages/Upload/utils/helpers"
 
 interface TranscriptionSegment {
@@ -76,9 +77,18 @@ export function TranscriptionEditor({
         </div>
       )}
       <div className="action-row">
-        <button type="button" className="ghost-button danger-button" onClick={onDelete} disabled={isBusy}>
-          Excluir transcrição
-        </button>
+        <ConfirmationDialog
+          title="Excluir transcrição"
+          message="Tem certeza que deseja excluir esta transcrição? Essa ação não pode ser desfeita."
+          onConfirm={onDelete}
+        >
+          {(open) => (
+            <button type="button" className="ghost-button danger-button" onClick={open} disabled={isBusy}>
+              Excluir transcrição
+            </button>
+          )}
+        </ConfirmationDialog>
+
         <button type="button" className="primary-button" onClick={onSave} disabled={isBusy}>
           Salvar transcrição
         </button>
