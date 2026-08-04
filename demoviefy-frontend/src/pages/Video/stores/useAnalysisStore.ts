@@ -24,7 +24,6 @@ interface AnalysisState {
   // selectedVideo ou selectedAnalysisVariantId mudam.
   syncAnalysisWithSelectedVideo: () => Promise<void>;
 
-  onSaveAnalysis: () => Promise<void>;
   onDeleteAnalysis: () => Promise<void>;
   onDeleteVideo: () => Promise<boolean>;
 
@@ -98,38 +97,6 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     }
 
     await useTranscriptionStore.getState().fetchTranscription(selectedVideo);
-  },
-
-  onSaveAnalysis: async () => {
-    const selectedVideo = useVideoDetailStore.getState().video;
-    if (!selectedVideo) return;
-
-    const { analysisDraft, selectedAnalysisVariantId, analysis } = get();
-
-    try {
-      const parsed = JSON.parse(analysisDraft);
-      await VideoService.saveAnalysis(selectedVideo.id, parsed, selectedAnalysisVariantId);
-
-      set({
-        analysis: {
-          video_id: selectedVideo.id,
-          filename: selectedVideo.filename,
-          status: selectedVideo.status,
-          selected_variant_id: selectedAnalysisVariantId,
-          available_variants: analysis?.available_variants ?? [],
-          ai_config: selectedVideo.ai_config,
-          storage: selectedVideo.storage,
-          analysis: parsed,
-        },
-        analysisDraft: prettifyJson(parsed),
-        analysisState: "ready",
-      });
-      toast.success("Análise salva com sucesso.");
-      await useVideoDetailStore.getState().fetchVideoById(selectedVideo.id);
-    } catch (error) {
-      console.error(error);
-      toast.error(getApiErrorMessage(error, "JSON inválido ou erro ao salvar a análise."));
-    }
   },
 
   onDeleteAnalysis: async () => {
