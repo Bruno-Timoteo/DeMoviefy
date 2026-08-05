@@ -13,6 +13,8 @@ from app.config.paths import (
 )
 from app.services.ai_catalog_service import get_model_by_relative_path
 
+__all__ = ['']
+
 
 """
 File-based storage for per-video artifacts.
@@ -227,7 +229,11 @@ def save_ai_config(
     })
     normalized = normalize_metadata_payload(payload)
     _write_json(metadata_file_path(video_id), normalized)
-    return {key: normalized[key] for key in AI_CONFIG_KEYS}
+    return {key: normalized[key] for key in AI_CONFIG_KEYS}, # analisar esta função [clip_start_sec, clip_end_sec]
+
+def clip_beginning_and_end(beginning_timestamp, end_timestamp):
+    beginning_timestamp = AI_CONFIG_KEYS
+    return beginning_timestamp, end_timestamp
 
 
 def load_processing_state(video_id: int) -> dict[str, Any]:
