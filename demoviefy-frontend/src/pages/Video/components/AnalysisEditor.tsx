@@ -5,18 +5,14 @@ import { ConfirmationDialog } from "src/core/components/ConfirmationDialog"
 interface AnalysisEditorProps {
   analysisDraft: string
   hasMultipleVariants: boolean
-  isBusy: boolean
   onDraftChange: (value: string) => void
-  onSave: () => void
   onDelete: () => void
 }
 
 export function AnalysisEditor({
   analysisDraft,
   hasMultipleVariants,
-  isBusy,
   onDraftChange,
-  onSave,
   onDelete,
 }: AnalysisEditorProps) {
   return (
@@ -47,9 +43,6 @@ export function AnalysisEditor({
           )}
           </ConfirmationDialog>
 
-        <button type="button" className="primary-button" onClick={onSave} disabled={isBusy}>
-          Salvar análise
-        </button>
       </div>
     </section>
   )

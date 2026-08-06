@@ -38,7 +38,7 @@ export const VideoWorkbench = memo(function VideoWorkbench({
   const {
     analysis, analysisState, analysisMessage, selectedAnalysisVariantId, analysisDraft,
     setSelectedAnalysisVariantId, setAnalysisDraft,
-    onSaveAnalysis, onDeleteAnalysis,
+    onDeleteAnalysis,
   } = useAnalysisStore();
 
   const {
@@ -103,9 +103,7 @@ export const VideoWorkbench = memo(function VideoWorkbench({
             <AnalysisEditor
               analysisDraft={analysisDraft}
               hasMultipleVariants={hasMultipleAnalysisVariants}
-              isBusy={isBusy}
               onDraftChange={setAnalysisDraft}
-              onSave={() => onSaveAnalysis()}
               onDelete={() => onDeleteAnalysis()}
             />
 
