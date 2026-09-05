@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useProcessingStore } from "src/core/stores/useProcessingStore";
-import { VideoService } from "src/core/services/videoService";
+import { VideoUploadService } from "src/pages/Dashboard/services/videoUploadService";
 import { getApiErrorMessage } from "src/core/utils/videoHelpers";
 
 export function ProcessingQueuePanel() {
@@ -36,7 +36,7 @@ export function ProcessingQueuePanel() {
   async function cancelProcessing(videoId: number) {
     setCancellingVideoId(videoId);
     try {
-      await VideoService.cancelProcessing(videoId);
+      await VideoUploadService.cancelProcessing(videoId);
       toast.success("Processamento cancelado. O vídeo foi mantido.");
       await useProcessingStore.getState().refresh();
     } catch (error) {
