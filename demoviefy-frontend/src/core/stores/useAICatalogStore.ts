@@ -1,8 +1,8 @@
 // src/core/stores/useCatalogStore.ts
 import { create } from "zustand";
-import { VideoService } from "src/pages/Dashboard/services/videoService";
-import type { AITaskOption, AIModelOption } from "src/pages/Dashboard/types";
-import { chooseFirstModel, choosePreferredTask } from "src/pages/Dashboard/utils/helpers";
+import { VideoService } from "src/core/services/videoService";
+import type { AITaskOption, AIModelOption } from "src/core/types/videoTypes";
+import { chooseFirstModel, choosePreferredTask } from "src/core/utils/videoHelpers";
 
 interface CatalogState {
   tasks: AITaskOption[];

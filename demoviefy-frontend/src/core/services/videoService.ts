@@ -4,15 +4,16 @@ import { api, toApiUrlWithQuery } from "src/core/services/api";
 import type {
     VideoRecord,
     ModelCatalogResponse,
-    UploadResponse,
     VideoTranscriptionResponse,
     VideoAnalysisResponse,
     
-} from "src/pages/Dashboard/types";
+} from "src/core/types/videoTypes";
 
-import { normalizeVideoRecord, normalizeVideoAnalysisResponse } from "src/pages/Dashboard/utils/normalizers";
+import type { UploadResponse } from "src/core/types/uploadTypes";
 
-import type { AiConfigPayload } from "src/pages/Dashboard/types";
+import { normalizeVideoRecord, normalizeVideoAnalysisResponse } from "src/core/utils/videoNormalizers";
+
+import type { AiConfigPayload } from "src/core/types/videoTypes";
 
 // Faz as chamadas de vídeo para a API, mantendo os .tsx livres de importar a API diretamente.
 

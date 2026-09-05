@@ -1,10 +1,10 @@
 // src/pages/Dashboard/Video/useVideoConfig.ts
 import { useCallback, useEffect, useState } from "react";
 import { useProcessingStore } from "src/core/stores/useProcessingStore";
-import { VideoService } from "src/pages/Dashboard/services/videoService";
+import { VideoService } from "src/core/services/videoService";
 import { toast } from "sonner";
-import type { AiConfigPayload, VideoRecord } from "src/pages/Dashboard/types";
-import { getApiErrorMessage, chooseFirstModel } from "src/pages/Dashboard/utils/helpers";
+import type { AiConfigPayload, VideoRecord } from "src/core/types/videoTypes";
+import { getApiErrorMessage, chooseFirstModel } from "src/core/utils/videoHelpers";
 import { useCatalogStore } from "src/core/stores/useAICatalogStore";
 
 export function useVideoConfig(video: VideoRecord | null) {

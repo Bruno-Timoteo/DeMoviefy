@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useProcessingStore } from "src/core/stores/useProcessingStore";
-import { VideoService } from "src/pages/Dashboard/services/videoService";
-import { getApiErrorMessage } from "src/pages/Dashboard/utils/helpers";
+import { VideoService } from "src/core/services/videoService";
+import { getApiErrorMessage } from "src/core/utils/videoHelpers";
 
 export function ProcessingQueuePanel() {
   const videos = useProcessingStore((state) => state.videos);

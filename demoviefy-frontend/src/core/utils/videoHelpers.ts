@@ -7,7 +7,7 @@ import type {
     AITaskOption, 
     VideoRecord,
     VideoAnalysisVariant
-} from "src/pages/Dashboard/types";
+} from "src/core/types/videoTypes";
 
 // Transforma em JSON
 
@@ -87,10 +87,4 @@ export function formatSeconds(value: number | null | undefined) {
 export function formatVariantLabel(variant: VideoAnalysisVariant) {
   const createdAt = variant.created_at ? new Date(variant.created_at).toLocaleString() : "Sem data";
   return `${variant.task_label} - ${variant.model_name} - ${createdAt}`;
-}
-
-// Equivalente ao time.sleep
-
-export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
 }

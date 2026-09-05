@@ -1,4 +1,4 @@
-//src/pages/Dashboard/types.ts
+//src/core/types/videoTypes.ts
 
 export type VideoStorage = {
   video_relative_path: string;
@@ -131,22 +131,7 @@ export type ModelCatalogResponse = {
   tasks: AITaskOption[];
 };
 
-export type UploadResponse = {
-  message: string;
-  video: VideoRecord;
-  next_steps: {
-    video_saved_in: string;
-    analysis_will_be_saved_in: string;
-    annotated_will_be_saved_in: string;
-    transcription_will_be_saved_in: string;
-    analysis_status: string;
-    runtime_settings?: {
-      frame_stride: number;
-      confidence_threshold: number;
-      max_frames: number;
-    };
-  };
-};
+
 
 export type AiConfigPayload = {
   task_type: string

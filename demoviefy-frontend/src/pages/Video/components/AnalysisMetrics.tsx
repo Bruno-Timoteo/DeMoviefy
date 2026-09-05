@@ -1,8 +1,8 @@
 // src/pages/Dashboard/components/AnalysisMetrics.tsx
 
 import { memo } from "react"
-import { formatSeconds } from "src/pages/Dashboard/utils/helpers"
-import type { VideoAnalysisResponse } from "src/pages/Dashboard/types"
+import { formatSeconds } from "src/core/utils/videoHelpers"
+import type { VideoAnalysisResponse } from "src/core/types/videoTypes"
 
 type AnalysisMetricsProps = {
   summary: NonNullable<VideoAnalysisResponse["analysis"]>

@@ -3,10 +3,10 @@
 import { create } from "zustand";
 import { toast } from "sonner";
 import { createPoller } from "src/core/utils/createPoller";
-import { VideoService } from "src/pages/Dashboard/services/videoService";
-import { normalizeVideoRecord } from "src/pages/Dashboard/utils/normalizers";
-import { getApiErrorMessage } from "src/pages/Dashboard/utils/helpers";
-import type { VideoRecord } from "src/pages/Dashboard/types";
+import { VideoService } from "src/core/services/videoService";
+import { normalizeVideoRecord } from "src/core/utils/videoNormalizers";
+import { getApiErrorMessage } from "src/core/utils/videoHelpers";
+import type { VideoRecord } from "src/core/types/videoTypes";
 
 interface VideoStats {
     total: number;

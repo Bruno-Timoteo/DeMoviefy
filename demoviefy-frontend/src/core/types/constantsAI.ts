@@ -1,4 +1,4 @@
-// -src/pages/Dashboard/constants.ts
+// src/core/types/constantsAI.ts
 
 export const DEFAULT_PROCESSING = {
   processing_progress: 0,

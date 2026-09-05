@@ -1,8 +1,8 @@
 // src/pages/Dashboard/hooks/useUpload.ts
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { VideoService } from "src/pages/Dashboard/services/videoService";
-import { getApiErrorMessage, sleep } from "src/pages/Dashboard/utils/helpers";
+import { VideoService } from "src/core/services/videoService";
+import { getApiErrorMessage } from "src/core/utils/videoHelpers";
 import { useUploadStore } from "src/core/stores/useUploadStore";
 import { useProcessingStore } from "src/core/stores/useProcessingStore";
 
@@ -25,7 +25,6 @@ export function useUpload() {
     setUploading(true);
     try {
         toast("Upload iniciado")
-        sleep(2000)
       const response = await VideoService.uploadVideo(
         file,
         uploadTask,

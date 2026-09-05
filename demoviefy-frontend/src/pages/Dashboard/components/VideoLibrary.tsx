@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { ProcessingProgress } from "src/core/components/ProcessingProgress";
 import { StatusBadge } from "src/core/components/StatusBadge";
-import type { VideoRecord } from "src/pages/Dashboard/types";
+import type { VideoRecord } from "src/core/types/videoTypes";
 
 type VideoLibraryProps = {
   videos: VideoRecord[];

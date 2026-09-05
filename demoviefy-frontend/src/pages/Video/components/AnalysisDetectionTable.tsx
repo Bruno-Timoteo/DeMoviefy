@@ -1,8 +1,8 @@
 // src/pages/Dashboard/components/AnalysisDetectionTable.tsx
 
 import { memo } from "react"
-import { formatPercent } from "src/pages/Dashboard/utils/helpers"
-import type { VideoAnalysisResponse } from "src/pages/Dashboard/types"
+import { formatPercent } from "src/core/utils/videoHelpers"
+import type { VideoAnalysisResponse } from "src/core/types/videoTypes"
 
 type AnalysisDetectionTableProps = {
   summary: NonNullable<VideoAnalysisResponse["analysis"]>

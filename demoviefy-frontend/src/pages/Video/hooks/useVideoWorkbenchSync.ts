@@ -6,7 +6,7 @@
 import { useEffect, useRef } from "react";
 
 import { useAnalysisStore } from "src/pages/Video/stores/useAnalysisStore";
-import type { VideoRecord } from "src/pages/Dashboard/types";
+import type { VideoRecord } from "src/core/types/videoTypes";
 
 export function useVideoWorkbenchSync(video: VideoRecord | null) {
     const previousVideoRef = useRef<VideoRecord | null>(null);

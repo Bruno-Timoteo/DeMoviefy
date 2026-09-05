@@ -2,7 +2,7 @@
 
 import { StatusBadge } from "src/core/components/StatusBadge"
 import { ProcessingProgress } from "src/core/components/ProcessingProgress"
-import type { VideoRecord } from "src/pages/Dashboard/types"
+import type { VideoRecord } from "src/core/types/videoTypes"
 
 type WorkbenchHeaderProps = {
   video: VideoRecord
