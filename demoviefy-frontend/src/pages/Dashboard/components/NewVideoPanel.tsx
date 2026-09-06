@@ -152,60 +152,59 @@ export function NewVideoPanel() {
                                 </p>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="grid gap-6 border border-blue-100 bg-blue-50/50 p-6 md:grid-cols-2">
-                        <div>
-                            <label
-                                htmlFor="task-select"
-                                className="text-sm font-medium text-neutral-700"
-                            >
-                                Tarefa IA
-                            </label>
-
-                            <select
-                                id="task-select"
-                                value={uploadTask}
-                                onChange={(e) => handleUploadTaskChange(e.target.value)}
-                                className="mt-2 w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition focus:border-blue-500"
-                            >
-                                <option value="">Selecione uma tarefa</option>
-
-                                {tasks.map((task) => (
-                                    <option key={task.task_type} value={task.task_type}>
-                                        {task.task_label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {uploadTask && (
+                        <div className="mt-6 grid gap-6 border border-blue-100 bg-blue-50/50 p-6 md:grid-cols-2">
                             <div>
                                 <label
-                                    htmlFor="model-select"
+                                    htmlFor="task-select"
                                     className="text-sm font-medium text-neutral-700"
                                 >
-                                    Modelo
+                                    Tarefa IA
                                 </label>
 
                                 <select
-                                    id="model-select"
-                                    value={uploadModelPath}
-                                    onChange={(e) => setUploadModelPath(e.target.value)}
+                                    id="task-select"
+                                    value={uploadTask}
+                                    onChange={(e) => handleUploadTaskChange(e.target.value)}
                                     className="mt-2 w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition focus:border-blue-500"
                                 >
-                                    <option value="">Selecione um modelo</option>
+                                    <option value="">Selecione uma tarefa</option>
 
-                                    {filteredModels.map((model) => (
-                                        <option key={model.id} value={model.relative_path}>
-                                            {model.name}
+                                    {tasks.map((task) => (
+                                        <option key={task.task_type} value={task.task_type}>
+                                            {task.task_label}
                                         </option>
                                     ))}
                                 </select>
                             </div>
-                        )}
-                    </div>
 
+                            {uploadTask && (
+                                <div>
+                                    <label
+                                        htmlFor="model-select"
+                                        className="text-sm font-medium text-neutral-700"
+                                    >
+                                        Modelo
+                                    </label>
+
+                                    <select
+                                        id="model-select"
+                                        value={uploadModelPath}
+                                        onChange={(e) => setUploadModelPath(e.target.value)}
+                                        className="mt-2 w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition focus:border-blue-500"
+                                    >
+                                        <option value="">Selecione um modelo</option>
+
+                                        {filteredModels.map((model) => (
+                                            <option key={model.id} value={model.relative_path}>
+                                                {model.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                     <div className="group border-t border-neutral-200 pt-8 transition-transform duration-200 hover:translate-x-1">
                         <div className="flex items-start gap-3">
                             <div className="mt-1 h-5 w-1 shrink-0 bg-transparent transition-colors group-hover:bg-blue-600 group-focus-within:bg-blue-600" />

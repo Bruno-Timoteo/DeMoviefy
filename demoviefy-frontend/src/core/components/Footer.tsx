@@ -6,7 +6,7 @@ export default function Footer(): JSX.Element {
 
     return (
         <footer>
-            <div className="flex w-full items-center justify-between px-8 py-6 lg:px-16">
+            <div className="flex w-full items-center justify-between px-4 py-6 lg:px-8">
                 <p className="text-sm text-neutral-500">
                     Copyright &copy; DeMoviefy {year}
                 </p>
