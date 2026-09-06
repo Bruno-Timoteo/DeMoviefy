@@ -4,7 +4,7 @@ type StatusBadgeProps = {
 
 const STATUS_LABELS: Record<string, string> = {
     PROCESSANDO: "Na fila",
-    PROCESSANDO_IA: "Analisando",
+    PROCESSANDO_IA: "Processando",
     PROCESSADO: "Concluído",
     SEM_ANALISE: "Sem análise",
     CANCELADO: "Cancelado",
@@ -22,12 +22,15 @@ export function StatusBadge({ status }: StatusBadgeProps) {
                 ? "danger"
                 : normalized.startsWith("ERRO")
                     ? "danger"
-                    : "warning";
+                    : normalized === "PROCESSANDO_IA"
+                        ? "processing"
+                        : "warning"
 
     const toneClasses = {
         success: "bg-green-50 text-green-700",
+        processing:"bg-blue-50 text-blue-700",
         warning: "bg-amber-50 text-amber-700",
-        danger: "bg-red-50 text-red-600",
+        danger: "bg-red-50 text-red-700",
     };
 
 
