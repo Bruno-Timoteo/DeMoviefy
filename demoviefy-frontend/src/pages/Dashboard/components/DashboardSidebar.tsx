@@ -3,7 +3,6 @@ import { VideoLibrary } from "src/pages/Dashboard/components/VideoLibrary";
 
 export function DashboardSidebar() {
   const videos = useProcessingStore((state) => state.videos);
-  const loading = useProcessingStore((state) => state.loading);
 
   return (
     <aside className="h-full w-72 shrink-0 border-r border-neutral-200 bg-white">
@@ -16,7 +15,7 @@ export function DashboardSidebar() {
         </p>
       </div>
 
-      <VideoLibrary videos={videos} loading={loading} />
+      <VideoLibrary videos={videos}/>
     </aside>
   );
 }

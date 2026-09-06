@@ -140,7 +140,7 @@ export function NewVideoPanel() {
                 <div className="flex flex-col gap-8">
                     <div className="group border-t border-neutral-200 pt-8 transition-transform duration-200 hover:translate-x-1">
                         <div className="flex items-start gap-3">
-                            <div className="mt-1 h-5 w-1 shrink-0 bg-transparent transition-colors group-hover:bg-blue-600 group-focus-within:bg-blue-600" />
+                            <div className="mt-1 h-5 w-1 shrink-0 bg-transparent transition-colors group-hover:bg-blue-600" />
 
                             <div>
                                 <h3 className="text-base font-semibold text-neutral-900">
@@ -207,7 +207,7 @@ export function NewVideoPanel() {
                     </div>
                     <div className="group border-t border-neutral-200 pt-8 transition-transform duration-200 hover:translate-x-1">
                         <div className="flex items-start gap-3">
-                            <div className="mt-1 h-5 w-1 shrink-0 bg-transparent transition-colors group-hover:bg-blue-600 group-focus-within:bg-blue-600" />
+                            <div className="mt-1 h-5 w-1 shrink-0 bg-transparent transition-colors group-hover:bg-blue-600" />
 
                             <div>
                                 <h3 className="text-base font-semibold text-neutral-900">
@@ -281,7 +281,7 @@ export function NewVideoPanel() {
 
                     <div className="group border-t border-neutral-200 pt-8 transition-transform duration-200 hover:translate-x-1">
                         <div className="flex items-start gap-3">
-                            <div className="mt-1 h-5 w-1 shrink-0 bg-transparent transition-colors group-hover:bg-blue-600 group-focus-within:bg-blue-600" />
+                            <div className="mt-1 h-5 w-1 shrink-0 bg-transparent transition-colors group-hover:bg-blue-600" />
 
                             <div>
                                 <h3 className="text-base font-semibold text-neutral-900">
@@ -337,11 +337,19 @@ export function NewVideoPanel() {
                     {/* Enviar vídeo */}
                     <button
                         type="button"
-                        onClick={() => handleUpload(uploadTask, uploadModelPath)}
+                        onClick={async () => {
+                            await handleUpload(uploadTask, uploadModelPath);
+
+                            window.scrollTo({
+                                top: 0,
+                                behavior: "smooth",
+                            });
+                        }}
                         disabled={uploading}
                         className="w-full cursor-pointer bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         Enviar vídeo
+
                     </button>
 
                     {/* Remover vídeo */}
@@ -351,6 +359,11 @@ export function NewVideoPanel() {
                         onClick={(e) => {
                             e.stopPropagation();
                             setFile(null);
+
+                            window.scrollTo({
+                                top: 0,
+                                behavior: "smooth",
+                            });
                         }}
                         className="cursor-pointer text-sm font-medium text-neutral-500 transition-colors hover:text-red-600"
                     >
@@ -358,7 +371,8 @@ export function NewVideoPanel() {
                     </button>
 
                 </div>
-            )}
-        </section>
+            )
+            }
+        </section >
     );
 }

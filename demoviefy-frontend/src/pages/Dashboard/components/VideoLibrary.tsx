@@ -7,7 +7,6 @@ import type { VideoRecord } from "src/core/types/videoTypes";
 
 type VideoLibraryProps = {
   videos: VideoRecord[];
-  loading: boolean;
 };
 
 function formatDate(createdAt: string | null) {
@@ -62,15 +61,9 @@ function getStatusStyles(status: string) {
 
 export const VideoLibrary = memo(function VideoLibrary({
   videos,
-  loading,
 }: VideoLibraryProps) {
   return (
     <section className="px-4 pb-6">
-      {loading && (
-        <p className="px-2 pb-3 text-sm text-neutral-500">
-          Carregando vídeos...
-        </p>
-      )}
 
       {videos.length === 0 ? (
         <div className="px-2 py-4">
