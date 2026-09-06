@@ -85,8 +85,8 @@ export function NewVideoPanel() {
 
             <div
                 className={`flex min-h-48 cursor-pointer items-center justify-center border px-8 py-10 text-center transition ${isDragging
-                        ? "border-blue-500 bg-blue-100"
-                        : "border-blue-200 bg-blue-50 hover:border-blue-300 hover:bg-blue-100/70"
+                    ? "border-blue-500 bg-blue-100"
+                    : "border-blue-200 bg-blue-50 hover:border-blue-300 hover:bg-blue-100/70"
                     }`}
                 onDrop={handleDrop}
                 onDragOver={(e) => {
@@ -335,14 +335,29 @@ export function NewVideoPanel() {
                         </div>
                     </div>
 
+                    {/* Enviar vídeo */}
                     <button
                         type="button"
                         onClick={() => handleUpload(uploadTask, uploadModelPath)}
                         disabled={uploading}
-                        className="w-full bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="w-full cursor-pointer bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         Enviar vídeo
                     </button>
+
+                    {/* Remover vídeo */}
+
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setFile(null);
+                        }}
+                        className="cursor-pointer text-sm font-medium text-neutral-500 transition-colors hover:text-red-600"
+                    >
+                        Cancelar envio
+                    </button>
+
                 </div>
             )}
         </section>
