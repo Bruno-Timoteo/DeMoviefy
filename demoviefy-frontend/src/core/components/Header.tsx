@@ -10,7 +10,7 @@ type HeaderProps = {
 export default function Header({ }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white">
-      <div className="mx-auto flex h-20 w-full items-center justify-between px-8 lg:px-12">
+      <div className="mx-auto flex h-20 w-full items-center justify-between px-4 lg:px-6">
         <NavLink to="/">
           <img
             src={demoviefyLight}
@@ -23,10 +23,11 @@ export default function Header({ }: HeaderProps) {
           <NavLink
             to="/dashboard"
             className={({ isActive }) =>
-              `text-base transition ${isActive
+              `px-4 lg:px-6 text-base transition ${isActive
                 ? "text-neutral-900"
                 : "text-neutral-500 hover:text-neutral-900"
               }`
+              
             }
           >
             Dashboard

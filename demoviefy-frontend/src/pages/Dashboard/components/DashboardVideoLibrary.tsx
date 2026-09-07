@@ -8,7 +8,7 @@ type DashboardVideoLibraryProps = {
   videos: VideoRecord[];
 };
 
-const VIDEOS_PER_PAGE = 4;
+const VIDEOS_PER_PAGE = 3;
 
 function formatDate(createdAt: string | null) {
   if (!createdAt) {
@@ -21,35 +21,43 @@ function formatDate(createdAt: string | null) {
   }).format(new Date(createdAt));
 }
 
+function formatSeconds(value: number | null | undefined) {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "-";
+  }
+
+  return `${value.toFixed(1)}s`;
+}
+
 function getStatusStyles(status: string) {
   const normalizedStatus = status.toLowerCase();
 
   if (status.startsWith("PROCESSANDO")) {
-    return "border-blue-200 bg-blue-50/50 hover:bg-blue-50";
+    return "bg-blue-50 hover:bg-blue-100";
   }
 
   if (
     normalizedStatus.includes("erro") ||
     normalizedStatus.includes("falha")
   ) {
-    return "border-red-200 bg-red-50/50 hover:bg-red-50";
+    return "bg-red-50 hover:bg-red-100";
   }
 
   if (
     normalizedStatus.includes("concluído") ||
     normalizedStatus.includes("concluido")
   ) {
-    return "border-green-200 bg-green-50/50 hover:bg-green-50";
+    return "bg-green-50 hover:bg-green-100";
   }
 
   if (
     normalizedStatus.includes("aguardando") ||
     normalizedStatus.includes("pendente")
   ) {
-    return "border-amber-200 bg-amber-50/50 hover:bg-amber-50";
+    return "bg-amber-50 hover:bg-amber-100";
   }
 
-  return "border-neutral-200 bg-neutral-50 hover:bg-neutral-100";
+  return "bg-neutral-50 hover:bg-neutral-100";
 }
 
 export const DashboardVideoLibrary = memo(
@@ -98,16 +106,14 @@ export const DashboardVideoLibrary = memo(
     return (
       <section className="flex min-h-0 flex-1 flex-col px-4 pb-4">
         <div className="pb-4">
-          <div className="relative">
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Busque pelo nome do vídeo..."
-              aria-label="Buscar vídeo"
-              className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-blue-400 focus:bg-white"
-            />
-          </div>
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Busque pelo nome do vídeo..."
+            aria-label="Buscar vídeo"
+            className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-blue-400 focus:bg-white"
+          />
         </div>
 
         <div className="min-h-0 flex-1">
@@ -131,7 +137,7 @@ export const DashboardVideoLibrary = memo(
                 <Link
                   key={video.id}
                   to={`/video/${video.id}`}
-                  className={`group block rounded-lg border px-4 py-3.5 transition ${getStatusStyles(
+                  className={`group block rounded-lg px-4 py-4 transition ${getStatusStyles(
                     video.status,
                   )}`}
                 >
@@ -157,28 +163,34 @@ export const DashboardVideoLibrary = memo(
                       </span>
                     </div>
 
-                    <div className="mt-3 border-t border-neutral-200/50 pt-3">
+                    <div className="mt-3 border-t border-neutral-200/70 pt-3">
                       <div className="flex justify-between gap-3 text-xs">
                         <span className="truncate font-medium text-neutral-700">
                           {video.ai_config.model_name}
                         </span>
 
                         <span className="shrink-0 text-neutral-500">
-                          {video.analysis_ready
-                            ? "Resumo pronto"
-                            : "Resumo pendente"}
+                          {video.transcription_ready
+                            ? "Com transcrição"
+                            : "Sem transcrição"}
                         </span>
                       </div>
 
-                      <div className="mt-1.5 flex justify-between gap-3 text-xs">
-                        <span className="truncate text-neutral-500">
-                          {video.ai_config.task_label}
+                      <div className="mt-1.5 flex justify-between gap-3 text-xs text-neutral-500">
+                        <span className="truncate">
+                          Trecho:{" "}
+                          {formatSeconds(video.ai_config.clip_start_sec)} -{" "}
+                          {video.ai_config.clip_end_sec === null
+                            ? "fim"
+                            : formatSeconds(
+                                video.ai_config.clip_end_sec,
+                              )}
                         </span>
 
-                        <span className="shrink-0 text-neutral-500">
-                          {video.transcription_ready
-                            ? "Transcrição pronta"
-                            : "Sem transcrição"}
+                        <span className="shrink-0">
+                          {video.storage.annotated_exists
+                            ? "Preview anotado pronto"
+                            : "Preview anotado pendente"}
                         </span>
                       </div>
                     </div>
@@ -198,7 +210,7 @@ export const DashboardVideoLibrary = memo(
               type="button"
               disabled={page === 1}
               onClick={() => setPage((current) => current - 1)}
-              className="cursor-pointer rounded-md px-2 py-1 text-sm text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40"
+              className="rounded-md px-2 py-1 text-sm text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40"
             >
               Anterior
             </button>
@@ -212,7 +224,7 @@ export const DashboardVideoLibrary = memo(
                     key={pageNumber}
                     type="button"
                     onClick={() => setPage(pageNumber)}
-                    className={`cursor-pointer h-7 min-w-7 rounded-md px-2 text-xs font-medium transition ${
+                    className={`h-7 min-w-7 rounded-md px-2 text-xs font-medium transition ${
                       pageNumber === page
                         ? "bg-blue-600 text-white"
                         : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
@@ -228,7 +240,7 @@ export const DashboardVideoLibrary = memo(
               type="button"
               disabled={page === totalPages}
               onClick={() => setPage((current) => current + 1)}
-              className="cursor-pointer rounded-md px-2 py-1 text-sm text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40"
+              className="rounded-md px-2 py-1 text-sm text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40"
             >
               Próxima
             </button>

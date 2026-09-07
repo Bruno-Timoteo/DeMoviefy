@@ -6,8 +6,8 @@ export function DashboardSidebar() {
   const videos = useProcessingStore((state) => state.videos);
 
   return (
-    <aside className="flex h-full w-72 shrink-0 flex-col  bg-white">
-      <div className="px-5 py-5">
+    <aside className="flex h-full w-72 shrink-0 flex-col border-r border-neutral-200 bg-white">
+      <div className="px-8 py-5">
         <h2 className="text-base font-semibold tracking-tight text-neutral-900">
           Biblioteca
         </h2>
