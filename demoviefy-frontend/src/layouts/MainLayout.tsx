@@ -12,7 +12,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     <div>
       <div>
         <Header />
-            <main>{children}</main>
+            <main className="px-8">{children}</main>
         <Footer />
       </div>
     </div>
