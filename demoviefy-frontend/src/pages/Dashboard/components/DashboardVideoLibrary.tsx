@@ -129,7 +129,7 @@ export const DashboardVideoLibrary = memo(
                 <Link
                   key={video.id}
                   to={`/video/${video.id}`}
-                  className={`group block rounded-lg py-4 transition ${getStatusStyles(
+                  className={`group px-2 block rounded-lg py-4 transition ${getStatusStyles(
                     video.status,
                   )}`}
                 >
