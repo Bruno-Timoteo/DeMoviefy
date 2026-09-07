@@ -14,7 +14,7 @@ export function StatsPanel({
   errors,
 }: StatsPanelProps) {
   return (
-    <section className="grid grid-cols-2 gap-8 border-b border-neutral-200 pb-8 md:grid-cols-4">
+    <section className="grid grid-cols-2 gap-8 pb-2 md:grid-cols-4">
       <div>
         <span className="text-sm font-medium text-neutral-500">
           Vídeos

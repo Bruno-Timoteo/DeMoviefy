@@ -7,9 +7,9 @@ export function DashboardSidebar() {
 
   return (
     <aside className="flex h-full w-72 shrink-0 flex-col border-r border-neutral-200 bg-white">
-      <div className="px-8 py-5">
+      <div className="px-8 pt-6 pb-4">
         <h2 className="text-base font-semibold tracking-tight text-neutral-900">
-          Biblioteca
+          Biblioteca de vídeos
         </h2>
 
         <p className="mt-0.5 text-sm text-neutral-500">

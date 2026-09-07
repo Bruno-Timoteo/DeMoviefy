@@ -33,7 +33,7 @@ export default function VideoDashboard() {
 
                 <DashboardProgressBar />
 
-                <main className="flex flex-1 flex-col gap-10 px-8 py-10 lg:px-12">
+                <div className="flex flex-1 flex-col gap-10 pt-6">
                     <StatsPanel
                         total={stats.total}
                         processing={stats.processing}
@@ -45,7 +45,7 @@ export default function VideoDashboard() {
                         <NewVideoPanel />
                         <ProcessingQueuePanel />
                     </div>
-                </main>
+                </div>
             </div>
         </div>
     );

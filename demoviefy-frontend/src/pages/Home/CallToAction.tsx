@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export default function CallToAction() {
   return (
-    <section className="w-full px-8 pb-24 lg:px-16 lg:pb-32">
+    <section className="w-full pb-24 lg:pb-32">
       <div className="text-center">
         <h2 className="text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl">
           Pronto para começar?

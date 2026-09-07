@@ -1,7 +1,7 @@
 export default function UseCases() {
 
     return (
-        <section className="w-full px-8 pb-20 pt-4 lg:px-8 lg:pb-20 lg:pt-8">
+        <section className="w-full pb-20 pt-4 lg:pb-20 lg:pt-8">
             <div className="text-center">
                 <h2 className="mx-auto max-w-200 text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl">
                     Feito para aproveitar melhor seus vídeos.

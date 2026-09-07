@@ -1,6 +1,6 @@
 export default function FeaturesSection() {
   return (
-    <section className="w-full px-8 pb-24 pt-8 lg:px-16 lg:pb-32 lg:pt-16">
+    <section className="w-full pb-24 pt-8 lg:pb-32 lg:pt-16">
       <div className="grid items-start gap-16 lg:grid-cols-2 lg:gap-24">
         <div>
           <h2 className="text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl">

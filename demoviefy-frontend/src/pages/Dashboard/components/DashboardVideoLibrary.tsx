@@ -21,14 +21,6 @@ function formatDate(createdAt: string | null) {
   }).format(new Date(createdAt));
 }
 
-function formatSeconds(value: number | null | undefined) {
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    return "-";
-  }
-
-  return `${value.toFixed(1)}s`;
-}
-
 function getStatusStyles(status: string) {
   const normalizedStatus = status.toLowerCase();
 
@@ -104,8 +96,8 @@ export const DashboardVideoLibrary = memo(
     }, [page, totalPages]);
 
     return (
-      <section className="flex min-h-0 flex-1 flex-col px-4 pb-4">
-        <div className="pb-4">
+      <section className="flex min-h-0 flex-1 flex-col px-4 pb-2">
+        <div className="pb-2">
           <input
             type="search"
             value={search}
@@ -163,7 +155,7 @@ export const DashboardVideoLibrary = memo(
                       </span>
                     </div>
 
-                    <div className="mt-3 border-t border-neutral-200/70 pt-3">
+                    <div className="mt-2 pt-2">
                       <div className="flex justify-between gap-3 text-xs">
                         <span className="truncate font-medium text-neutral-700">
                           {video.ai_config.model_name}
@@ -176,23 +168,6 @@ export const DashboardVideoLibrary = memo(
                         </span>
                       </div>
 
-                      <div className="mt-1.5 flex justify-between gap-3 text-xs text-neutral-500">
-                        <span className="truncate">
-                          Trecho:{" "}
-                          {formatSeconds(video.ai_config.clip_start_sec)} -{" "}
-                          {video.ai_config.clip_end_sec === null
-                            ? "fim"
-                            : formatSeconds(
-                                video.ai_config.clip_end_sec,
-                              )}
-                        </span>
-
-                        <span className="shrink-0">
-                          {video.storage.annotated_exists
-                            ? "Preview anotado pronto"
-                            : "Preview anotado pendente"}
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </Link>

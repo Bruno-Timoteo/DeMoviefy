@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 export default function Introduction() {
 
     return (
-        <section className="grid w-full items-center gap-16 px-8 pb-20 pt-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-24 lg:px-16 lg:pb-20 lg:pt-16">
+        <section className="grid w-full items-center gap-16 pb-20 pt-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-24 lg:pb-20 lg:pt-16">
             <div className="max-w-2xl">
                 <h1 className="text-5xl font-semibold tracking-tight md:text-6xl lg:text-7xl">
                     Analise seus vídeos.

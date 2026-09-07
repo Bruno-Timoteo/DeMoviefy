@@ -5,7 +5,7 @@ import CallToAction from "src/pages/Home/CallToAction";
 
 export default function Home() {
     return (
-        <main>
+        <>
 
             <Introduction />
 
@@ -15,6 +15,6 @@ export default function Home() {
 
             <CallToAction />
 
-        </main>
+        </>
     );
 }
