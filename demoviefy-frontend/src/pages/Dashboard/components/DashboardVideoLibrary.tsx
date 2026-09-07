@@ -185,7 +185,7 @@ export const DashboardVideoLibrary = memo(
               type="button"
               disabled={page === 1}
               onClick={() => setPage((current) => current - 1)}
-              className="rounded-md px-2 py-1 text-sm text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40"
+              className="cursor-pointer rounded-md px-2 py-1 text-sm text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40"
             >
               Anterior
             </button>
@@ -199,7 +199,7 @@ export const DashboardVideoLibrary = memo(
                     key={pageNumber}
                     type="button"
                     onClick={() => setPage(pageNumber)}
-                    className={`h-7 min-w-7 rounded-md px-2 text-xs font-medium transition ${
+                    className={`cursor-pointer h-7 min-w-7 rounded-md px-2 text-xs font-medium transition ${
                       pageNumber === page
                         ? "bg-blue-600 text-white"
                         : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
@@ -215,7 +215,7 @@ export const DashboardVideoLibrary = memo(
               type="button"
               disabled={page === totalPages}
               onClick={() => setPage((current) => current + 1)}
-              className="rounded-md px-2 py-1 text-sm text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40"
+              className="cursor-pointer rounded-md px-2 py-1 text-sm text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-40"
             >
               Próxima
             </button>
