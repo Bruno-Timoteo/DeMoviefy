@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { useLocation } from "react-router-dom";
+import { type ReactNode } from "react";
 
 import Footer from "src/core/components/Footer";
 import Header from "src/core/components/Header";
@@ -9,51 +8,11 @@ type MainLayoutProps = {
 };
 
 export default function MainLayout({ children }: MainLayoutProps) {
-  const location = useLocation();
-  const isHomePage = location.pathname === "/";
-
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    try {
-      const stored = window.localStorage.getItem("demoviefy-theme");
-      if (stored === "light" || stored === "dark") {
-        return stored;
-      }
-    } catch (error) {
-      console.warn("Não foi possível ler o tema salvo.", error);
-    }
-
-    try {
-      // return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-      return "dark";
-    } catch (error) {
-      console.warn("Não foi possível consultar o tema do sistema.", error);
-      // return "light";
-      return "dark";
-    }
-  });
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    try {
-      window.localStorage.setItem("demoviefy-theme", theme);
-    } catch (error) {
-      console.warn("Não foi possível persistir o tema atual.", error);
-    } 
-  }, [theme]);
-
-  const themeLabel = useMemo(
-    () => (theme === "dark" ? "Usar tema claro" : "Usar tema escuro"),
-    [theme],
-  );
-
   return (
-    <div className={`app-shell ${isHomePage ? "app-shell--full-width" : ""}`}>
-      <div className="app-content-shell">
-        <Header
-          themeLabel={themeLabel}
-          onToggleTheme={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
-        />
-        <main className="app-main">{children}</main>
+    <div>
+      <div>
+        <Header />
+            <main>{children}</main>
         <Footer />
       </div>
     </div>
