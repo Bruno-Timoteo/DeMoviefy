@@ -1,5 +1,5 @@
 import { useProcessingStore } from "src/core/stores/useProcessingStore";
-import { VideoLibrary } from "src/pages/Dashboard/components/VideoLibrary";
+import { VideoLibrary } from "src/pages/Dashboard/components/DashboardVideoLibrary";
 
 export function DashboardSidebar() {
   const videos = useProcessingStore((state) => state.videos);
