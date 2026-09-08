@@ -165,18 +165,13 @@ def _get_model(model_path: str):
 def _normalize_annotated_mp4(
     source_path: Path,
     output_path: Path,
+    original_video_path: Path | None = None,
+    clip_start_sec: float = 0.0,
+    clip_end_sec: float | None = None,
     logger: Any | None = None,
 ) -> bool:
     """
-    Normalize an annotated MP4 into a browser-playable H.264 artifact.
-
-    Args:
-        source_path: Temporary video written by OpenCV
-        output_path: Final annotated video path
-        logger: Optional logger for debug messages
-
-    Returns:
-        True when the normalized file is ready at output_path
+    Normaliza o MP4 anotado para H.264 web-ready e embute o áudio original sincronizado.
     """
     import subprocess
 
@@ -194,21 +189,46 @@ def _normalize_annotated_mp4(
     try:
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        if logger:
-            logger.info("frame_ai:mp4_normalize_start source=%s output=%s", source_path, output_path)
-
+        # Entrada 0: Vídeo anotado gerado pelo OpenCV
         cmd = [
             str(ffmpeg_binary),
             "-i", str(source_path),
+        ]
+
+        # Entrada 1: Áudio extraído do vídeo original (com o mesmo corte de tempo)
+        has_audio_source = original_video_path is not None and original_video_path.exists()
+        if has_audio_source:
+            if clip_start_sec > 0:
+                cmd.extend(["-ss", str(clip_start_sec)])
+            if clip_end_sec is not None:
+                duration = clip_end_sec - clip_start_sec
+                if duration > 0:
+                    cmd.extend(["-t", str(duration)])
+            cmd.extend(["-i", str(original_video_path)])
+
+        # Configuração de vídeo
+        cmd.extend([
             "-c:v", "libx264",
             "-pix_fmt", "yuv420p",
             "-crf", "23",
             "-preset", "ultrafast",
             "-movflags", "+faststart",
-            "-an",
-            "-y",
-            str(normalized_temp),
-        ]
+        ])
+
+        # Mapeamento de streams
+        if has_audio_source:
+            # 0:v:0 pega o vídeo anotado; 1:a:0? pega o áudio original (o '?' evita erro se não houver áudio)
+            cmd.extend([
+                "-map", "0:v:0",
+                "-map", "1:a:0?",
+                "-c:a", "aac",
+                "-b:a", "128k",
+                "-shortest",
+            ])
+        else:
+            cmd.append("-an")
+
+        cmd.extend(["-y", str(normalized_temp)])
 
         result = subprocess.run(
             cmd,
@@ -222,7 +242,7 @@ def _normalize_annotated_mp4(
                 unlink_with_retries(output_path, logger=logger)
             copy_with_retries(normalized_temp, output_path, logger=logger)
             if logger:
-                logger.info("frame_ai:mp4_normalize_success path=%s", output_path)
+                logger.info("frame_ai:mp4_normalize_success path=%s (with_audio=%s)", output_path, has_audio_source)
             return True
 
         if logger:
@@ -245,16 +265,8 @@ def _normalize_annotated_mp4(
         if normalized_temp.exists():
             try:
                 normalized_temp.unlink()
-            except PermissionError:
-                if logger:
-                    logger.debug("frame_ai:normalized_temp_cleanup_deferred path=%s", normalized_temp)
-            except Exception as exc:
-                if logger:
-                    logger.warning("frame_ai:normalized_temp_cleanup_failed path=%s error=%s", normalized_temp, str(exc))
-
-
-
-
+            except Exception:
+                pass
 
 
 
@@ -739,7 +751,16 @@ def analyze_video_frames(
         time_module.sleep(0.2)
         
         if annotated_path is not None and temp_annotated_path is not None and annotated_frames_written > 0:
-            if temp_annotated_path.exists() and _normalize_annotated_mp4(temp_annotated_path, annotated_path, logger):
+            if temp_annotated_path.exists() and _normalize_annotated_mp4(
+                temp_annotated_path, 
+                annotated_path, 
+                original_video_path=Path(video_path),
+                clip_start_sec=clip_start_sec,
+                clip_end_sec=clip_end_sec,
+                logger=logger,
+                ):
+
+            
                 finalized_annotated_path = annotated_path
                 if logger:
                     logger.info(

@@ -6,11 +6,24 @@ from pathlib import Path
 from typing import Any
 
 
-def _normalize_annotated_mp4(source_path: Path, output_path: Path, logger: Any | None = None) -> bool:
+def _normalize_annotated_mp4(
+    source_path: Path, 
+    output_path: Path, 
+    logger: Any | None = None,
+    original_video_path: Path | None = None,
+    clip_start_sec: float = 0.0,
+    clip_end_sec: float | None = None,
+    ) -> bool:
     """Normalize an annotated MP4 into a browser-playable artifact."""
     from app.services.frame_ai_service import _normalize_annotated_mp4 as _legacy_impl
 
-    return _legacy_impl(source_path, output_path, logger=logger)
+    return _legacy_impl(
+        source_path, 
+        output_path, 
+        logger=logger,
+        original_video_path=original_video_path,
+        clip_start_sec=clip_start_sec,
+        clip_end_sec= clip_end_sec)
 
 
 def normalize_annotated_mp4(source_path: Path, output_path: Path, logger: Any | None = None) -> bool:

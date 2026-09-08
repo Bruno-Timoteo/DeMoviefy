@@ -270,17 +270,19 @@ class DeMoviefyTestPlan(unittest.TestCase):
         self.assertFalse((self.root.parent / "outside.mp4").exists())
 
     def test_sec02_rejects_invalid_processing_parameters(self):
-        invalid_requests = (
-            {"frame_stride": "0"},
-            {"max_frames": "0"},
-            {"confidence_threshold": "2"},
-            {"clip_start_sec": "10", "clip_end_sec": "5"},
-        )
+        invalid_requests = [
+            ({"frame_stride": "0"}, "frame_stride precisa ser pelo menos 1."),
+            ({"max_frames": "0"}, "max_frames precisa ser pelo menos 1."),
+            ({"confidence_threshold": "2"}, "confidence_threshold precisa ficar entre 0 e 1."),
+            ({"clip_start_sec": "-1"}, "O início do trecho não pode ser negativo."),
+            ({"clip_start_sec": "10", "clip_end_sec": "5"}, "O fim do trecho precisa ser maior que o início."),
+        ]
 
-        for fields in invalid_requests:
+        for fields, expected_error in invalid_requests:
             with self.subTest(fields=fields):
                 response = self.upload(**fields)
                 self.assertEqual(response.status_code, 400)
+                self.assertEqual(response.get_json()["error"], expected_error)
                 self.assertEqual(self.queued_jobs, [])
 
     def test_sec03_rejects_unknown_status_without_changing_video(self):
